@@ -14,10 +14,10 @@ Clean has three level of features:
 	Clean::Driver or other class. Generally a module is defined in a dynamic library (Core::Dynlib) and usually 
 	registers a driver into the Core class. However, any class can be added to the engine through this system.
 - Main: Main program executed when compiling the Clean project. While Clean works with a core library and some external 
-	modules, it seemed simplier to make templated projects for a user to use the engine. This way, Clean does not require
-	a program user to install Clean engine headers and library to shared folders (like /usr/lib or else) and this make 
-	MAC OS and Windows project creationg much more easier (local installation of library through a program like NullSoft
-	is made possible).
+	modules, it seemed simplier to make templated projects for a user to use the engine. This way, Clean does not 
+	require a program user to install Clean engine headers and library to shared folders (like /usr/lib or else) and 
+	this makes MAC OS and Windows project creationg much more easier (local installation of library through a program 
+	like NullSoft is made possible).
 
 To compile your program, just follow the instructions in Main/CMakeLists.txt. This is where your program's sources must 
 be declared (under Main/src directory). If you want to add other features to this compilation, feel free to change the CMakeLists.txt
