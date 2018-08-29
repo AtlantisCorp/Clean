@@ -1,0 +1,24 @@
+Clean C++ Game Engine
+
+Clean is a game engine coded in C++. It tries to make things clean and simple, without overbooking the 
+user with useless options. However, Clean tries also to keep low level options available when the user 
+wants it. 
+
+Clean is powered by a simple Clean::Core class, instanciated by a main program and used by all other classes
+of the Clean engine. After creating the Clean::Core class, all features are available.
+ 
+Clean has three level of features: 
+- Core: This represents the Clean library without any specific implementations, but with all interfaces. This is
+	what all modules and programs must include to work with Clean engine.
+- Modules: External piece of code loaded at startup (or later) to register some custom made classes, like a specific
+	Clean::Driver or other class. Generally a module is defined in a dynamic library (Core::Dynlib) and usually 
+	registers a driver into the Core class. However, any class can be added to the engine through this system.
+- Main: Main program executed when compiling the Clean project. While Clean works with a core library and some external 
+	modules, it seemed simplier to make templated projects for a user to use the engine. This way, Clean does not require
+	a program user to install Clean engine headers and library to shared folders (like /usr/lib or else) and this make 
+	MAC OS and Windows project creationg much more easier (local installation of library through a program like NullSoft
+	is made possible).
+
+To compile your program, just follow the instructions in Main/CMakeLists.txt. This is where your program's sources must 
+be declared (under Main/src directory). If you want to add other features to this compilation, feel free to change the CMakeLists.txt
+file as you want, but remember Core files must be included (and CleanCore library also). 
