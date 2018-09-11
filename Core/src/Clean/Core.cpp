@@ -40,6 +40,9 @@ namespace Clean
         dynlibManager = AllocateShared < DynlibManager >();
         assert(dynlibManager && "Can't allocate Clean::DynlibManager.");
         
+        windowManager = AllocateShared < WindowManager >();
+        assert(windowManager && "Can't allocate Clean::WindowManager.");
+        
         modulesDirectories.push_back("Modules");
         loadAllModules();
     }
@@ -129,5 +132,10 @@ namespace Clean
     std::size_t Core::getModuleCount() const 
     {
         return moduleManager->count();
+    }
+    
+    std::shared_ptr < Driver > Core::findDriver(std::string const& name) 
+    {
+        return driverManager->findDriverByName(name);
     }
 }

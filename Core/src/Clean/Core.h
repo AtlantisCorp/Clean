@@ -8,6 +8,7 @@
 #include "NotificationListener.h"
 #include "ModuleManager.h"
 #include "DynlibManager.h"
+#include "WindowManager.h"
 
 #include <memory>
 #include <atomic>
@@ -44,6 +45,16 @@ namespace Clean
      * ModuleManager for this particular Dynlib and calls 'Module::unload()' if the Modules are not already 
      * destroyed by the ModuleManager. (Modules are stored as std::weak_ptr inside Dynlib.)
      *
+     * Modules unloading and lifetime of Core::Driver 
+     *
+     * When a module is unloaded, if it has registered a Core::Driver to the DriverManager, it must unregister
+     * it at this moment. Two methods can be used: by directly unregistering it from the module's stop function,
+     * or by registering a listener to the module's ModuleWillStop event and unregister the driver at this moment. 
+     * In both ways, the driver will be destroyed only when all shared_ptr holding the driver will be destroyed. 
+     * It means that unregistering the driver will not necessarily destroy it. However, module's unloading means 
+     * Dynlib unloading and thus, the piece of code that manages the driver will be unlinked. This is why Driver
+     * should always implement Driver::destroy() instead of releasing its resources in the destructor. 
+     *
     **/
     class Core final
     {
@@ -55,6 +66,12 @@ namespace Clean
         
         //! @brief Dynamic library manager. 
         std::shared_ptr < DynlibManager > dynlibManager;
+        
+        //! @brief Driver manager.
+        std::shared_ptr < DriverManager > driverManager;
+        
+        //! @brief Window Manager instance. 
+        std::shared_ptr < WindowManager > windowManager;
         
         //! @brief Directories used to load modules. 
         std::list < std::string > modulesDirectories;
@@ -113,6 +130,9 @@ namespace Clean
         
         /*! @brief Returns number of modules in moduleManager. */
         std::size_t getModuleCount() const;
+        
+        /*! @brief Finds a driver with given name. */
+        std::shared_ptr < Driver > findDriver(std::string const& name);
     };
 }
 

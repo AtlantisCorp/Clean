@@ -94,6 +94,25 @@ namespace Clean
             }
         }
         
+        /*! @brief Calls a callback on each managed objects in a non-blocking way.
+         *
+         * When this function is called, it copies the current list of managed objects and then call
+         * the given callback on each object of the copied list. Mutex is unlocked before calling the
+         * callback, thus liberating other objects to using this Manager. 
+         *
+        **/
+        template < typename Callback > void forEachCpy(Callback cbk)
+        {
+            managedListMutex.lock();
+            auto listCopy = managedList;
+            managedListMutex.unlock();
+            
+            for (auto& managed : listCopy)
+            {
+                cbk(managed);
+            }
+        }
+        
         /*! @brief Returns true if the given managed object is already in this manager. */
         bool exists(std::shared_ptr < Managed > const& rhs) const 
         {

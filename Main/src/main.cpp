@@ -102,6 +102,64 @@ int main()
         auto window = gldriver->createRenderWindow(1024, 768, "RenderWindow Title");
         assert(window && "Can't create RenderWindow.");
         
+        // Now that we have a window, and a driver. We must create our default RenderQueue and store its handle, in order
+        // to communicate RenderCommands to the driver. The driver will dispatch each command to the given target, which 
+        // might be a RenderWindow, or a generic RenderTarget. 
+        
+        auto defaultQueue = gldriver->createRenderQueue(kRenderQueuePriorityHighest, kRenderQueueStatic, 20);
+        
+        // A RenderCommand is defined by a target to commit to, a pipeline state, and multiple RenderSubCommands. Each of 
+        // those sub commands defines one draw. A draw is a work submitted to a driver with a valid target, pipeline state,
+        // vertex buffer. Some other buffers may be given like index buffer and texture buffers. 
+        
+        auto firstCommand = gldriver->createRenderCommand();
+        firstCommand.target = window;
+        
+        // Now we will load a shader and add it to the pipeline state. For now, we will only load the default shader for 
+        // two stages, Vertex and Fragment stages. Notes that shader objects are stored as shared pointers. 
+        
+        auto vertexShader = gldriver->findDefaultShaderForStage(kShaderStageVertex);
+        firstCommand.pipeline->shader(kShaderStageVertex, vertexShader);
+        auto fragmentShader = gldriver->findDefaultShaderForStage(kShaderStageFragment);
+        firstCommand.pipeline->shader(kShaderStageFragment, fragmentShader);
+        
+        // Now we have to load our vertex buffer from our .obj file. This is done by loading a Mesh structure, and requesting
+        // its vertex buffer. As we know our mesh only contains one object, we will directly load its first vertex buffer. We
+        // must ensure a loader is available to load our Mesh.
+        
+        auto loader = core.findFileLoader < Mesh >("obj");
+        assert(loader && "No loader found to load OBJ file.");
+        
+        auto mesh = loader->load("./example.obj");
+        assert(mesh && "Can't load ./example.obj file.");
+        
+        // Our mesh is loaded, but all its data is on the RAM. We want those buffers to be on GPU! However, Clean engine is 
+        // optimized in the case multiple drivers are concurrently running. Thus, we must associate a Mesh to a driver. This 
+        // will make our Mesh generate buffers from the given driver. 
+        
+        assert(mesh->associate(driver) && "Can't associate Mesh with our driver.");
+        auto firstVertexBuffer = mesh->findAssociatedBuffers(driver, kBufferTypeVertex).front();
+        assert(firstVertexBuffer && "Can't find VertexBuffer associated to driver.");
+        
+        // We have our shader, and our buffer. However, how do we make the link between the two ? Clean engine proposes a simple
+        // yet complicated system of a Clean::ShaderMapper class. This class obviously maps a list of buffers onto the given shader,
+        // by returning a Clean::AttributesMap. A RenderSubCommand holds only one AttributesMap.
+        
+        // To create your own ShaderMapper, only creates a new class derived from Clean::ShaderMapper. Override method 'map()' and
+        // you're done! When loading your shader, be sure to set its mapper with 'Shader::setMapper(myMapper)'. The mapper is owned
+        // by the shader so you don't have to keep a copy. Clean::Shader::map uses this mapper to map the given list of buffers to 
+        // the attributes in the shader. We have to use this system because only the shader creator can know which attributes are
+        // in its shader. You also can use Clean::CbkShaderMapper to set 'map()' to your own callback, thus enabling lambdas to define
+        // a new ShaderMapper. 
+        
+        firstCommand.sub(kSubCommandDrawVertex, vertexShader->map({firstVertexBuffer}));
+        
+        // We can add our command to our RenderQueue. This must be done only *after* the command is completed, because
+        // RenderQueue adds its command by moving objects. Updating a command already added will not take effect in the
+        // RenderQueue. 
+        
+        queue->addCommand(std::move(firstCommand));
+        
         // Update loop for our driver. Clean::Driver::update commits all rendering jobs to the renderer, and updates
         // every window created by this driver. Calling Clean::WindowManager::updateAll() would only updates each Window
         // with their update implementation, but would not commit rendering jobs and swap buffers of the rendering swap 

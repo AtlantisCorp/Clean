@@ -25,9 +25,14 @@ namespace Clean
     };
     
     /*! @brief Emitted when a pointer required non null is null. */
-    class NullPointerException : public Exception 
-    {
+    class NullPointerException : public Exception {
     public:
+        using Exception::Exception;
+    };
+    
+    /*! @brief Emitted when a constant is ill-formed (not a valid value). */
+    class IllformedConstantException : public Exception {
+    public: 
         using Exception::Exception;
     };
 }
