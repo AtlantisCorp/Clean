@@ -20,5 +20,10 @@ Clean has three level of features:
 	like NullSoft is made possible).
 
 To compile your program, just follow the instructions in Main/CMakeLists.txt. This is where your program's sources must 
-be declared (under Main/src directory). If you want to add other features to this compilation, feel free to change the CMakeLists.txt
-file as you want, but remember Core files must be included (and CleanCore library also).
+be declared (under Main/src directory). If you want to add other features to this compilation, feel free to change the 
+CMakeLists.txt file as you want, but remember Core files must be included (and CleanCore library also).
+
+Dependancies:
+
+Sole UUID library
+Copyright (c) 2015 r-lyeh (https://github.com/r-lyeh)
