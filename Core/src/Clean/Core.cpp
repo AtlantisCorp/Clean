@@ -5,11 +5,11 @@
 #include "Allocate.h"
 #include "Exception.h"
 
-namespace Clean 
+namespace Clean
 {
     std::unique_ptr < Core > Core::instance = nullptr;
     std::atomic_flag Core::once;
-    
+
     Core& Core::Create(std::shared_ptr < NotificationListener > const& listener)
     {
         if (!once.test_and_set())
@@ -18,81 +18,82 @@ namespace Clean
             assert(instance && "Invalid allocation of Clean::Core.");
             instance->getNotificationCenter()->addListener(listener);
         }
-        
+
         if (!instance) throw NullPointerException("Null Core::instance pointer.");
         return *instance;
     }
-    
+
     Core& Core::Get()
     {
         if (!instance) throw NullPointerException("Null Core::instance pointer.");
         return *instance;
     }
-    
+
     Core::Core()
     {
         notificationCenter = AllocateShared < NotificationCenter >();
         assert(notificationCenter && "Can't allocate Clean::NotificationCenter.");
-        
+        std::atomic_store(&NotificationCenter::defaultCenter, notificationCenter);
+
         moduleManager = AllocateShared < ModuleManager >();
         assert(moduleManager && "Can't allocate Clean::ModuleManager.");
-        
+
         dynlibManager = AllocateShared < DynlibManager >();
         assert(dynlibManager && "Can't allocate Clean::DynlibManager.");
-        
+
         windowManager = AllocateShared < WindowManager >();
         assert(windowManager && "Can't allocate Clean::WindowManager.");
-        
+
         modulesDirectories.push_back("Modules");
         loadAllModules();
     }
-    
+
     Core::~Core()
     {
-        
+        clearFileLoaders();
     }
-    
+
     std::shared_ptr < NotificationCenter > Core::getNotificationCenter()
     {
         return notificationCenter;
     }
-    
+
     std::size_t Core::loadAllModules(std::uint8_t const& loadMode)
     {
         std::lock_guard < std::mutex > lck(modulesDirMutex);
         assert(dynlibManager && moduleManager && "Invalid managers.");
         std::size_t result = 0;
-        
+
         for (auto& dir : modulesDirectories)
         {
             std::string path = Platform::PathConcatenate(dir, std::string("*.") + kDynlibFileExtension);
             auto files = Platform::FindFiles(path, Platform::kFindFilesNotRecursive);
-            
+
             for (auto& file : files)
             {
                 auto dynlib = dynlibManager->findFromFile(file);
-                
+
                 if (dynlib && (loadMode == kModulesLoadReload))
                 {
-                    dynlib.forEachModules([](Module& module){ 
-                        module.reload(); 
+                    dynlib.forEachModules([](Module& module){
+                        module.reload();
                     });
                 }
-                
+
                 else if (!dynlib)
                 {
-                    try 
+                    try
                     {
                         dynlib = AllocateShared < Dynlib >(file);
                         dynlibManager->add(dynlib);
-                        
+
                         ModuleGetFirstModuleInfosCbk callback = (ModuleGetFirstModuleInfosCbk) dynlib->symbol(kModuleGetFirstModuleInfosCbk);
-                        
+
                         if (callback)
                         {
                             ModuleInfos* infos = callback();
-                            
-                            do 
+
+                            do
                             {
                                 try
                                 {
@@ -102,19 +103,19 @@ namespace Clean
                                     moduleManager->add(module);
                                     result++;
                                 }
-                                
+
                                 catch(ModuleInfosException const& e)
                                 {
-                                    Notification notif = BuildNotification(kNotificationLevelError, 
-                                                                           "Module %s cannot be loaded: %s", 
-                                                                           infos->name, e.what());
+                                    Notification notif = BuildNotification(kNotificationLevelError,
+                                                                           "Module %s cannot be loaded: %s",
+                                                                           infos->name.data(), e.what());
                                     notificationCenter->send(notif);
                                 }
                             }
                             while((infos = infos->next) != NULL)
                         }
                     }
-                    
+
                     catch(DynlibLoadException const& e)
                     {
                         Notification notif = BuildNotification(kNotificationLevelError,
@@ -125,17 +126,23 @@ namespace Clean
                 }
             }
         }
-        
+
         return result;
     }
-    
-    std::size_t Core::getModuleCount() const 
+
+    std::size_t Core::getModuleCount() const
     {
         return moduleManager->count();
     }
-    
-    std::shared_ptr < Driver > Core::findDriver(std::string const& name) 
+
+    std::shared_ptr < Driver > Core::findDriver(std::string const& name)
     {
         return driverManager->findDriverByName(name);
+    }
+
+    void Core::clearFileLoaders()
+    {
+        std::scoped_lock < std::mutex > lck(fileLoadersMutex);
+        fileLoaders.clear();
     }
 }

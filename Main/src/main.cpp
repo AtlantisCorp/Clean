@@ -138,8 +138,14 @@ int main()
         // will make our Mesh generate buffers from the given driver. 
         
         assert(mesh->associate(driver) && "Can't associate Mesh with our driver.");
-        auto firstVertexBuffer = mesh->findAssociatedBuffers(driver, kBufferTypeVertex).front();
-        assert(firstVertexBuffer && "Can't find VertexBuffer associated to driver.");
+        auto descriptor = mesh->findAssociatedDescriptors(driver).front();
+        assert(descriptor && "Can't find VertexBuffer associated to driver.");
+        
+        // VertexDescriptor describe how to render one SubMesh. Mesh::findAssociatedDescriptors return a list of VertexDescriptor 
+        // which can render every mesh's submeshes for the given driver. Those descriptors needs to be mapped to ShaderAttributes
+        // by ShaderMapper. Notices that one descriptor is one submesh, but may represent multiple buffers (if submesh's data are
+        // not interleaved inside one buffer). You can also use Mesh::populateRenderCommand(driver, firstCommand, vertexShader) as 
+        // it will generate a RenderCommand::sub for the given shader from our driver, with the correct subcommand type. 
         
         // We have our shader, and our buffer. However, how do we make the link between the two ? Clean engine proposes a simple
         // yet complicated system of a Clean::ShaderMapper class. This class obviously maps a list of buffers onto the given shader,
@@ -152,7 +158,7 @@ int main()
         // in its shader. You also can use Clean::CbkShaderMapper to set 'map()' to your own callback, thus enabling lambdas to define
         // a new ShaderMapper. 
         
-        firstCommand.sub(kSubCommandDrawVertex, vertexShader->map({firstVertexBuffer}));
+        firstCommand.sub(kSubCommandDrawVertex, vertexShader->map(*first));
         
         // We can add our command to our RenderQueue. This must be done only *after* the command is completed, because
         // RenderQueue adds its command by moving objects. Updating a command already added will not take effect in the

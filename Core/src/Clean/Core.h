@@ -4,6 +4,7 @@
 #ifndef CLEAN_CORE_H
 #define CLEAN_CORE_H
 
+#include "Traits.h"
 #include "NotificationCenter.h"
 #include "NotificationListener.h"
 #include "ModuleManager.h"
@@ -45,8 +46,7 @@ namespace Clean
      * ModuleManager for this particular Dynlib and calls 'Module::unload()' if the Modules are not already 
      * destroyed by the ModuleManager. (Modules are stored as std::weak_ptr inside Dynlib.)
      *
-     * Modules unloading and lifetime of Core::Driver 
-     *
+     * ### Modules unloading and lifetime of Core::Driver 
      * When a module is unloaded, if it has registered a Core::Driver to the DriverManager, it must unregister
      * it at this moment. Two methods can be used: by directly unregistering it from the module's stop function,
      * or by registering a listener to the module's ModuleWillStop event and unregister the driver at this moment. 
@@ -54,6 +54,13 @@ namespace Clean
      * It means that unregistering the driver will not necessarily destroy it. However, module's unloading means 
      * Dynlib unloading and thus, the piece of code that manages the driver will be unlinked. This is why Driver
      * should always implement Driver::destroy() instead of releasing its resources in the destructor. 
+     *
+     * ### Management of FileLoaders
+     * A FileLoader is managed upon the following principles: a common base class, FileLoaderInterface, is used
+     * to store all FileLoaders in a std::vector. A template class, FileLoader, is used to define a loader for 
+     * a specific type, like Mesh. All loaders that loads a Mesh will derives from the specialized class  
+     * FileLoader < Mesh >. Taking as example an md5 mesh loader, it will derive from FileLoader < Mesh >. It will
+     * override its specialized method. 
      *
     **/
     class Core final
@@ -78,6 +85,15 @@ namespace Clean
         
         //! @brief Protects modulesDirectories. 
         std::mutex modulesDirMutex;
+        
+        //! @brief Stores a list of shared FileLoaderInterface. 
+        typedef std::vector < std::shared_ptr < FileLoaderInterface > > SVFileLoaders;
+        
+        //! @brief Registers FileLoaderInterface for each typeid. 
+        std::map < std::type_index, SVFileLoaders > fileLoaders; 
+        
+        //! @brief Protects fileLoaders.
+        std::mutex fileLoadersMutex;
         
         //! @brief Core instance. Initialized once by Create().
         static std::unique_ptr < Core > instance;
@@ -133,6 +149,53 @@ namespace Clean
         
         /*! @brief Finds a driver with given name. */
         std::shared_ptr < Driver > findDriver(std::string const& name);
+        
+        /*! @brief Adds a file loader to the engine. */
+        template < class ResultType, class LoaderType >
+        void addFileLoader(std::shared_ptr < LoaderType > const& loader) 
+        {
+            assert(loader && "Invalid FileLoader pointer.");
+            constexpr const std::type_index idx = typeid(ResultType);
+            std::shared_ptr < FileLoaderInterface > basePtr = std::static_pointer_cast < FileLoaderInterface >(loader);
+            
+            std::scoped_lock < std::mutex > lck(fileLoadersMutex);
+            fileLoaders[idx].push_back(basePtr);
+        }
+        
+        /*! @brief Finds the first loader responding to given extension for the desired type, 
+         * or returns nullptr if none were found. */
+        template < class ResultType > 
+        auto findFileLoader(std::string const& ext) -> std::shared_ptr < FileLoader < ResultType > >
+        {
+            constexpr const std::type_index idx = typeid(ResultType);
+            std::scoped_lock < std::mutex > lck(fileLoadersMutex);
+            auto it = fileLoaders.find(idx);
+            if (it == fileLoaders.end()) return nullptr;
+            
+            for (auto& loader : it->second)
+            {
+                assert(loader && "Invalid FileLoader pointer.");
+                if (loader->isLoadable(ext)) return ReinterpretShared < FileLoader < ResultType > >(loader);
+            }
+            
+            return nullptr;
+        }
+        
+        /*! @brief Returns all file loaders for a given type. */
+        template < class ResultType > 
+        auto findAllFileLoaders() -> std::vector < std::shared_ptr < FileLoader < ResultType > > >
+        {
+            typedef std::vector < std::shared_ptr < FileLoader < ResultType > > > SVResult;
+            constexpr const std::type_index idx = typeid(ResultType);
+            std::scoped_lock < std::mutex > lck(fileLoadersMutex);
+            auto it = fileLoaders.find(idx);
+            if (it == fileLoaders.end()) return SVResult();
+            
+            return it->second;
+        }
+        
+        /*! @brief Clear all file loaders. */
+        void clearFileLoaders();
     };
 }
 

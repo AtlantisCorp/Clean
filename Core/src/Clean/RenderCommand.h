@@ -7,12 +7,11 @@
 #include "RenderTarget.h"
 #include "RenderPipeline.h"
 #include "RenderSubCommand.h"
-#include "AttributesMap.h"
-#include "IndexedBufferInfos.h"
+#include "ShaderAttribute.h"
 
 #include <cstdint>
 #include <memory>
-#include <list>
+#include <vector>
 
 namespace Clean 
 {
@@ -45,17 +44,28 @@ namespace Clean
         std::shared_ptr < RenderPipeline > pipeline = nullptr;
         
         //! @brief List of RenderSubCommands that have to be executed by the driver. 
-        std::list < RenderSubCommand > subCommands;
+        std::vector < RenderSubCommand > subCommands;
         
-        /*! @brief Creates a new sub command with its type, its AttributesMap and its IndexedBufferInfos if there is one.
+        /*! @brief Creates a new sub command with its type and its ShaderAttributesMap.
          *
          * \param[in] type SubCommand type, can be kRenderSubCommandVertex, kRenderSubCommandIndexed. Default 
          *      is not indexed.
-         * \param[in] attribs Map of Attributes. \sa Clean::AttributesMap 
-         * \param[in] indexedInfos Infos to bind the indexed buffer to the pipeline. 
+         * \param[in] attribs Map of Attributes. \sa Clean::ShaderAttributesMap
          *
         **/
-        void sub(std::uint8_t type, AttributesMap const& attribs, IndexedBufferInfos const& indexedInfos = IndexedBufferInfos());
+        void sub(std::uint8_t type, ShaderAttributesMap const& attribs);
+        
+        /*! @brief Creates multiple sub command with the same drawing type. 
+         *
+         * This function allow multiple sub command generation. Pre-allocation of space for the RenderCommands
+         * allows faster generation. 
+         *
+         * \param[in] type SubCommand type, can be kRenderSubCommandVertex, kRenderSubCommandIndexed. Default 
+         *      is not indexed.
+         * \param[in] attribsVec Vector with Map of Attributes. \sa Clean::ShaderAttributesMap
+         *
+        **/
+        void batchSub(std::uint8_t type, std::vector < ShaderAttributesMap > const& attribsVec);
     };
 }
 
