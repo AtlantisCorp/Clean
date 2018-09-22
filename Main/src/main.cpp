@@ -137,9 +137,8 @@ int main()
         // optimized in the case multiple drivers are concurrently running. Thus, we must associate a Mesh to a driver. This 
         // will make our Mesh generate buffers from the given driver. 
         
-        assert(mesh->associate(driver) && "Can't associate Mesh with our driver.");
-        auto descriptor = mesh->findAssociatedDescriptors(driver).front();
-        assert(descriptor && "Can't find VertexBuffer associated to driver.");
+        mesh->associate(driver);
+        mesh->populateRenderCommand(driver, *vertexShader, firstCommand);
         
         // VertexDescriptor describe how to render one SubMesh. Mesh::findAssociatedDescriptors return a list of VertexDescriptor 
         // which can render every mesh's submeshes for the given driver. Those descriptors needs to be mapped to ShaderAttributes
@@ -158,7 +157,7 @@ int main()
         // in its shader. You also can use Clean::CbkShaderMapper to set 'map()' to your own callback, thus enabling lambdas to define
         // a new ShaderMapper. 
         
-        firstCommand.sub(kSubCommandDrawVertex, vertexShader->map(*first));
+        // firstCommand.sub(kSubCommandDrawVertex, vertexShader->map(*vertexDescriptor));
         
         // We can add our command to our RenderQueue. This must be done only *after* the command is completed, because
         // RenderQueue adds its command by moving objects. Updating a command already added will not take effect in the

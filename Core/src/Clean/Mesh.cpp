@@ -50,7 +50,7 @@ namespace Clean
                 }
                 
                 if (submesh.indexBuffer) {
-                    hardBufferIt = cacheIt->second.buffers.find(submesh.buffer->getHandle());
+                    hardBufferIt = cacheIt->second.buffers.find(submesh.indexBuffer->getHandle());
                     if (hardBufferIt != cacheIt->second.buffers.end()) {
                         finalDescriptor.indexInfos.buffer = hardBufferIt->second;
                     }
@@ -84,7 +84,7 @@ namespace Clean
         return result;
     }
     
-    void Mesh::populateRenderCommands(Driver const& driver, Shader const& shader, RenderCommand const& command)
+    void Mesh::populateRenderCommand(Driver const& driver, Shader const& shader, RenderCommand& command)
     {
         // When we must submit a render command, first try to see if we have pregenerated ShaderAttributesMap
         // for the pair driver/shader. 
@@ -432,6 +432,7 @@ namespace Clean
         submitTransaction(kMeshTransactionAddBuffer, tr);
     }
     
+    /*
     {
         Buffer buf = new GenBuffer(data, size*sizeof(Data), kBufferUsageStatic);
         Buffer ibuf = new GenBuffer(data, size*sizeof(Data), kBufferUsageDynamic);
@@ -442,9 +443,9 @@ namespace Clean
         
         SubMesh submesh;
         submesh.elements = size;
-        submesh.buffer = buf.handle();
+        submesh.buffer = buf;
         submesh.indexCount = idxSize;
-        submesh.indexBuffer = ibuf.handle();
+        submesh.indexBuffer = ibuf;
         submesh.descriptor = descriptor;
         
         Mesh result;
@@ -453,4 +454,5 @@ namespace Clean
         
         result.associate(driver);
     }
+    */
 }

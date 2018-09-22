@@ -32,7 +32,7 @@ namespace Clean
         std::size_t elements = 0;
         
         //! @brief Handle to the buffer we store our submesh in. 
-        std::size_t buffer = 0;
+        std::shared_ptr < Buffer > buffer = nullptr;
 
         //! @brief Offset in the index buffer, if one.
         std::size_t indexOffset = 0;
@@ -42,7 +42,7 @@ namespace Clean
 
         //! @brief Index buffer if there is one. This buffer is only in RAM, but
         //! a VRAM buffer may be available for the current driver.
-        std::size_t indexBuffer = 0;
+        std::shared_ptr < Buffer > indexBuffer = nullptr;
         
         //! @brief Descriptor for each components in the submesh.
         VertexDescriptor descriptor;
@@ -56,6 +56,22 @@ namespace Clean
     static constexpr const std::uint8_t kMeshTransactionBatchUpdateBuffers = 6;
 
     /** @brief Generic representation of a Mesh.
+     *
+     * A Mesh is basically divided in two parts. The 'software' part holds all buffers in RAM, and all informations
+     * about submeshes. This part is accessible freely from the user. The 'hardware' part holds all buffers in VRAM,
+     * and a cached ShaderAttributesMap for each Shader used. 
+     *
+     * As seen above, cache is organized by Driver AND by Shader used to render this Mesh. This lets the mesh caches
+     * all the data any driver/shader pair may need to render it correctly. 
+     *
+     * Transactional update of cache
+     * Whenever a user (or any kind of user/developer) needs to update the Mesh's buffers, the cache shouldn't be cleared
+     * and rebuilt (this is a slow method). Instead, VRAM buffers should be updated normally with the new data. For all 
+     * operations on the mesh (add/remove submeshes, add/update one or multiple buffers), a Transaction is commited into 
+     * the Driver's cache queue. When the driver render the Mesh, it can use Mesh::update() to allocate the Mesh some time
+     * to collect those Transactions and update its cache. This way, Mesh's cache update is done in the rendering thread,
+     * asynchroneously from other Mesh's operations. 
+     *
     **/
     class Mesh final : public Handled < Mesh >
     {
@@ -144,7 +160,7 @@ namespace Clean
          * function is called. Uses this function in your rendering thread.
          *
         **/
-        void populateRenderCommands(Driver const& driver, Shader const& shader, RenderCommand const& command);
+        void populateRenderCommand(Driver const& driver, Shader const& shader, RenderCommand& command);
         
         /*! @brief Finds ShaderAttributesMap cached for given Driver and Shader.
          *

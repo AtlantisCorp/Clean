@@ -5,6 +5,7 @@
 #define CLEAN_SHADERATTRIBUTE_H
 
 #include "Buffer.h"
+#include "IndexedInfos.h"
 
 #include <cstdint>
 #include <memory>

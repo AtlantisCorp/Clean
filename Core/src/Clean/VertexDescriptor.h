@@ -5,6 +5,7 @@
 #define CLEAN_VERTEXDESCRIPTOR_H
 
 #include "Buffer.h"
+#include "IndexedInfos.h"
 
 #include <cstddef>
 #include <cstdint>

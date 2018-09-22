@@ -8,10 +8,32 @@
 
 namespace Clean
 {
+    //! @defgroup BufferIOOperationsGroup Buffer IO Operations
+    /** @brief Defines IO operations for a buffer. 
+     *  @{ 
+    **/
+    
     static constexpr const std::uint8_t kBufferIONull = 0;
     static constexpr const std::uint8_t kBufferIOReadOnly = 1;
     static constexpr const std::uint8_t kBufferIOWriteOnly = 2;
     static constexpr const std::uint8_t kBufferIOReadWrite = 3;
+    
+    /** @} */
+    
+    /** @defgroup BufferTypeGroup Buffer generic types 
+     *  @{ 
+    **/
+    
+    static constexpr const std::uint8_t kBufferTypeVertex = 0;
+    static constexpr const std::uint8_t kBufferTypeIndex = 1;
+    
+    /** @} */
+    
+    static constexpr const std::uint8_t kBufferDataUnknown = 0;
+    
+    static constexpr const std::uint8_t kBufferUsageStatic = 0;
+    static constexpr const std::uint8_t kBufferUsageDynamic = 1;
+    static constexpr const std::uint8_t kBufferUsageStream = 2;
 
     /** @brief Generic buffer interface.
      *
@@ -33,7 +55,7 @@ namespace Clean
         virtual ~Buffer() = default;
 
         /*! @brief Returns a pointer to the data held by this buffer. */
-        virtual const void* getData() = 0;
+        virtual const void* getData() const = 0;
 
         /*! @brief Locks the buffer for given operation and returns its data pointer. */
         virtual void* lock(std::uint8_t io = kBufferIOReadWrite) = 0;
@@ -46,6 +68,23 @@ namespace Clean
 
         /*! @brief Returns buffer's data type. */
         virtual std::uint8_t getDataType() const = 0;
+        
+        /*! @brief Updates the buffer with new data. 
+         * 
+         * Any pre-existing data is deleted, and a new buffer is created. Depending on acquire value,
+         * given data is moved (acquire is true) or copied into a new buffer (acquire is false). While
+         * moving only the data is faster and does not imply a new allocation call, it requires the user
+         * not to delete this data externally. Using the default copying method if you don't have full
+         * control over that memory. 
+         *
+         * \note If the buffer is not stored into RAM, acquire is ignored and the data is always copied.
+         * No data can be moved from RAM to VRAM. 
+         *
+        **/
+        virtual void update(const void* data, std::size_t size, std::uint8_t usage, bool acquire = false) = 0;
+        
+        /*! @brief Returns the usage for this buffer. */
+        virtual std::uint8_t getUsage() const = 0;
     };
 }
 
