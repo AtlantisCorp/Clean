@@ -25,6 +25,9 @@ namespace Clean
         ~RenderWindowManager();
         
         bool allWindowClosed() const;
+        
+        /*! @brief Calls Window::update() on all registered windows. */
+        void updateAllWindows();
     };
 }
 

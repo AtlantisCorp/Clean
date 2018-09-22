@@ -234,8 +234,7 @@ namespace Clean
         
         while (!driverQueue.empty() || elapsed < maxTime)
         {
-            elapsed = duration_cast < milliseconds >(high_precision_clock::now() - tnow);
-            Transaction tr = driverQueue.front();
+            Transaction tr = std::move(driverQueue.front());
             driverQueue.pop();
             
             if (!tr.valid())
@@ -287,8 +286,8 @@ namespace Clean
                     NotificationCenter::GetDefault()->send(errNotif);
                 }
                 
-                else {
-                    hardBuffer->update(data->buffer->getData(), data->buffer->getSize());
+                else if (hardBuffer != data->buffer) {
+                    hardBuffer->update(data->buffer->getData(), data->buffer->getSize(), data->buffer->getUsage());
                 }
             }
             
@@ -345,11 +344,13 @@ namespace Clean
                         NotificationCenter::GetDefault()->send(errNotif);
                     }
                 
-                    else {
-                        hardBuffer->update(buffer->getData(), buffer->getSize());
+                    else if (hardBuffer != buffer) {
+                        hardBuffer->update(buffer->getData(), buffer->getSize(), buffer->getUsage());
                     }
                 }
             }
+            
+            elapsed = duration_cast < milliseconds >(high_precision_clock::now() - tnow);
         }
         
         // If we are here, this means either TransactionQueue is empty or elapsedTime is > to maxTime. 

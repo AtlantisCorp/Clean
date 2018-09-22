@@ -181,9 +181,6 @@ namespace Clean
         /*! @brief Commits all RenderQueue objects to the driver. */
         virtual void commitAllQueues();
         
-        /*! @brief Commits given RenderQueue to this driver, if the queue is registered by this driver. */
-        virtual void commit(std::shared_ptr < RenderQueue > const& queue) = 0;
-        
         /*! @brief Creates a RenderQueue. 
          *
          * \param[in] priority RenderQueueManager stores RenderQueue inside a map where each key is the queue
@@ -199,7 +196,29 @@ namespace Clean
          *
          * \return A valid pointer to a new RenderQueue, or nullptr.
         **/
-        virtual std::shared_ptr < RenderQueue > createRenderQueue(std::uint8_t priority, std::uint8_t type);
+        virtual std::shared_ptr < RenderQueue > makeRenderQueue(std::uint8_t priority, std::uint8_t type);
+        
+        /*! @brief Commits given RenderQueue to this driver, if the queue is registered by this driver. */
+        virtual void commit(std::shared_ptr < RenderQueue > const& queue);
+        
+        /*! @brief Renders a RenderCommand. */
+        virtual void renderCommand(RenderCommand const& command);
+        
+        /*! @brief Draws a ShaderAttributesMap element. 
+         *
+         * Called in \ref renderCommand(), this function assumes everything is set up to draw some vertexes or some
+         * indexes. It represents the final draw call when rendering a RenderSubCommand, and can only be implemented
+         * by a derived Driver. 
+         *
+         * Only two elements in ShaderAttributesMap should be used by this function: indexInfos if indexInfos.elements
+         * is superior to zero (which means indexed drawing), or elements if indexInfos.elements is zero (which means
+         * normal vertex draw). For now, drawingMode has no purpose and can be ignored.
+         *
+        **/
+        virtual void drawShaderAttributes(std::uint8_t drawingMode, ShaderAttributesMap const& attributes) = 0;
+        
+        /*! @brief Creates a new RenderCommand. */
+        virtual RenderCommand makeRenderCommand() const = 0;
         
     protected:
         

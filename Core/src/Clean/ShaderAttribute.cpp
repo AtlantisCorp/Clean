@@ -6,20 +6,24 @@
 
 namespace Clean 
 {
-    ShaderAttribute ShaderAttribute::Enabled(std::uint8_t index, std::ptrdiff_t offset, std::ptrdiff_t stride, std::size_t elements,
+    ShaderAttribute ShaderAttribute::Enabled(std::uint8_t index, std::ptrdiff_t offset, std::ptrdiff_t stride,
                                              std::shared_ptr < Buffer > const& buffer)
     {
         ShaderAttribute result;
         result.index = index_;
         result.ofset = offset;
         result.stride = stride;
-        result.elements = elements;
         result.buffer = buffer;
         result.enabled = true;
         return std::move(result);
     }
     
     ShaderAttributesMap::ShaderAttributesMap() : attribs{ ShaderAttribute() }
+    {
+        
+    }
+    
+    ShaderAttributesMap::ShaderAttributesMap(std::size_t count) : attribs{ ShaderAttribute() }, elements(count) 
     {
         
     }
@@ -62,5 +66,15 @@ namespace Clean
     IndexedInfos ShaderAttributesMap::getIndexedInfos() const 
     {
         return indexInfos;
+    }
+    
+    void ShaderAttributesMap::setElements(std::size_t count) 
+    {
+        elements = count;
+    }
+    
+    std::size_t ShaderAttributesMap::getElements() const 
+    {
+        return elements;
     }
 }

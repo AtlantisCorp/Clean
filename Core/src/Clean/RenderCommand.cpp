@@ -22,4 +22,10 @@ namespace Clean
             subCommands.push_back(subCommand);
         }
     }
+    
+    void RenderCommand::bind(Driver& driver) const 
+    {
+        if (target) target->bind(driver);
+        if (pipeline) pipeline->bind(driver);
+    }
 }

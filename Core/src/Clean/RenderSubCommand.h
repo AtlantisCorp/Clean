@@ -5,6 +5,7 @@
 #define CLEAN_RENDERSUBCOMMAND_H
 
 #include "ShaderAttribute.h"
+#include "ShaderParameter.h"
 
 namespace Clean 
 {
@@ -25,6 +26,9 @@ namespace Clean
         
         //! @brief Attributes for Vertexes and Indexes to render this sub command.
         ShaderAttributesMap attributes;
+        
+        //! @brief Lists ShaderParameters set for this sub command. 
+        std::vector < ShaderParameter > parameters;
         
         RenderSubCommand() = default;
         RenderSubCommand(RenderSubCommand const&) = default;

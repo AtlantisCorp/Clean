@@ -25,4 +25,12 @@ namespace Clean
         
         return result;
     }
+    
+    void RenderWindowManager::updateAllWindows() 
+    {
+        forEach([](std::shared_ptr < RenderWindow > const& window){
+            assert(window && "Null pointer stored.");
+            window->update();
+        });
+    }
 }

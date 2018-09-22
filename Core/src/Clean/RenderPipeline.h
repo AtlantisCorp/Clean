@@ -5,6 +5,7 @@
 #define CLEAN_RENDERPIPELINE_H
 
 #include "Shader.h"
+#include "ShaderParameter.h"
 
 #include <cstdint>
 #include <map>
@@ -13,6 +14,8 @@
 
 namespace Clean 
 {
+    class Driver;
+    
     /** @brief Generic representation of a pipeline state. 
      *
      * It is used by a driver to draw multiple RenderCommands with the same pipeline states. From the view 
@@ -46,6 +49,18 @@ namespace Clean
          *
         **/
         virtual void shader(std::uint8_t stage, std::shared_ptr < Shader > const& shad);
+        
+        /*! @brief Binds this pipeline onto the given Driver. */
+        virtual void bind(Driver& driver) const = 0;
+        
+        /*! @brief Binds multiple parameters onto this pipeline. */
+        virtual void bindParameters(std::vector < ShaderParameter > const& parameters) const = 0;
+        
+        /*! @brief Binds multiple ShaderAttribute onto this pipeline. */
+        virtual void bindShaderAttributes(ShaderAttributesMap const& attributes) const = 0;
+        
+        /*! @brief Sets the current drawing method. */
+        virtual void setDrawingMethod(std::uint8_t drawingMethod) const = 0;
     };
 }
 

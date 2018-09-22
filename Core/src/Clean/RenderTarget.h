@@ -6,6 +6,8 @@
 
 namespace Clean 
 {
+    class Driver;
+    
     /** @brief Generic RenderTarget.
      *
      * A RenderTarget is a target where the driver can render things. It can be a RenderWindow, a RenderSurface,
@@ -29,6 +31,9 @@ namespace Clean
         
         /*! @brief Unlocks the target for other targets to be used. */
         virtual void unlock() = 0;
+        
+        /*! @brief Binds this target onto the given driver. */
+        virtual void bind(Driver& driver) const = 0;
     };
 }
 

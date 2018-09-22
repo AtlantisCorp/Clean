@@ -8,6 +8,7 @@
 #include "RenderPipeline.h"
 #include "RenderSubCommand.h"
 #include "ShaderAttribute.h"
+#include "ShaderParameter.h"
 
 #include <cstdint>
 #include <memory>
@@ -15,6 +16,8 @@
 
 namespace Clean 
 {
+    class Driver;
+    
     /** @brief Basic command executed by a driver. 
      *
      * A RenderCommand holds a pipeline state (RenderPipeline), configured to render the RenderSubCommands described
@@ -46,6 +49,9 @@ namespace Clean
         //! @brief List of RenderSubCommands that have to be executed by the driver. 
         std::vector < RenderSubCommand > subCommands;
         
+        //! @brief Lists ShaderParameters set for this command. 
+        std::vector < ShaderParameter > parameters;
+        
         /*! @brief Creates a new sub command with its type and its ShaderAttributesMap.
          *
          * \param[in] type SubCommand type, can be kRenderSubCommandVertex, kRenderSubCommandIndexed. Default 
@@ -66,6 +72,9 @@ namespace Clean
          *
         **/
         void batchSub(std::uint8_t type, std::vector < ShaderAttributesMap > const& attribsVec);
+        
+        /*! @brief Binds target and pipeline to the given Driver. */
+        void bind(Driver& driver) const;
     };
 }
 

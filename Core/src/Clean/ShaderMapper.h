@@ -48,6 +48,7 @@ namespace Clean
 
         {
             ShaderAttributesMap result(descriptor.indexInfos);
+            if (descriptor.indexInfos.elements == 0) result.setElements(descriptor.localSubmesh.elements);
 
             if (descriptor.has(kVertexComponentColor) && shader.hasAttribute("color"))
             {
@@ -55,7 +56,7 @@ namespace Clean
 
                 ShaderAttribute attrib = ShaderAttribute::Enabled(
                     shader.findAttributeIndex("color"),
-                    infos.offset, infos.stride, infos.elements, infos.buffer
+                    infos.offset, infos.stride, infos.buffer
                 );
 
                 result.add(std::move(attrib));
@@ -67,7 +68,7 @@ namespace Clean
 
                 ShaderAttribute attrib = ShaderAttribute::Enabled(
                     shader.findAttributeIndex("position"),
-                    infos.offset, infos.stride, infos.elements, infos.buffer
+                    infos.offset, infos.stride, infos.buffer
                 );
 
                 result.add(std::move(attrib));
@@ -79,7 +80,7 @@ namespace Clean
 
                 ShaderAttribute attrib = ShaderAttribute::Enabled(
                     shader.findAttributeIndex("texture"),
-                    infos.offset, infos.stride, infos.elements, infos.buffer
+                    infos.offset, infos.stride, infos.buffer
                 );
 
                 result.add(std::move(attrib));

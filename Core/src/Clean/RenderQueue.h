@@ -43,6 +43,12 @@ namespace Clean
         //! @brief Protects commands.
         std::mutex commandsMutex;
         
+        //! @brief Number of commands commited to the queue but not already rendered by the Driver. 
+        //! When a RenderCommand is added, commitedCommands is incremented by one. When \ref nextCommand
+        //! is used, commitedCommands is decreased by one. When a Driver commits a RenderQueue, it will 
+        //! process only this current number of commands. 
+        std::atomic < std::size_t > commitedCommands;
+        
     public:
         
         /*! @brief Constructs the queue. */
@@ -65,6 +71,9 @@ namespace Clean
         
         /*! @brief Returns true if queue is empty. */
         bool isEmpty() const;
+        
+        /*! @brief Returns commitedCommands. */
+        std::size_t getCommitedCommands() const;
     };
 }
 

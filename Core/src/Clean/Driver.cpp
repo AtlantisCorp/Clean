@@ -70,7 +70,7 @@ namespace Clean
         });
     }
     
-    std::shared_ptr < RenderQueue > Driver::createRenderQueue(std::uint8_t priority, std::uint8_t type)
+    std::shared_ptr < RenderQueue > Driver::makeRenderQueue(std::uint8_t priority, std::uint8_t type)
     {
         auto result = _createRenderQueue(type);
         if (!result) return result;
@@ -78,4 +78,78 @@ namespace Clean
         renderQueues.add(priority, result);
         return result;
     }
+    
+    void Driver::commit(std::shared_ptr < RenderQueue > const& queue)
+    {
+        assert(queue && "Null RenderQueue for commitment given.");
+        std::size_t commitedCommands = queue->getCommitedCommands();
+        
+        // From now on, all RenderCommands pushed after this point are ignored by this
+        // function as commitedCommands has already been loaded. Other RenderCommands will
+        // be rendered into next commit, i.e. next frame. 
+        
+        while(commitedCommands)
+        {
+            RenderCommand command = queue->nextCommand();
+            commitedCommands--;
+            renderCommand(command);
+        }
+    }
+    
+    void Driver::renderCommand(RenderCommand const& command)
+    {
+        assert(command.target && command.pipeline && "Null RenderTarget or RenderPipeline for given RenderCommand.");
+        command.bind(*this);
+        
+        // Notes: Now RenderTarget and RenderPipeline are bound. We must ensure all parameters for the render command
+        // are set for the current pipeline. 
+        
+        command.pipeline->bindParameters(command.parameters);
+        
+        // Now just render each subcommands. 
+        
+        for (RenderSubCommand const& subCommand : command.subCommands)
+        {
+            command.pipeline->bindParameters(subCommand.parameters);
+            command.pipeline->bindShaderAttributes(subCommand.attributes);
+            command.pipeline->setDrawingMethod(subCommand.drawingMethod);
+            drawShaderAttributes(subCommand.drawingMode, subCommand.attributes);
+        }
+    }
+    
+    /** Pseudo-code sample for Driver::commit(): 
+    
+    assert(queue && "Null RenderQueue for commitment given.");
+    std::size_t commitedCommands = queue->getCommitedCommands();
+    
+    while(commitedCommands)
+    {
+        RenderCommand command = queue->nextCommand();
+        commitedCommands--;
+        renderCommand(command);
+    }
+    
+    Pseudo-code sample for Driver::renderCommand():
+    
+    command.target.bind()
+    command.bind()
+    command.pipeline.bind()
+    
+    foreach subcommand in command.subcommands
+    
+        renderSubCommand(command.pipeline, subcommand)
+    
+    end foreach
+    
+    Pseudo-code sample for Driver::renderSubCommand():
+    
+    pipeline.bindShaderAttributesMap(subcommand.attributes)
+    pipeline.setDrawingMethod(subcommand.drawingMethod)
+    
+    if (subcommand.attributes.indexInfos)
+        drawIndexedVertexes(subcommand.drawingMode, subcommand.attributes.indexInfos);
+    else 
+        drawVertexes(subcommand.drawingMode, subcommand.attributes.elements);
+    
+    **/
 }

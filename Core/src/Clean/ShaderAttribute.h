@@ -32,9 +32,6 @@ namespace Clean
         //! @brief Stride between two data, in bytes.
         std::ptrdiff_t stride = 0;
         
-        //! @brief Number of elements to bind.
-        std::size_t elements = 0;
-        
         //! @brief Buffer used to bind data. 
         std::shared_ptr < Buffer > buffer = nullptr;
         
@@ -42,7 +39,7 @@ namespace Clean
         bool enabled = false;
         
         /*! @brief Constructs a default enabled ShaderAttribute. */
-        static ShaderAttribute Enabled(std::uint8_t index, std::ptrdiff_t offset, std::ptrdiff_t stride, std::size_t elements,
+        static ShaderAttribute Enabled(std::uint8_t index, std::ptrdiff_t offset, std::ptrdiff_t stride,
                                        std::shared_ptr < Buffer > const& buffer);
         
         /*! @brief Constructs a default disabled ShaderAttribute. */
@@ -82,10 +79,16 @@ namespace Clean
         //! @brief Stores indexed instancing informations.
         IndexedInfos indexInfos;
         
+        //! @brief When not indexed, stores the number of elements to draw.
+        std::size_t elements;
+        
     public:
         
         /*! @brief Default constructor. */
         ShaderAttributesMap() = default;
+        
+        /*! @brief Constructs a ShaderAttributesMap with a number of vertexes to draw. */
+        ShaderAttributesMap(std::size_t count);
         
         /*! @brief Constructs a ShaderAttributesMap with a shared IndexedInfos structure. */
         ShaderAttributesMap(IndexedInfos const& infos);
@@ -110,6 +113,12 @@ namespace Clean
         
         /*! @brief Returns indexInfos. */
         IndexedInfos getIndexedInfos() const;
+        
+        /*! @brief Changes elements. */
+        void setElements(std::size_t count);
+        
+        /*! @brief Returns elements. */
+        std::size_t getElements() const;
     };
 }
 
