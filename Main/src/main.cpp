@@ -50,7 +50,7 @@ class NotificationListener : public Clean::NotificationListener
 public:
     
     /*! @brief Default destructor. */
-    ~NotificationListener() = default;
+    ~NotificationListener() noexcept = default;
     
     /*! @brief Displays notification to std::cout. */
     void process(Clean::Notification const& notification)
@@ -112,7 +112,7 @@ int main()
         // those sub commands defines one draw. A draw is a work submitted to a driver with a valid target, pipeline state,
         // vertex buffer. Some other buffers may be given like index buffer and texture buffers. 
         
-        auto firstCommand = gldriver->createRenderCommand();
+        auto firstCommand = gldriver->makeRenderCommand();
         firstCommand.target = window;
         
         // Now we will load a shader and add it to the pipeline state. For now, we will only load the default shader for 

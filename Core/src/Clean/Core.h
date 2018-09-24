@@ -10,11 +10,14 @@
 #include "ModuleManager.h"
 #include "DynlibManager.h"
 #include "WindowManager.h"
+#include "DriverManager.h"
+#include "FileLoader.h"
 
 #include <memory>
 #include <atomic>
 #include <list>
 #include <mutex>
+#include <typeindex>
 
 namespace Clean 
 {
@@ -155,7 +158,7 @@ namespace Clean
         void addFileLoader(std::shared_ptr < LoaderType > const& loader) 
         {
             assert(loader && "Invalid FileLoader pointer.");
-            constexpr const std::type_index idx = typeid(ResultType);
+            const std::type_index idx = typeid(ResultType);
             std::shared_ptr < FileLoaderInterface > basePtr = std::static_pointer_cast < FileLoaderInterface >(loader);
             
             std::scoped_lock < std::mutex > lck(fileLoadersMutex);
@@ -167,7 +170,7 @@ namespace Clean
         template < class ResultType > 
         auto findFileLoader(std::string const& ext) -> std::shared_ptr < FileLoader < ResultType > >
         {
-            constexpr const std::type_index idx = typeid(ResultType);
+            const std::type_index idx = typeid(ResultType);
             std::scoped_lock < std::mutex > lck(fileLoadersMutex);
             auto it = fileLoaders.find(idx);
             if (it == fileLoaders.end()) return nullptr;
@@ -186,7 +189,7 @@ namespace Clean
         auto findAllFileLoaders() -> std::vector < std::shared_ptr < FileLoader < ResultType > > >
         {
             typedef std::vector < std::shared_ptr < FileLoader < ResultType > > > SVResult;
-            constexpr const std::type_index idx = typeid(ResultType);
+            const std::type_index idx = typeid(ResultType);
             std::scoped_lock < std::mutex > lck(fileLoadersMutex);
             auto it = fileLoaders.find(idx);
             if (it == fileLoaders.end()) return SVResult();
@@ -196,6 +199,9 @@ namespace Clean
         
         /*! @brief Clear all file loaders. */
         void clearFileLoaders();
+        
+        /*! @brief Returns actual WindowManager. */
+        std::shared_ptr < WindowManager > getWindowManager();
     };
 }
 

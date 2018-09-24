@@ -6,6 +6,12 @@
 
 #include "Traits.h"
 
+#include <list>
+#include <shared_mutex>
+#include <mutex>
+#include <queue>
+#include <thread>
+
 namespace Clean 
 {
     //! @defgroup EventEmittingPolicy Event Emitting Policy Constants
@@ -70,7 +76,7 @@ namespace Clean
         /*! @brief Registers a new listener for this emitter. */
         void addListener(std::shared_ptr < Listener > const& listener)
         {
-            std::scoped_lock lck(listenersMutex);
+            std::scoped_lock < std::mutex > lck(listenersMutex);
             listeners.push_back(listener);
         }
     
@@ -84,7 +90,7 @@ namespace Clean
         /*! @brief Removes a listener from this emitter. */
         void removeListener(std::shared_ptr < Listener > const& listener)
         {
-            std::scoped_lock lck(listenersMutex);
+            std::scoped_lock < std::mutex > lck(listenersMutex);
             auto it = std::find_if(listeners.begin(), listeners.end(), [&listener](std::weak_ptr < Listener > const& wl) {
                 return wl.lock() == listener;
             });
@@ -105,15 +111,18 @@ namespace Clean
             if (eventEmittingPolicy.load() == kEventEmittingPolicyAsync)
             {   
                 listenersMutex.lock_shared();
-            
-                std::thread sendThread = std::thread([callback, event, listeners, caller](){
                 
-                    for (auto listener : listeners)
+                auto listenersCopy = listeners;
+                auto callerCopy = caller;
+            
+                std::thread sendThread = std::thread([callback, event, listenersCopy, callerCopy](){
+                
+                    for (auto listener : listenersCopy)
                     {
                         auto slistener = listener.lock();
                         if (!slistener) continue;
                     
-                        caller(callback, slistener.get(), event);
+                        callerCopy(callback, slistener.get(), event);
                     }
                 
                 });

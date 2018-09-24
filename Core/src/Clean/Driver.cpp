@@ -2,6 +2,7 @@
 **/
 
 #include "Driver.h"
+#include "Core.h"
 
 namespace Clean 
 {

@@ -24,4 +24,27 @@ namespace Clean
     {
         return type.load();
     }
+    
+    ShaderAttributesMap Shader::map(VertexDescriptor const& descriptor) const
+    {
+        auto lmapper = std::atomic_load(&mapper);
+        if (lmapper) return lmapper->map(descriptor, *this);
+        return {};
+    }
+    
+    std::vector < ShaderAttributesMap > Shader::map(std::vector < VertexDescriptor > const& descs) const
+    {
+        auto lmapper = std::atomic_load(&mapper);
+        if (!lmapper) return {};
+        
+        std::vector < ShaderAttributesMap > result;
+        result.reserve(descs.size());
+        
+        for (auto const& desc : descs)
+        {
+            result.push_back(lmapper->map(desc, *this));
+        }
+        
+        return result;
+    }
 }

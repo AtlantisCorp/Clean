@@ -6,6 +6,8 @@
 
 #include "Buffer.h"
 
+#include <memory>
+
 namespace Clean 
 {
     /*! @brief Generic informations about an indexed rendering element. 

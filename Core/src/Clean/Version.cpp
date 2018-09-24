@@ -9,8 +9,33 @@ namespace Clean
 {
     static constexpr const std::size_t kVersionComponents = 4;
     
+    Version::Version()
+    {
+        memset(data, 0, kVersionComponents * sizeof(std::uint32_t));
+    }
+    
+    Version::Version(Version const& rhs)
+    {
+        memcpy(data, rhs.data, kVersionComponents * sizeof(std::uint32_t));
+    }
+    
+    Version::Version(Version&& rhs) : data{0}
+    {
+        std::swap(major, rhs.major);
+        std::swap(minor, rhs.minor);
+        std::swap(patch, rhs.patch);
+        std::swap(build, rhs.build);
+    }
+    
+    Version& Version::operator=(Version const& rhs)
+    {
+        memcpy(data, rhs.data, kVersionComponents * sizeof(std::uint32_t));
+        return *this;
+    }
+    
     Version Version::FromString(std::string const& format)
     {
+        Version result;
         std::size_t it = 0;
         
         auto splitted = Platform::Split(format, '.', Platform::kSplitIncludesEmpties);
@@ -18,9 +43,11 @@ namespace Clean
         
         for (auto& comp : splitted)
         {
-            data[it] = std::stoi(comp, nullptr, 10);
+            result.data[it] = std::stoi(comp, nullptr, 10);
             it++;
         }
+        
+        return result;
     }
     
     std::string Version::toString() const 

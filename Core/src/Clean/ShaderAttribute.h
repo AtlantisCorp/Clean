@@ -44,12 +44,6 @@ namespace Clean
         
         /*! @brief Constructs a default disabled ShaderAttribute. */
         ShaderAttribute() = default; 
-        
-        /*! @brief Moves ShaderAttribute. */
-        ShaderAttribute(ShaderAttribute&&) = default;
-        
-        /*! @brief Copies ShaderAttribute. */
-        ShaderAttribute(ShaderAttribute const&) = default;
     };
     
     /** @brief Stores ShaderAttributes into a map-like object. 
@@ -85,7 +79,7 @@ namespace Clean
     public:
         
         /*! @brief Default constructor. */
-        ShaderAttributesMap() = default;
+        ShaderAttributesMap();
         
         /*! @brief Constructs a ShaderAttributesMap with a number of vertexes to draw. */
         ShaderAttributesMap(std::size_t count);
@@ -119,6 +113,9 @@ namespace Clean
         
         /*! @brief Returns elements. */
         std::size_t getElements() const;
+        
+        /*! @brief Returns true if there are one or more attributes. */
+        bool isValid() const;
     };
 }
 

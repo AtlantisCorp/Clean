@@ -42,13 +42,15 @@ namespace Clean
         };
         
         /*! @brief Default constructor. */
-        Version() = default;
+        Version();
         
         /*! @brief Copy constructor. */
-        Version(Version const&) = default;
+        Version(Version const&);
         
         /*! @brief Move constructor. */
-        Version(Version&&) = default;
+        Version(Version&&);
+        
+        Version& operator=(Version const& rhs);
         
         /*! @brief Constructs a Version from a std::string format. 
          *

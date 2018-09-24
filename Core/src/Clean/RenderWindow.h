@@ -26,18 +26,6 @@ namespace Clean
     {   
     public:
         
-        /*! @brief Creates a RenderWindow. 
-         *
-         * \param width Width for this window, in pixels.
-         * \param height Height for this window, in pixels.
-         * \param title Title for the window, if applicable. 
-         * \param style Style for the window. 
-         * \param fullscreen Boolean indicating weither the current RenderWindow should be
-         *      in fullscreen or not. If fullscreen, the RenderWindow will change the display 
-         *      settings when focused. 
-        **/
-        RenderWindow(std::size_t width, std::size_t height, std::string const& title, std::uint16_t style, bool fullscreen) = default;
-        
         /*! @brief Destructs the RenderWindow. */ 
         virtual ~RenderWindow() = default;
         

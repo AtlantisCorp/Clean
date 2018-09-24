@@ -42,7 +42,7 @@ namespace Clean
          * command.
          *
         **/
-        virtual ShaderAttributesMap map(VertexDescriptor const& descriptor, Shader const& shader) = 0;
+        virtual ShaderAttributesMap map(VertexDescriptor const& descriptor, Shader const& shader) const = 0;
 
         /* Mapper is used like this example:
 

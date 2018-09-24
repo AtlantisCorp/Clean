@@ -45,7 +45,7 @@ namespace Clean
     {
         assert(handle && "Invalid DlHandle stored.");
         forEachModules([](Module& module) { module.stop(); });
-        DlClose(handle);
+        DlUnload(handle);
     }
     
     void Dynlib::addModule(std::shared_ptr < Module > const& module)

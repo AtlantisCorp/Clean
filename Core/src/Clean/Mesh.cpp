@@ -4,6 +4,8 @@
 #include "Mesh.h"
 #include "Shader.h"
 #include "RenderCommand.h"
+#include "NotificationCenter.h"
+#include "Driver.h"
 
 namespace Clean
 {
@@ -27,7 +29,7 @@ namespace Clean
     
     std::vector < VertexDescriptor > Mesh::findAssociatedDescriptors(Driver const& driver) const
     {
-        const std::uintptr_t driverOffset = static_cast < std::uintptr_t >(&driver);
+        const std::uintptr_t driverOffset = reinterpret_cast < std::uintptr_t >(&driver);
         std::scoped_lock < std::mutex, std::mutex > lck(submeshesMutex, driverCachesMutex);
         auto const& cacheIt = driverCaches.find(driverOffset);
         std::vector < VertexDescriptor > result;
@@ -128,34 +130,34 @@ namespace Clean
     
     std::vector < ShaderAttributesMap > Mesh::findShaderAttributesMap(Driver const& driver, Shader const& shader)
     {
-        const std::uintptr_t driverOffset = static_cast < std::uintptr_t >(&driver);
-        const std::uintptr_t shaderOffset = static_cast < std::uintptr_t >(&shader);
+        const std::uintptr_t driverOffset = reinterpret_cast < std::uintptr_t >(&driver);
+        const std::uintptr_t shaderOffset = reinterpret_cast < std::uintptr_t >(&shader);
         std::vector < ShaderAttributesMap > result;
         
         std::scoped_lock < std::mutex > lck(driverCachesMutex);
         auto driverIt = driverCaches.find(driverOffset);
-        if (!driverIt) return result;
+        if (driverIt == driverCaches.end()) return result;
         
         auto shaderIt = driverIt->second.shaderCaches.find(shaderOffset);
-        if (!shaderIt) return result;
+        if (shaderIt == driverIt->second.shaderCaches.end()) return result;
         
         return shaderIt->second.shaderAttribs;
     }
     
     void Mesh::shaderCacheStore(Driver const& driver, Shader const& shader, ShaderCache& cache)
     {
-        const std::uintptr_t driverOffset = static_cast < std::uintptr_t >(&driver);
-        const std::uintptr_t shaderOffset = static_cast < std::uintptr_t >(&shader);
+        const std::uintptr_t driverOffset = reinterpret_cast < std::uintptr_t >(&driver);
+        const std::uintptr_t shaderOffset = reinterpret_cast < std::uintptr_t >(&shader);
         std::vector < ShaderAttributesMap > result;
         
         std::scoped_lock < std::mutex > lck(driverCachesMutex);
         auto driverIt = driverCaches.find(driverOffset);
-        if (driverIt) driverIt->second.shaderCaches[shaderOffset] = cache;
+        if (driverIt != driverCaches.end()) driverIt->second.shaderCaches[shaderOffset] = cache;
     }
     
     void Mesh::associate(Driver& driver)
     {
-        const std::uintptr_t driverOffset = static_cast < std::uintptr_t >(&driver);
+        const std::uintptr_t driverOffset = reinterpret_cast < std::uintptr_t >(&driver);
         
         {
             std::lock_guard < std::mutex > lck(driverCachesMutex);
@@ -179,30 +181,30 @@ namespace Clean
             
             for (auto const& buffer : vertexBuffers)
             {
-                auto hardBuffer = driver.makeBuffer(buffer->getType(), buffer);
+                auto hardBuffer = driver.makeBuffer(buffer.second->getType(), buffer.second);
                 if (!hardBuffer) {
                     Notification softNotif = BuildNotification(kNotificationLevelWarning, 
                         "Driver %s can't make Hardware Buffer of size %i.", 
-                        driver.getName().data(), buffer->getSize());
+                        driver.getName().data(), buffer.second->getSize());
                     NotificationCenter::GetDefault()->send(softNotif);
-                    hardBuffer = buffer;
+                    hardBuffer = buffer.second;
                 }
                 
-                cache.buffers.insert(std::make_pair(buffer->getHandle(), hardBuffer));
+                cache.buffers.insert(std::make_pair(buffer.first, hardBuffer));
             }
             
             for (auto const& buffer : indexBuffers)
             {
-                auto hardBuffer = driver.makeBuffer(buffer->getType(), buffer);
+                auto hardBuffer = driver.makeBuffer(buffer.second->getType(), buffer.second);
                 if (!hardBuffer) {
                     Notification softNotif = BuildNotification(kNotificationLevelWarning, 
                         "Driver %s can't make Hardware Buffer of size %i.", 
-                        driver.getName().data(), buffer->getSize());
+                        driver.getName().data(), buffer.second->getSize());
                     NotificationCenter::GetDefault()->send(softNotif);
-                    hardBuffer = buffer;
+                    hardBuffer = buffer.second;
                 }
                 
-                cache.buffers.insert(std::make_pair(buffer->getHandle(), hardBuffer));
+                cache.buffers.insert(std::make_pair(buffer.first, hardBuffer));
             }
         }
         
@@ -215,14 +217,14 @@ namespace Clean
     void Mesh::update(Driver& driver, std::chrono::milliseconds maxTime)
     { 
         using namespace std::chrono; 
-        high_precision_clock tnow = high_precision_clock::now();
-        milliseconds elapsed = duration_cast < milliseconds >(high_precision_clock::now() - tnow);
+        auto tnow = high_resolution_clock::now();
+        milliseconds elapsed = duration_cast < milliseconds >(high_resolution_clock::now() - tnow);
         
         std::scoped_lock < std::mutex > lck0(driverCachesMutex);
-        const std::uintptr_t driverOffset = static_cast < std::uintptr_t >(&driver);
-        auto cacheIt = transactions.find(&driver);
+        const std::uintptr_t driverOffset = reinterpret_cast < std::uintptr_t >(&driver);
+        auto cacheIt = driverCaches.find(driverOffset);
         
-        if (cacheIt == transaction.end())
+        if (cacheIt == driverCaches.end())
         {
             Notification errorNotif = BuildNotification(kNotificationLevelWarning,
                 "Mesh::update() called from a Driver that is not associated to this mesh.");
@@ -252,7 +254,7 @@ namespace Clean
         
             else if (tr.type() == kMeshTransactionAddBuffer)
             {
-                MeshTransactionAddBuffer* data = tr.data();
+                MeshTransactionAddBuffer* data = static_cast < MeshTransactionAddBuffer* >(tr.data());
                 assert(data && "Null MeshTransactionAddBuffer.");
                 assert(data->buffer && "Null GenBuffer for MeshTransactionAddBuffer.");
                     
@@ -272,7 +274,7 @@ namespace Clean
         
             else if (tr.type() == kMeshTransactionUpdateBuffer)
             {
-                MeshTransactionUpdateBuffer* data = tr.data();
+                MeshTransactionUpdateBuffer* data = static_cast < MeshTransactionUpdateBuffer* >(tr.data());
                 assert(data && "Null MeshTransactionUpdateBuffer.");
                 assert(data->buffer && "Null GenBuffer for MeshTransactionUpdateBuffer.");
                 
@@ -295,7 +297,7 @@ namespace Clean
             
             else if (tr.type() == kMeshTransactionBatchAddBuffers)
             {
-                MeshTransactionBatchAddBuffer* data = tr.data();
+                MeshTransactionBatchAddBuffers* data = static_cast < MeshTransactionBatchAddBuffers* >(tr.data());
                 assert(data && "Null MeshTransactionBatchAddBuffers.");
                 
                 std::scoped_lock < std::mutex > lck(driverCachesMutex);
@@ -325,7 +327,7 @@ namespace Clean
             
             else if (tr.type() == kMeshTransactionBatchUpdateBuffers)
             {
-                MeshTransactionBatchUpdateBuffers* data = tr.data();
+                MeshTransactionBatchUpdateBuffers* data = static_cast < MeshTransactionBatchUpdateBuffers* >(tr.data());
                 assert(data && "Null MeshTransactionBatchUpdateBuffers.");
                 
                 std::scoped_lock < std::mutex > lck(driverCachesMutex);
@@ -350,7 +352,7 @@ namespace Clean
                 }
             }
             
-            elapsed = duration_cast < milliseconds >(high_precision_clock::now() - tnow);
+            elapsed = duration_cast < milliseconds >(high_resolution_clock::now() - tnow);
         }
         
         // If we are here, this means either TransactionQueue is empty or elapsedTime is > to maxTime. 
@@ -360,9 +362,9 @@ namespace Clean
     
     void Mesh::addSubMesh(SubMesh&& submesh)
     {
-        std::scoped_lock < std::mutex > lck(submeshes);
+        std::scoped_lock < std::mutex > lck(submeshesMutex);
         submeshes.push_back(std::move(submesh));
-        submitTransaction(kMeshTransactionAddSubMesh, nullptr);
+        submitTransaction(kMeshTransactionAddSubMesh);
     }
     
     void Mesh::addBuffers(std::vector < std::shared_ptr < GenBuffer > > const& buffers)
@@ -376,18 +378,18 @@ namespace Clean
             {
                 if (buffer)
                 {
-                    if (buffer->getType() == kBufferVertex)
+                    if (buffer->getType() == kBufferTypeVertex)
                     {
                         auto buf = std::static_pointer_cast<Buffer>(buffer);
-                        vertexBuffers.push_back(buffer);
-                        tr.buffers.push(std::make_pair(buf, kBufferVertex));
+                        vertexBuffers.insert(std::make_pair(buffer->getHandle(), buffer));
+                        tr.buffers.insert(std::make_pair(buf, kBufferTypeVertex));
                     }
                 
-                    else if(buffer->getType() == kBufferIndex)
+                    else if(buffer->getType() == kBufferTypeIndex)
                     {
                         auto buf = std::static_pointer_cast<Buffer>(buffer);
-                        indexBuffers.push_back(buffer);
-                        tr.buffers.push(std::make_pair(buf, kBufferIndex));
+                        indexBuffers.insert(std::make_pair(buffer->getHandle(), buffer));
+                        tr.buffers.insert(std::make_pair(buf, kBufferTypeIndex));
                     }
                 
                     else 
@@ -410,11 +412,11 @@ namespace Clean
         
         {
             std::lock_guard < std::mutex > lck(buffersMutex);
-            vertexBuffers.push_back(buffer);
+            vertexBuffers.insert(std::make_pair(buffer->getHandle(), buffer));
         }
         
         tr.buffer = buffer;
-        tr.type = kBufferVertex;
+        tr.type = kBufferTypeVertex;
         submitTransaction(kMeshTransactionAddBuffer, tr);
     }
     
@@ -425,12 +427,26 @@ namespace Clean
         
         {
             std::lock_guard < std::mutex > lck(buffersMutex);
-            vertexBuffers.push_back(buffer);
+            indexBuffers.insert(std::make_pair(buffer->getHandle(), buffer));
         }
         
         tr.buffer = buffer;
-        tr.type = kBufferIndex;
+        tr.type = kBufferTypeIndex;
         submitTransaction(kMeshTransactionAddBuffer, tr);
+    }
+    
+    void Mesh::submitTransaction(std::uint8_t type, Transaction::Clock::time_point const& tp)
+    {
+        std::scoped_lock < std::mutex > lck(driverCachesMutex);
+        
+        // For a Transaction to be valid, we must adds our Transaction to every driverCaches.transactions queue
+        // (each driver will then process its transaction the way it wants to).
+        
+        for (auto& pair : driverCaches)
+        {
+            Transaction transaction(type, nullptr, tp);
+            pair.second.transactions.push(std::move(transaction));
+        }
     }
     
     /*

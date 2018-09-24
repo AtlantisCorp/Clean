@@ -7,6 +7,9 @@
 #include "Buffer.h"
 #include "ShaderAttribute.h"
 #include "VertexDescriptor.h"
+#include "GenBuffer.h"
+#include "Transaction.h"
+#include "Allocate.h"
 
 #include <cstdint>
 #include <cstddef>
@@ -14,12 +17,14 @@
 #include <map>
 #include <vector>
 #include <mutex>
+#include <queue>
+#include <list>
 
 namespace Clean
 {
     class Driver;
     class Shader;
-    class RenderCommand;
+    struct RenderCommand;
 
     /** @brief Represents a single draw work for a Mesh.
     **/
@@ -86,6 +91,12 @@ namespace Clean
         //! @brief Protects all operations on Generic buffers.
         mutable std::mutex buffersMutex;
         
+        //! @brief Stores all submeshes for this mesh.
+        std::vector < SubMesh > submeshes;
+        
+        //! @brief Protects submeshes.
+        mutable std::mutex submeshesMutex;
+        
         typedef std::uintptr_t ShaderKey;
         typedef std::uintptr_t DriverKey;
         
@@ -100,13 +111,13 @@ namespace Clean
         struct DriverCache
         {   
             //! @brief Stores all buffers stored for a driver. (Key is handle of soft buffer, value is hard buffer)
-            std::map < std::uintptr_t, std::shared_ptr < Buffer > > driverBuffers;
+            std::map < std::uintptr_t, std::shared_ptr < Buffer > > buffers;
             
             //! @brief Stores all caches for each shader for this driver. (1 ShaderCache for 1 Shader)
             std::map < ShaderKey, ShaderCache > shaderCaches;
             
             //! @brief Stores all transactions pending for this driver. 
-            std::queue < Transaction > transactions;
+            std::queue < Transaction, std::list < Transaction > > transactions;
         };
         
         //! @brief Stores caches for each driver. 
@@ -262,11 +273,14 @@ namespace Clean
             
             for (auto& pair : driverCaches)
             {
-                TransactionData* trData = Allocate < TransactionData >(data);
+                TransactionData* trData = Allocate < TransactionData >(1, data);
                 Transaction transaction(type, (void*) trData, tp);
                 pair.second.transactions.push(std::move(transaction));
             }
         }
+        
+        /*! @brief Submits a transaction with no data. */
+        void submitTransaction(std::uint8_t type, Transaction::Clock::time_point const& tp = Transaction::Clock::time_point::max());
     };
 };
 

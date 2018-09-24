@@ -50,6 +50,9 @@ namespace Clean
         
         //! @brief Next ModuleInfos structure. [optional]
         ModuleInfos* next = nullptr;
+        
+        ModuleInfos() = default;
+        ModuleInfos(ModuleInfos const&) = default;
     };
     
     /** @brief Basic exception to notifiate something is wrong about ModuleInfos. */

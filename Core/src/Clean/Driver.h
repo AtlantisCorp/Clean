@@ -89,7 +89,7 @@ namespace Clean
         PixelFormat pixelFormat;
         
         //! @brief Protects pixelFormat.
-        std::mutex pixelFormatMutex;
+        mutable std::mutex pixelFormatMutex;
         
         //! @brief Handles RenderQueue registered in this driver. 
         RenderQueueManager renderQueues;
@@ -156,7 +156,7 @@ namespace Clean
          *
          * \return PixelFormat selected, or PixelFormat::Invalid if none was selected. 
         **/
-        virtual PixelFormat selectPixelFormat(PixelFormat const& pixFormat) = 0;
+        virtual PixelFormat selectPixelFormat(PixelFormat const& pixFormat, PixelFormatPolicy policy = kPixelFormatClosest) = 0;
         
         /*! @brief Returns currently selected PixelFormat. */
         virtual PixelFormat getPixelFormat() const;
@@ -219,6 +219,17 @@ namespace Clean
         
         /*! @brief Creates a new RenderCommand. */
         virtual RenderCommand makeRenderCommand() const = 0;
+        
+        /*! @brief Returns the Driver's name. */
+        virtual std::string const getName() const = 0;
+        
+        /*! @brief Creates a new buffer or return null on failure.
+         *
+         * \param[in] type Type of the Buffer we want to create.
+         * \param[in] buffer Buffer we want to copy.
+         *
+        **/
+        virtual std::shared_ptr < Buffer > makeBuffer(std::uint8_t type, std::shared_ptr < Buffer > const& buffer) = 0;
         
     protected:
         

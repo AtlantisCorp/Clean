@@ -2,7 +2,7 @@
 # Purpose: Defines the main executable target. 
 project(MainProject)
 
-file(GLOB MainSources "src/*.h" "src/*.cpp")
+file(GLOB MainSources "Main/src/*.h" "Main/src/*.cpp")
 add_executable(Main ${MainSources})
 
 # Links our executable with libCleanCore. 

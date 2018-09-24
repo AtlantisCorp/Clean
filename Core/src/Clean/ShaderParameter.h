@@ -77,7 +77,7 @@ namespace Clean
         //! @brief Holds the parameter's value. 
         union value {
             std::uint8_t u8;
-            std::uint18_t u16;
+            std::uint16_t u16;
             std::uint32_t u32;
             std::uint64_t u64;
             

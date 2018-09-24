@@ -6,6 +6,8 @@
 
 #include "Buffer.h"
 
+#include <shared_mutex>
+
 namespace Clean 
 {
     /** @brief Generic RAM buffer. 

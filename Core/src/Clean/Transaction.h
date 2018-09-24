@@ -20,8 +20,10 @@ namespace Clean
    **/
    class Transaction final 
    {
+   public:
        using Clock = std::chrono::high_resolution_clock; 
        
+   private:
        //! @brief The type of the transaction. 
        std::uint8_t type_;
        

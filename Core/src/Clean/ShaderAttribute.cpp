@@ -10,25 +10,25 @@ namespace Clean
                                              std::shared_ptr < Buffer > const& buffer)
     {
         ShaderAttribute result;
-        result.index = index_;
-        result.ofset = offset;
+        result.index = index;
+        result.offset = offset;
         result.stride = stride;
         result.buffer = buffer;
         result.enabled = true;
-        return std::move(result);
+        return result;
     }
     
-    ShaderAttributesMap::ShaderAttributesMap() : attribs{ ShaderAttribute() }
+    ShaderAttributesMap::ShaderAttributesMap() noexcept : attribs{ {ShaderAttribute()} }
     {
         
     }
     
-    ShaderAttributesMap::ShaderAttributesMap(std::size_t count) : attribs{ ShaderAttribute() }, elements(count) 
+    ShaderAttributesMap::ShaderAttributesMap(std::size_t count) : attribs{ {ShaderAttribute()} }, elements(count) 
     {
         
     }
     
-    ShaderAttributesMap::ShaderAttributesMap(IndexedInfos const& infos) : attribs{ ShaderAttribute() }, indexInfos(infos) 
+    ShaderAttributesMap::ShaderAttributesMap(IndexedInfos const& infos) : attribs{ {ShaderAttribute()} }, indexInfos(infos) 
     {
         
     }
@@ -48,19 +48,19 @@ namespace Clean
     void ShaderAttributesMap::disable(std::uint8_t index)
     {
         assert(index < kShaderAttributeMax && "Invalid ShaderAttribute index.");
-        attribsMutex[index].enabled = false;
+        attribs[index].enabled = false;
     }
     
     void ShaderAttributesMap::enable(std::uint8_t index)
     {
         assert(index < kShaderAttributeMax && "Invalid ShaderAttribute index.");
-        attribsMutex[index].enabled = true;
+        attribs[index].enabled = true;
     }
     
     bool ShaderAttributesMap::isEnabled(std::uint8_t index)
     {
         assert(index < kShaderAttributeMax && "Invalid ShaderAttribute index.");
-        return attribsMutex[index].enabled;
+        return attribs[index].enabled;
     }
     
     IndexedInfos ShaderAttributesMap::getIndexedInfos() const 
@@ -76,5 +76,10 @@ namespace Clean
     std::size_t ShaderAttributesMap::getElements() const 
     {
         return elements;
+    }
+    
+    bool ShaderAttributesMap::isValid() const
+    {
+        return attribs.size() > 0;
     }
 }

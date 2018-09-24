@@ -91,7 +91,7 @@ namespace Clean
         void* data = lock(kBufferIOWriteOnly);
         
         if (data) {
-            Free(data);
+            Free((std::uint8_t*)data);
             pointer = nullptr;
             size.store(0);
         }

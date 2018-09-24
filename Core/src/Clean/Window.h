@@ -6,6 +6,7 @@
 
 #include "Handled.h"
 #include "Emitter.h"
+#include "Key.h"
 
 namespace Clean 
 {
@@ -53,6 +54,7 @@ namespace Clean
     {
         //! @brief Our key pressed. 
         Key key;
+        
         //! @brief If it was pressed or released ?
         bool pressed;
     };

@@ -112,7 +112,7 @@ namespace Clean
                                     notificationCenter->send(notif);
                                 }
                             }
-                            while((infos = infos->next) != NULL)
+                            while((infos = infos->next) != NULL);
                         }
                     }
 
@@ -144,5 +144,10 @@ namespace Clean
     {
         std::scoped_lock < std::mutex > lck(fileLoadersMutex);
         fileLoaders.clear();
+    }
+    
+    std::shared_ptr < WindowManager > Core::getWindowManager()
+    {
+        return std::atomic_load(&windowManager);
     }
 }

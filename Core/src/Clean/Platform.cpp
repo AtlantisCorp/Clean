@@ -42,9 +42,9 @@ namespace Clean
             char lhsEnd = lhs.back();
             char rhsBeg = rhs.front();
             
-            if (lhsEnd == kPathSeparator && rhsEnd != kPathSeparator) return lhs + rhs;
-            if (lhsEnd != kPathSeparator && rhsEnd == kPathSeparator) return lhs + rhs;
-            if (lhsEnd != kPathSeparator && rhsEnd != kPathSeparator) return lhs + kPathSeparator + rhs;
+            if (lhsEnd == kPathSeparator[0] && rhsBeg != kPathSeparator[0]) return lhs + rhs;
+            if (lhsEnd != kPathSeparator[0] && rhsBeg == kPathSeparator[0]) return lhs + rhs;
+            if (lhsEnd != kPathSeparator[0] && rhsBeg != kPathSeparator[0]) return lhs + kPathSeparator + rhs;
             
             std::string result = lhs;
             result.pop_back();
@@ -133,7 +133,7 @@ namespace Clean
             
             for (auto& c : pattern)
             {
-                if (c != '*' && !findnext)
+                if (c != '*' && !findNext)
                 {
                     if (name.at(it) == c)
                     {

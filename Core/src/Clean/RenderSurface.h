@@ -36,6 +36,7 @@ namespace Clean
         
         //! @brief Native handle for this surface. 
         std::atomic < NativeSurface > handle;
+        
         //! @brief Native parent for this surface. 
         std::atomic < NativeSurface > parent;
         
@@ -47,9 +48,6 @@ namespace Clean
         
         /*! @brief No default constructor. */
         RenderSurface() = delete;
-        
-        /*! @brief Constructs a render surface with standardized args. */
-        RenderSurface(std::size_t width, std::size_t height, NativeSurface parent) = default;
         
         /*! @brief Returns native handle. */
         NativeSurface getNativeHandle() const;

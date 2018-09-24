@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <atomic>
 #include <memory>
+#include <vector>
 
 namespace Clean 
 {
@@ -57,6 +58,17 @@ namespace Clean
         
         /*! @brief Returns shader's type. */
         std::uint8_t getType() const;
+        
+        /*! @brief Maps the given VertexDescriptor by using this Shader's ShaderMapper.
+         *
+         * If no ShaderMapper is present for this Shader, it returns an empty ShaderAttributesMap. This can
+         * be checked with ShaderAttributesMap::isValid() which returns false.
+         *
+        **/
+        ShaderAttributesMap map(VertexDescriptor const& descriptor) const;
+        
+        /*! @brief Maps multiple VertexDescriptor to multiple ShaderAttributesMap. */
+        std::vector < ShaderAttributesMap > map(std::vector < VertexDescriptor > const& descs) const;
     };
 }
 

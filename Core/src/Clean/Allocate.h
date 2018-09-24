@@ -177,10 +177,11 @@ namespace Clean
     }
     
     /*! @brief Free memory with the Clean::Allocator. */
-    inline void Free(void* data) 
+    template < typename Result >
+    inline void Free(Result* data)
     {
-        static std::allocator < void* > allocator;
-        allocator.deallocate(data);
+        static std::allocator < Result > allocator;
+        allocator.deallocate(data, 1);
     }
 
 #   endif
