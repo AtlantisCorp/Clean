@@ -42,6 +42,8 @@
 
 #include <Clean/NotificationListener.h>
 #include <Clean/Core.h>
+#include <Clean/Allocate.h>
+#include <Clean/Mesh.h>
 #include <iostream>
 
 /** @brief Classic listener to display notifications to std::cout. */
@@ -72,11 +74,12 @@ int main()
 {
     try 
     {
+        using namespace Clean;
         // Creates our NotificationListener before creating the Clean::Core instance. 
         // This way all notifications will be redirected to this listener. Other listeners 
         // can be added after the core creation with Clean::NotificationCenter::addListener. 
         
-        auto listener = Clean::AllocateShared < NotificationListener >();
+        auto listener = Clean::AllocateShared < ::NotificationListener >();
         assert(listener && "Can't allocate NotificationListener.");
         
         // Creates our core object. It automatically loads every modules located under 'Modules/'
@@ -106,7 +109,7 @@ int main()
         // to communicate RenderCommands to the driver. The driver will dispatch each command to the given target, which 
         // might be a RenderWindow, or a generic RenderTarget. 
         
-        auto defaultQueue = gldriver->createRenderQueue(kRenderQueuePriorityHighest, kRenderQueueStatic, 20);
+        auto defaultQueue = gldriver->makeRenderQueue(kRenderQueuePriorityHighest, kRenderQueueStatic);
         
         // A RenderCommand is defined by a target to commit to, a pipeline state, and multiple RenderSubCommands. Each of 
         // those sub commands defines one draw. A draw is a work submitted to a driver with a valid target, pipeline state,
@@ -118,10 +121,10 @@ int main()
         // Now we will load a shader and add it to the pipeline state. For now, we will only load the default shader for 
         // two stages, Vertex and Fragment stages. Notes that shader objects are stored as shared pointers. 
         
-        auto vertexShader = gldriver->findDefaultShaderForStage(kShaderStageVertex);
-        firstCommand.pipeline->shader(kShaderStageVertex, vertexShader);
-        auto fragmentShader = gldriver->findDefaultShaderForStage(kShaderStageFragment);
-        firstCommand.pipeline->shader(kShaderStageFragment, fragmentShader);
+        auto vertexShader = gldriver->findDefaultShaderForStage(kShaderTypeVertex);
+        firstCommand.pipeline->shader(kShaderTypeVertex, vertexShader);
+        auto fragmentShader = gldriver->findDefaultShaderForStage(kShaderTypeFragment);
+        firstCommand.pipeline->shader(kShaderTypeFragment, fragmentShader);
         
         // Now we have to load our vertex buffer from our .obj file. This is done by loading a Mesh structure, and requesting
         // its vertex buffer. As we know our mesh only contains one object, we will directly load its first vertex buffer. We
@@ -137,8 +140,8 @@ int main()
         // optimized in the case multiple drivers are concurrently running. Thus, we must associate a Mesh to a driver. This 
         // will make our Mesh generate buffers from the given driver. 
         
-        mesh->associate(driver);
-        mesh->populateRenderCommand(driver, *vertexShader, firstCommand);
+        mesh->associate(*gldriver);
+        mesh->populateRenderCommand(*gldriver, *vertexShader, firstCommand);
         
         // VertexDescriptor describe how to render one SubMesh. Mesh::findAssociatedDescriptors return a list of VertexDescriptor 
         // which can render every mesh's submeshes for the given driver. Those descriptors needs to be mapped to ShaderAttributes
@@ -163,7 +166,7 @@ int main()
         // RenderQueue adds its command by moving objects. Updating a command already added will not take effect in the
         // RenderQueue. 
         
-        queue->addCommand(std::move(firstCommand));
+        defaultQueue->addCommand(std::move(firstCommand));
         
         // Update loop for our driver. Clean::Driver::update commits all rendering jobs to the renderer, and updates
         // every window created by this driver. Calling Clean::WindowManager::updateAll() would only updates each Window

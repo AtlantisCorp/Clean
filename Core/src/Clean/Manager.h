@@ -94,6 +94,19 @@ namespace Clean
             }
         }
         
+        /*! @brief Convenient function to call a callback for each managed object and locking the
+         * managed list. */
+        template < typename Callable >
+        void forEach(Callable cbk) const
+        {
+            std::lock_guard < std::mutex > lck(managedListMutex);
+            
+            for (auto const& managed : managedList)
+            {
+                cbk(managed);
+            }
+        }
+        
         /*! @brief Calls a callback on each managed objects in a non-blocking way.
          *
          * When this function is called, it copies the current list of managed objects and then call

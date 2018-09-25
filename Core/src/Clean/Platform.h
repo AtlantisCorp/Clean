@@ -18,6 +18,10 @@ namespace Clean
         //! @brief Option for Split. 
         static constexpr const std::uint32_t kSplitIncludesEmpties = 1 << 0;
         
+        //! @brief Options for FindFromFiles.
+        static constexpr const std::uint32_t kFindFilesNotRecursive = 0 << 0;
+        static constexpr const std::uint32_t kFindFilesRecursive = 1 << 0;
+        
         /*! @brief Splits a string in multiple substring. 
          * 
          * \param format Origin string to be splitted. 
@@ -60,7 +64,7 @@ namespace Clean
          * 
          * \return A list of files found. 
         **/
-        std::list < std::string > FindFromFiles(std::string const& pattern, std::uint32_t const& ops = kFindFilesNotRecursive);
+        std::list < std::string > FindFiles(std::string const& pattern, std::uint32_t const& ops = kFindFilesNotRecursive);
         
         /*! @brief Returns filename for the given path. Basically it is the last element after the last kPathSeparator 
          * character, and nothing less. */

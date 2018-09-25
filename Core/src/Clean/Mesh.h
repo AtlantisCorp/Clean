@@ -10,6 +10,7 @@
 #include "GenBuffer.h"
 #include "Transaction.h"
 #include "Allocate.h"
+#include "FileLoader.h"
 
 #include <cstdint>
 #include <cstddef>
@@ -281,6 +282,17 @@ namespace Clean
         
         /*! @brief Submits a transaction with no data. */
         void submitTransaction(std::uint8_t type, Transaction::Clock::time_point const& tp = Transaction::Clock::time_point::max());
+    };
+    
+    /** @brief Interface for all Mesh loaders. */
+    template <>
+    class FileLoader < Mesh > : public FileLoaderInterface
+    {
+    public:
+        virtual ~FileLoader() = default;
+        
+        /*! @brief Loads a Mesh from the given existing path. */
+        virtual std::shared_ptr < Mesh > load(std::string const& path) const = 0;
     };
 };
 

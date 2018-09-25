@@ -18,9 +18,9 @@ namespace Clean
         return complete;
     }
 
-    bool VertexDescriptor::has(VertexComponent const& component)
+    bool VertexDescriptor::has(VertexComponent const& component) const
     {
-        return std::find(components.begin(), components.end(), component) != components.end();
+        return components.find(component) != components.end();
     }
     
     void VertexDescriptor::addComponent(std::uint8_t component, std::ptrdiff_t offset, std::ptrdiff_t stride)

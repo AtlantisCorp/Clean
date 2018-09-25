@@ -30,6 +30,9 @@ namespace Clean
         std::shared_ptr < Buffer > buffer = nullptr;
         
         /*! @brief Constructs an IndexedInfos. */
+        IndexedInfos() = default;
+        
+        /*! @brief Constructs an IndexedInfos. */
         IndexedInfos(std::size_t o, std::size_t e, std::shared_ptr < Buffer > const& b) : offset(o), elements(e), buffer(b) {}
     };
 }

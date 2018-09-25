@@ -2,6 +2,7 @@
 **/
 
 #include "RenderQueue.h"
+#include "Exception.h"
 
 namespace Clean 
 {
@@ -20,7 +21,7 @@ namespace Clean
     {
         std::uint8_t t = type.load();
         
-        if (t == kRenderQueueTypeStatic)
+        if (t == kRenderQueueStatic)
         {
             // NOTES: In static mode, the RenderCommand is removed and re-inserted. commitedCommands
             // does not change during the operation to economize two atomic operations (-1 +1).
@@ -31,16 +32,16 @@ namespace Clean
             commandsMutex.unlock();
             
             commands.push(command);
-            return std::move(command);
+            return command;
         }
         
-        else if (t == kRenderQueueTypeDynamic)
+        else if (t == kRenderQueueDynamic)
         {
             std::scoped_lock < std::mutex > lck(commandsMutex);
             commitedCommands.fetch_sub(1);
             RenderCommand command = std::move(commands.front());
             commands.pop();
-            return std::move(command);
+            return command;
         }
         
         throw IllformedConstantException("kRenderQueueType* ill-formed.");

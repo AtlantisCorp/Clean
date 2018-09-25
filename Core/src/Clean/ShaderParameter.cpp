@@ -88,6 +88,6 @@ namespace Clean
         if (str == "mat3x4") return kShaderParamMat3x4;
         if (str == "mat4x3") return kShaderParamMat4x3;
         
-        return std::string();
+        return kShaderParamNull;
     }
 }

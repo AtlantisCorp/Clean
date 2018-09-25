@@ -14,8 +14,8 @@
 
 namespace Clean 
 {
-    static constexpr const std::uint8_t kRenderQueueTypeStatic = 0;
-    static constexpr const std::uint8_t kRenderQueueTypeDynamic = 1;
+    static constexpr const std::uint8_t kRenderQueueStatic = 0;
+    static constexpr const std::uint8_t kRenderQueueDynamic = 1;
     
     /** @brief Defines a queue of RenderCommand to be executed by a Driver. 
      *
@@ -41,7 +41,7 @@ namespace Clean
         std::queue < RenderCommand > commands;
         
         //! @brief Protects commands.
-        std::mutex commandsMutex;
+        mutable std::mutex commandsMutex;
         
         //! @brief Number of commands commited to the queue but not already rendered by the Driver. 
         //! When a RenderCommand is added, commitedCommands is incremented by one. When \ref nextCommand

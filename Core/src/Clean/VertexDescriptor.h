@@ -85,7 +85,7 @@ namespace Clean
         VertexComponentInfos findInfosFor(VertexComponent const& component);
 
         /*! @brief Returns true if the given component is found in a Vertex. */
-        bool has(VertexComponent const& component);
+        bool has(VertexComponent const& component) const;
         
         /*! @brief Adds a component to this VertexDescriptor. */
         void addComponent(std::uint8_t component, std::ptrdiff_t offset, std::ptrdiff_t stride);

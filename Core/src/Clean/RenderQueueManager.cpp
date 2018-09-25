@@ -28,7 +28,7 @@ namespace Clean
         if (!queue) return;
         
         std::scoped_lock < std::mutex > lck(queuesMutex);
-        queuesMutex[priority].push_back(queue);
+        queues[priority].push_back(queue);
     }
     
     void RenderQueueManager::remove(std::shared_ptr < RenderQueue > const& queue)
@@ -50,7 +50,10 @@ namespace Clean
     void RenderQueueManager::clearPriority(std::uint8_t priority)
     {
         std::scoped_lock < std::mutex > lck(queuesMutex);
-        auto& vector = queues.find(priority);
+        auto it = queues.find(priority);
+        if (it == queues.end()) return;
+        
+        auto& vector = it->second;
         
         for (auto& queue : vector) {
             assert(queue && "Null RenderQueue stored.");

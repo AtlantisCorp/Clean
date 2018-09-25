@@ -7,6 +7,7 @@ add_executable(Main ${MainSources})
 
 # Links our executable with libCleanCore. 
 target_link_libraries(Main CleanCore)
+target_compile_features(Main PRIVATE cxx_std_17)
 
 # Sets output directory. 
 set_target_properties(Main 

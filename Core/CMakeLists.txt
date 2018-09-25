@@ -7,7 +7,7 @@ project(CleanCoreProject)
 file(GLOB CoreSources "Core/src/Clean/*.h" "Core/src/Clean/*.cpp")
 add_library(CleanCore SHARED ${CoreSources})
 
-# Sets C++11 features enabled.
+# Sets C++17 features enabled.
 target_compile_features(CleanCore PRIVATE cxx_std_17)
 
 # Sets output directory.

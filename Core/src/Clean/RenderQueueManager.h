@@ -43,7 +43,7 @@ namespace Clean
         std::map < Priority, RQPtrVec, std::greater < Priority > > queues;
         
         //! @brief Mutex to protect queues. 
-        std::mutex queuesMutex;
+        mutable std::mutex queuesMutex;
         
     public:
         
@@ -79,6 +79,40 @@ namespace Clean
         
         /*! @brief Finds the queue with given handle, or return null. */
         std::shared_ptr < RenderQueue > findByHandle(std::uint16_t handle);
+        
+        /*! @brief Convenient function to call a callback for each managed object and locking the
+         * managed list. */
+        template < typename Callable >
+        void forEach(Callable cbk)
+        {
+            std::lock_guard < std::mutex > lck(queuesMutex);
+            
+            for (auto& pair : queues) {
+                for (auto& queue : pair.second) {
+                    cbk(queue);
+                }
+            }
+        }
+        
+        /*! @brief Calls a callback on each managed objects in a non-blocking way.
+         *
+         * When this function is called, it copies the current list of managed objects and then call
+         * the given callback on each object of the copied list. Mutex is unlocked before calling the
+         * callback, thus liberating other objects to using this Manager.
+         *
+         **/
+        template < typename Callback > void forEachCpy(Callback cbk)
+        {
+            queuesMutex.lock();
+            auto listCopy = queues;
+            queuesMutex.unlock();
+            
+            for (auto& pair : listCopy) {
+                for (auto& queue : pair.second) {
+                    cbk(queue);
+                }
+            }
+        }
     };
 }
 

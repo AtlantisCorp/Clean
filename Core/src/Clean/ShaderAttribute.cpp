@@ -3,6 +3,7 @@
 
 #include "ShaderAttribute.h"
 #include "Buffer.h"
+#include <algorithm>
 
 namespace Clean 
 {
@@ -18,7 +19,7 @@ namespace Clean
         return result;
     }
     
-    ShaderAttributesMap::ShaderAttributesMap() noexcept : attribs{ {ShaderAttribute()} }
+    ShaderAttributesMap::ShaderAttributesMap() : attribs{ {ShaderAttribute()} }
     {
         
     }
@@ -35,7 +36,7 @@ namespace Clean
     
     void ShaderAttributesMap::add(ShaderAttribute&& attrib)
     {
-        attrib.index = std::clamp(attrib.index, 0, kShaderAttributeMax - 1);
+        attrib.index = std::clamp < std::uint8_t >(attrib.index, 0, kShaderAttributeMax - 1);
         attribs[attrib.index] = std::move(attrib);
     }
     

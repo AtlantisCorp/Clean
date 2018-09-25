@@ -24,6 +24,9 @@ namespace Clean
         //! @brief Drawing method used to render this sub-command.
         std::uint8_t drawingMethod;
         
+        //! @brief Drawing mode used to render this sub-command.
+        std::uint8_t drawingMode;
+        
         //! @brief Attributes for Vertexes and Indexes to render this sub command.
         ShaderAttributesMap attributes;
         

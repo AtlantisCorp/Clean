@@ -51,7 +51,12 @@ namespace Clean
             return lhs + rhs;
         }
         
-        std::list < std::string > FindFromFiles(std::string const& pattern, std::uint32_t const& ops)
+        std::string PathGetDirectory(std::string const& rhs)
+        {
+            return rhs.substr(0, rhs.find_last_of(kPathSeparator));
+        }
+        
+        std::list < std::string > FindFiles(std::string const& pattern, std::uint32_t const& ops)
         {
             std::list < std::string > result;
             std::string dir = PathGetDirectory(pattern);
@@ -68,7 +73,7 @@ namespace Clean
                     {
                         auto patternSolo = PathGetFilename(pattern);
                         auto patternRecursive = PathConcatenate(PathConcatenate(dir, data.cFilename), patternSolo);
-                        auto result2 = FindFromFiles(patternRecursive, ops);
+                        auto result2 = FindFiles(patternRecursive, ops);
                         result.splice(result.end(), result2);
                     }
                     
@@ -97,8 +102,8 @@ namespace Clean
                     if ((entry->d_type == DT_DIR) && (ops & kFindFilesRecursive))
                     {
                         auto patternSolo = PathGetFilename(pattern);
-                        auto patternRecursive = PathConcatenate(PathConcatenate(dir, data.cFilename), patternSolo);
-                        auto result2 = FindFromFiles(patternRecursive, ops);
+                        auto patternRecursive = PathConcatenate(PathConcatenate(dir, entry->d_name), patternSolo);
+                        auto result2 = FindFiles(patternRecursive, ops);
                         result.splice(result.end(), result2);
                     }
                     

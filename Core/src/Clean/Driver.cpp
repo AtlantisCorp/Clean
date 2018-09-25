@@ -51,6 +51,11 @@ namespace Clean
         return pixelFormat;
     }
     
+    bool Driver::allWindowClosed() const
+    {
+        return renderWindows.allWindowClosed();
+    }
+    
     void Driver::update() 
     {
         commitAllQueues();

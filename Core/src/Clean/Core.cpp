@@ -4,6 +4,7 @@
 #include "Core.h"
 #include "Allocate.h"
 #include "Exception.h"
+#include "Platform.h"
 
 namespace Clean
 {
@@ -14,7 +15,7 @@ namespace Clean
     {
         if (!once.test_and_set())
         {
-            instance = std::make_unique < Core >(Allocate < Core >(1));
+            instance.reset(Allocate < Core >(1));
             assert(instance && "Invalid allocation of Clean::Core.");
             instance->getNotificationCenter()->addListener(listener);
         }
@@ -75,7 +76,7 @@ namespace Clean
 
                 if (dynlib && (loadMode == kModulesLoadReload))
                 {
-                    dynlib.forEachModules([](Module& module){
+                    dynlib->forEachModules([](Module& module){
                         module.reload();
                     });
                 }

@@ -5,6 +5,7 @@
 #define CLEAN_KEY_H
 
 #include <cstddef>
+#include <cstdint>
 
 namespace Clean 
 {
@@ -91,16 +92,16 @@ namespace Clean
     // [...] TODO Do all other keys. It's long.
     
     /*! @brief Returns true if key is a specific Apple control key (command, function or option). */
-    static bool KeyIsApple(Key key) { return key >= kKeyAppleCommand && key <= kKeyAppleFn; }
+    bool KeyIsApple(Key key);
     
     /*! @brief Returns true if key is alpha numeric. */
-    static bool KeyIsAlnum(Key key) { return key >= kKeyA && key <= kKey0; }
+    bool KeyIsAlnum(Key key);
     
     /*! @brief Returns true if key is alphabetic. */
-    bool KeyIsAlpha(Key key) { return key >= kKeyA && key <= kKeyZ; }
+    bool KeyIsAlpha(Key key);
     
     /*! @brief Returns true if key is numeric. */
-    bool KeyIsNum(Key key) { return key >= kKey1 && key <= kKey0; }
+    bool KeyIsNum(Key key);
 }
 
 #endif // CLEAN_KEY_H

@@ -21,7 +21,7 @@ namespace Clean
     Transaction::~Transaction() 
     {
         if (data_)
-            Free(data_);
+            Free((std::uint8_t*)data_);
     }
     
     std::uint8_t Transaction::type() const
@@ -36,6 +36,6 @@ namespace Clean
     
     bool Transaction::valid() const 
     {
-        return Clock::now() < tp;
+        return Clock::now() < tpoint_;
     }
 }

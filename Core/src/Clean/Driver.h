@@ -231,6 +231,9 @@ namespace Clean
         **/
         virtual std::shared_ptr < Buffer > makeBuffer(std::uint8_t type, std::shared_ptr < Buffer > const& buffer) = 0;
         
+        /*! @brief Should return the default shader for the given stage. */
+        virtual std::shared_ptr < Shader > findDefaultShaderForStage(std::uint8_t stage) const = 0;
+        
     protected:
         
         /*! @brief Creates a RenderWindow from implementation. */

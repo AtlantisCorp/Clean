@@ -18,7 +18,7 @@ namespace Clean
         return result;
     }
     
-    void WindowManager::updateAllWindow() 
+    void WindowManager::updateAllWindows()
     {
         forEach([](std::shared_ptr < Window > const& window){
             assert(window && "Null pointer stored.");

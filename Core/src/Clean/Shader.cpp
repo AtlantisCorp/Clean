@@ -2,6 +2,7 @@
 **/
 
 #include "Shader.h"
+#include "VertexDescriptor.h"
 
 namespace Clean 
 {

@@ -210,7 +210,7 @@ namespace Clean
         
         {
             std::lock_guard < std::mutex > lck(driverCachesMutex);
-            driverCaches.insert(std::make_pair(driverOffset, cache));
+            driverCaches.insert(std::make_pair(driverOffset, std::move(cache)));
         }
     }
     
@@ -226,7 +226,7 @@ namespace Clean
         
         if (cacheIt == driverCaches.end())
         {
-            Notification errorNotif = BuildNotification(kNotificationLevelWarning,
+            Notification errorNotif = BuildNotificationAll(kNotificationLevelWarning, __FUNCTION__, __FILE__,
                 "Mesh::update() called from a Driver that is not associated to this mesh.");
             NotificationCenter::GetDefault()->send(errorNotif);
         }
