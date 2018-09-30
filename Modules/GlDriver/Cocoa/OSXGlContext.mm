@@ -2,6 +2,7 @@
 **/
 
 #include "OSXGlContext.h"
+#include <Clean/Allocate.h>
 
 /*! @brief Fills attribs with the corresponding NSOpenGLPixelFormatAttribute values
  *  for the given pixelFormat. 
@@ -15,14 +16,9 @@
  * \return Number of attributes filled in the array, not counting the last zero.
  *
 **/
-std::size_t OSXPixelFormatAttributes(Clean::PixelFormat const& pixelFormat, NSOpenGLPixelFormatAttribute*& attribs, std::size_t attribsCount)
+std::size_t OSXPixelFormatAttributes(Clean::PixelFormat const& pixelFormat, NSOpenGLPixelFormatAttribute* attribs, std::size_t attribsCount)
 {
-    static constexpr const std::size_t maxPFASize = 30;
-    if (!attribs) { 
-        attribs = Clean::Allocate < NSOpenGLPixelFormatAttribute >(maxPFASize);
-        attribsCount = maxPFASize;
-    }
-    
+    assert(attribs && attribsCount && "Illegal value attribs or attribsCount.");
     memset(attribs, 0, attribsCount * sizeof(NSOpenGLPixelFormatAttribute));
     std::size_t currentAttrib = 0;
     
@@ -52,7 +48,7 @@ std::size_t OSXPixelFormatAttributes(Clean::PixelFormat const& pixelFormat, NSOp
     attribs[currentAttrib + 0] = NSOpenGLPFAOpenGLProfile;
     attribs[currentAttrib + 1] = (NSOpenGLPixelFormatAttribute) NSOpenGLProfileVersion3_2Core;
     attribs[currentAttrib + 2] = NSOpenGLPFAMaximumPolicy;
-    currentAttrib + 3;
+    currentAttrib += 3;
     
     return currentAttrib - 1;
 }
@@ -66,7 +62,7 @@ OSXGlContext::OSXGlContext(Clean::PixelFormat const& pixelFormat) : context(nil)
     NSOpenGLPixelFormat* pf = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
     if (!pf) return;
     
-    NSOpenGLContext* glContext = [[NSOpenGLContext alloc] initWithFormat:pf];
+    NSOpenGLContext* glContext = [[NSOpenGLContext alloc] initWithFormat:pf shareContext:nil];
     if (!glContext) return;
     
     context = glContext;
@@ -82,8 +78,7 @@ OSXGlContext::OSXGlContext(Clean::PixelFormat const& pixelFormat, OSXGlContext c
     if (!pf) return;
     
     NSOpenGLContext* natSharedContext = sharedContext.toNSOpenGLContext();
-    NSOpenGLContext* glContext = [[NSOpenGLContext alloc] initWithFormat:pf
-                                                            shareContext:natSharedContext];
+    NSOpenGLContext* glContext = [[NSOpenGLContext alloc] initWithFormat:pf shareContext:natSharedContext];
     if (!glContext) return;
     
     context = glContext;
@@ -105,7 +100,37 @@ bool OSXGlContext::isValid() const
     return context != nil;
 }
 
+void OSXGlContext::swapBuffers() 
+{
+    if (context) {
+        [context flushBuffer];
+    }
+}
+
+void OSXGlContext::lock() 
+{
+    if (context) {
+        [context lock];
+    }
+}
+
+void OSXGlContext::unlock() 
+{
+    if (context) {
+        [context unlock];
+    }
+}
+
 id OSXGlContext::toNSOpenGLContext() const 
 {
     return context;
+}
+
+id OSXGlContext::getNSOpenGLPixelFormat() const 
+{
+    if (context) {
+        return [context pixelFormat];
+    }
+    
+    return nil;
 }

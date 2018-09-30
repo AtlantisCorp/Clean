@@ -132,7 +132,7 @@ namespace Clean
         virtual ~Window() = default;
         
         /*! @brief Returns the style of the window, if applicable. */
-        virtual std::uint8_t getStyle() const = 0;
+        virtual std::uint16_t getStyle() const = 0;
         
         /*! @brief Returns the title of the window, if applicable. */
         virtual std::string getTitle() const = 0;

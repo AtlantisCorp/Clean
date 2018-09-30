@@ -16,6 +16,9 @@ public:
     
     /*! @brief Destructs the context. */
     virtual ~GlContext() = default;
+    
+    /*! @brief Returns true if context is valid. */
+    virtual bool isValid() const = 0;
 };
 
 #endif // GLDRIVER_GLCONTEXT_H

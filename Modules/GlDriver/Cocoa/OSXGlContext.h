@@ -47,6 +47,18 @@ public:
     /*! @brief Returns true if context holds a valid NSOpenGLContext object. */
     bool isValid() const;
     
+    /*! @brief Calls NSOpenGLContext::flushBuffer. */
+    void swapBuffers();
+    
+    /*! @brief Calls NSOpenGLContext::lock. */
+    void lock();
+    
+    /*! @brief Calls NSOpenGLContext::unlock. */
+    void unlock();
+    
+    /*! @brief Calls NSOpenGLContext::makeCurrent. */
+    void makeCurrent();
+    
 #ifdef CLEAN_LANG_OBJC
     /*! @brief Returns the NSOpenGLContext associated. 
      * 
@@ -55,6 +67,9 @@ public:
      * released from the C++ point of view. So disabled under C++.
     **/
     id toNSOpenGLContext() const;
+    
+    /*! @brief Returns the NSOpenGLPixelFormat used by NSOpenGLContext. */
+    id getNSOpenGLPixelFormat() const;
     
 #endif
 };

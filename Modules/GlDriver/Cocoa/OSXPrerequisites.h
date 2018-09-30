@@ -19,7 +19,7 @@
 // only class should be forbidden, or the object should be returned with __unsafe_unretained or __weak
 // properties (but really i don't know very much yet).
 
-#include <OpenGL.h>
+#include <OpenGL/OpenGL.h>
 #include <Clean/Language.h>
 
 #ifdef CLEAN_LANG_OBJC

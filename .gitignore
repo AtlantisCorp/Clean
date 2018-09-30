@@ -1,2 +1,3 @@
 # Ignore all files creates by CMake.
 CMakeFiles/*
+bin/*

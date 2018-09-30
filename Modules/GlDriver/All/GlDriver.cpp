@@ -52,7 +52,7 @@ void GlDriver::destroy()
     defaultContext.reset();
 }
     
-PixelFormat GlDriver::selectPixelFormat(PixelFormat const& pixFormat, PixelFormatPolicy policy = kPixelFormatClosest)
+PixelFormat GlDriver::selectPixelFormat(PixelFormat const& pixFormat, PixelFormatPolicy policy)
 {
 #   ifdef CLEAN_WINDOW_COCOA
     // NOTE: NSOpenGLPixelFormat already implements this automatically. We don't need to call CGLChoosePixelFormat
