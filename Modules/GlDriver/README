@@ -1,0 +1,15 @@
+GlDriver Clean Module
+GlDriver is a Clean Module that implements Clean::Driver for the OpenGL library. It tries to be a full cross-platform
+modules, so specific platforms files are separated in different directories to clarify sources. Generic sources can 
+be found under 'All'. 
+
+GlDriver is implemented as a normal Clean::Driver object. When initializing the GL driver, a Window is created (but hidden
+from the user) to ensure GL context creation. First RenderWindow requested by the user will always be already created by the
+driver to hold the main GL context. The window is resized to expected size. Some implementation may vary. OpenGL is designed
+to create one GL context by window. As the Driver only holds one PixelFormat for all created windows, a GL context can be 
+created for each Window but shared with the previous one. As the pixel format is the same, all objects created for one context
+should be available for other contexts. 
+
+[OSX NOTES] 
+First context is created with NSOpenGLContext. It does not need to be attached to a window/view. When requesting the first RenderWindow
+this context is attached to it. When requesting other windows, a new NSOpenGLContext is created shared with the first one. 

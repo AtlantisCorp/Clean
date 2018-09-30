@@ -7,6 +7,7 @@
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_compile_definitions(CLEAN_PLATFORM_WIN32)
     add_compile_definitions(CLEAN_WINDOW_WIN32)
+    set(CLEAN_WINDOW_WIN32 TRUE)
     
 # CLEAN_PLATFORM_LINUX
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
@@ -16,6 +17,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     add_compile_definitions(CLEAN_PLATFORM_MACOS)
     add_compile_definitions(CLEAN_WINDOW_COCOA)
+    set(CLEAN_WINDOW_COCOA TRUE)
     
 endif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 
@@ -33,6 +35,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     if(X11_FOUND)
         # Defines X11 as a compile definition. 
         add_compile_definitions(CLEAN_WINDOW_X11)
+        set(CLEAN_WINDOW_X11 TRUE)
     endif(X11_FOUND)
     
     find_package(Wayland)
@@ -40,6 +43,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     if (WAYLAND_FOUND)
         # Defines Wayland as a compile definition.
         add_compile_definitions(CLEAN_WINDOW_WAYLAND)
+        set(CLEAN_WINDOW_WAYLAND TRUE)
     endif(WAYLAND_FOUND)
     
     find_package(Libdrm)
@@ -47,6 +51,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     if (Libdrm_FOUND)
         # Defines Libdrm as a compile definition.
         add_compile_definitions(CLEAN_WINDOW_LIBDRM)
+        set(CLEAN_WINDOW_LIBDRM TRUE)
     endif(Libdrm_FOUND)
     
 endif(CMAKE_SYSTEM_NAME STREQUAL "Linux")

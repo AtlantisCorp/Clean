@@ -1,8 +1,9 @@
 # File: CMakeLists.txt
 # Purpose: Includes other CMake files to generate Main, Core and all Modules. 
+CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
+PROJECT(MainProject)
 
-project(MainProject)
-include(CMake/CleanMacros.cmake)
+INCLUDE(CMake/CleanMacros.cmake)
 
 set(CLEAN_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/bin")
 
@@ -15,4 +16,4 @@ include(Core/CMakeLists.txt)
 include(Main/CMakeLists.txt)
 
 # Adds here every CMake files for modules. 
-# include(Modules/GlDriver/CMakeLists.txt)
+include(Modules/GlDriver/CMakeLists.txt)
