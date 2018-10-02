@@ -234,6 +234,19 @@ namespace Clean
         /*! @brief Should return the default shader for the given stage. */
         virtual std::shared_ptr < Shader > findDefaultShaderForStage(std::uint8_t stage) const = 0;
         
+        /*! @brief Delegate method for a DriverResource created by this Driver. 
+         *
+         * Called when a DriverResource's use count is zero, returns true if the resource is allowed to release
+         * its data, or false if it musn't. It can be used for a Driver to allow, for example, persistent data 
+         * without needing at least one external count. For example, a persistent Buffer can be used to permanently 
+         * store static data, even when no mesh uses it. 
+         *
+        **/
+        virtual bool shouldReleaseResource(DriverResource const& resource) const;
+        
+        /*! @brief Creates a new Shader from given source text and stage. */
+        virtual std::shared_ptr < Shader > makeShader(const char* src, std::uint8_t stage, std::shared_ptr < ShaderMapper > const& mapper = nullptr) = 0;
+        
     protected:
         
         /*! @brief Creates a RenderWindow from implementation. */

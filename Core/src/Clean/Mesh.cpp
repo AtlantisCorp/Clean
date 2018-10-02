@@ -190,6 +190,7 @@ namespace Clean
                     hardBuffer = buffer.second;
                 }
                 
+                hardBuffer->retain();
                 cache.buffers.insert(std::make_pair(buffer.first, hardBuffer));
             }
             
@@ -204,6 +205,7 @@ namespace Clean
                     hardBuffer = buffer.second;
                 }
                 
+                hardBuffer->retain();
                 cache.buffers.insert(std::make_pair(buffer.first, hardBuffer));
             }
         }
@@ -267,6 +269,7 @@ namespace Clean
                     hardBuffer = data->buffer;
                 }
                 
+                hardBuffer->retain();
                 cache.buffers.insert(std::make_pair(data->buffer->getHandle(), hardBuffer));
             }
             
@@ -317,6 +320,7 @@ namespace Clean
                             hardBuffer = pair.first;
                         }
                         
+                        hardBuffer->retain();
                         cache.buffers.insert(std::make_pair(pair.first->getHandle(), hardBuffer));
                     }
                     

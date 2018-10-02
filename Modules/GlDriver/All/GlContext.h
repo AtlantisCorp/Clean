@@ -19,6 +19,16 @@ public:
     
     /*! @brief Returns true if context is valid. */
     virtual bool isValid() const = 0;
+    
+    /*! @brief 'Locks' the context. In fact, it uses makeCurrent() and, if available, lock the context 
+     *  for multithreading purpose (OSX uses NSOpenGLContext::lock).
+    **/
+    virtual void lock() const = 0;
+    
+    /*! @brief 'Unlocks' the context. Actually does nothing, except on OSX where it calls NSOpenGLContext::unlock 
+     *  only for multithreading purpose. 
+    **/
+    virtual void unlock() const = 0;
 };
 
 #endif // GLDRIVER_GLCONTEXT_H

@@ -5,6 +5,7 @@
 #define CLEAN_BUFFER_H
 
 #include "Handled.h"
+#include "DriverResource.h"
 
 namespace Clean
 {
@@ -31,9 +32,9 @@ namespace Clean
     
     static constexpr const std::uint8_t kBufferDataUnknown = 0;
     
-    static constexpr const std::uint8_t kBufferUsageStatic = 0;
-    static constexpr const std::uint8_t kBufferUsageDynamic = 1;
-    static constexpr const std::uint8_t kBufferUsageStream = 2;
+    static constexpr const std::uint8_t kBufferUsageStatic = 1;
+    static constexpr const std::uint8_t kBufferUsageDynamic = 2;
+    static constexpr const std::uint8_t kBufferUsageStream = 3;
 
     /** @brief Generic buffer interface.
      *
@@ -47,9 +48,12 @@ namespace Clean
      * it will assume buffer's data is constitued of floats.
      *
     **/
-    class Buffer : public Handled < Buffer >
+    class Buffer : public DriverResource, public Handled < Buffer >
     {
     public:
+        
+        /*! @brief Constructs a new Buffer. */
+        Buffer(Driver* driver = nullptr);
 
         /*! @brief Default destructor. */
         virtual ~Buffer() = default;

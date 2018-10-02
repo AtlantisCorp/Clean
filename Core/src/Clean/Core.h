@@ -202,6 +202,9 @@ namespace Clean
         
         /*! @brief Returns actual WindowManager. */
         std::shared_ptr < WindowManager > getWindowManager();
+        
+        /*! @brief Adds the given Driver to this Core's DriverManager. */
+        void addDriver(std::shared_ptr < Driver > const& driver);
     };
 }
 

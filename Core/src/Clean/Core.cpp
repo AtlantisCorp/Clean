@@ -151,4 +151,12 @@ namespace Clean
     {
         return std::atomic_load(&windowManager);
     }
+    
+    void Core::addDriver(std::shared_ptr < Driver > const& driver)
+    {
+        auto loadedManager = std::atomic_load(&driverManager);
+        assert(loadedManager && "Null DriverManager.");
+        assert(driver && "Illegal null driver passed.");
+        loadedManager->add(driver);
+    }
 }

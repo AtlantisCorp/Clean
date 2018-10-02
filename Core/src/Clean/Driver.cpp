@@ -123,6 +123,12 @@ namespace Clean
         }
     }
     
+    bool Driver::shouldReleaseResource(DriverResource const& resource) const 
+    {
+        // NOTES: Default implementation always return true. We do not support persistent data by default.
+        return true;
+    }
+    
     /** Pseudo-code sample for Driver::commit(): 
     
     assert(queue && "Null RenderQueue for commitment given.");

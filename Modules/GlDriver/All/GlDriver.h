@@ -8,6 +8,7 @@
 
 #include "GlContext.h"
 #include "GlRenderWindow.h"
+#include "GlBufferManager.h"
 
 class GlDriver : public Clean::Driver 
 {
@@ -23,15 +24,74 @@ class GlDriver : public Clean::Driver
     //! @brief Protects defaultContext and defaultWindow.
     mutable std::mutex defaultsMutex;
     
+    //! @brief BufferManager for all GlBuffer created by this driver. At destruction of the driver, all
+    //! buffers are released automatically. When someone wants a buffer from this driver to be released,
+    //! he has to call Driver::releaseBuffer() or Buffer::release(). For example, when Mesh finished to 
+    //! use its buffer (as in destructor, or when removing it), it uses Buffer::release() to release the 
+    //! buffer if not used anymore.
+    GlBufferManager bufferManager;
+    
+    //! @brief ShaderManager for all GlShader created by this Driver. The only purpose of this manager is
+    //! to provide precompiled shaders for all classes. Once a shader is compiled, it is stored in this manager
+    //! and can be retrieve by using several find* functions. A shader is also a DriverResource. Once all 
+    //! programs have used it (no program uses the compiled shader), it can be still stored if marked persistent,
+    //! or be released. A new shader object must be compiled at this time. 
+    GlShaderManager shaderManager;
+    
+    //! @brief Holds default shaders for each stage. 
+    std::map < std::uint8_t, std::shared_ptr < GlShader > > defaultShadersMap;
+    
+    //! @brief Protects defaultShadersMap. 
+    mutable std::mutex defaultShadersMapMutex;
+    
 public:
     
+    /*! @brief Initializes an OpenGL Driver. 
+     *
+     * Depending on the current platform and window system chosen to compile this module, a GlContext
+     * and its default GlRenderWindow are created during the process. The current pixel format is used
+     * to initialize those objects. 
+     * 
+     * \notes[OSX] OSXGlContext and OSXGlRenderWindow are used to initialize our objects. Considering events
+     * loop, it may be useful to have a valid NSApp while running our engine. However, this application may not 
+     * be updated by using NSApplication::update, but rather by updating our RenderWindow directly. 
+     *
+    **/
     bool initialize();
     
+    /*! @brief Destroys every objects created by this driver. */
     void destroy();
     
+    /*! @brief Select a pixel format. */
     Clean::PixelFormat selectPixelFormat(Clean::PixelFormat const& pixFormat, Clean::PixelFormatPolicy policy = Clean::kPixelFormatClosest);
     
     void drawShaderAttributes(std::uint8_t drawingMode, Clean::ShaderAttributesMap const& attributes);
+    
+    /*! @brief Returns a RenderCommand filled with a new GlRenderPipeline. */
+    Clean::RenderCommand makeRenderCommand() const;
+    
+    /*! @brief Always return 'Clean.GlDriver' string. */
+    std::string const getName() const;
+    
+    /*! @brief Creates a new buffer allocated in VRAM from given buffer. */
+    std::shared_ptr < Clean::Buffer > makeBuffer(std::uint8_t type, std::shared_ptr < Clean::Buffer > const& buffer);
+    
+    /*! @brief Returns the default shader for specified stage. 
+     * 
+     * Default shaders are loaded at Driver creation, and stored in a defaultShadersMap. This map holds the
+     * defaultShaders for each stage. Anyone can modify this map to change the default shader used for each
+     * shader stage. Default shaders are considered persistent as the Driver always holds one retain count. 
+     *
+    **/
+    std::shared_ptr < Clean::Shader > findDefaultShaderForStage(std::uint8_t stage) const;
+    
+    /*! @brief Creates a new Shader from given source text and stage. */
+    std::shared_ptr < Shader > makeShader(const char* src, std::uint8_t stage, std::shared_ptr < ShaderMapper > const& mapper = nullptr);
+    
+protected:
+    
+    /*! @brief Loads default shaders for this driver. */
+    void loadDefaultShaders();
 };
 
 #endif // GLDRIVER_GLDRIVER_H

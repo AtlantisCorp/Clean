@@ -26,6 +26,18 @@ namespace Clean
     class Driver;
     class Shader;
     struct RenderCommand;
+    
+    /*! @brief Automatically calls Buffer::release when the shared_ptr is destroyed. */
+    class BufferAutorelease : public std::shared_ptr < Buffer >
+    {
+    public:
+        using std::shared_ptr < Buffer >::shared_ptr;
+        
+        ~BufferAutorelease() {
+            auto ptr = get();
+            if (ptr) ptr->release();
+        }
+    };
 
     /** @brief Represents a single draw work for a Mesh.
     **/
@@ -112,7 +124,7 @@ namespace Clean
         struct DriverCache
         {   
             //! @brief Stores all buffers stored for a driver. (Key is handle of soft buffer, value is hard buffer)
-            std::map < std::uintptr_t, std::shared_ptr < Buffer > > buffers;
+            std::map < std::uintptr_t, BufferAutorelease > buffers;
             
             //! @brief Stores all caches for each shader for this driver. (1 ShaderCache for 1 Shader)
             std::map < ShaderKey, ShaderCache > shaderCaches;
