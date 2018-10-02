@@ -6,6 +6,7 @@
 
 #include "Handled.h"
 #include "ShaderMapper.h"
+#include "DriverResource.h"
 
 #include <cstdint>
 #include <atomic>
@@ -31,13 +32,10 @@ namespace Clean
     //! @}
     
     /** @brief Generic shader definition. */
-    class Shader : public Handled < Shader > 
+    class Shader : public DriverResource, public Handled < Shader > 
     {
         //! @brief Type related to this shader.
         std::atomic < std::uint8_t > type;
-        
-        //! @brief ShaderMapper associated to this shader. 
-        std::shared_ptr < ShaderMapper > mapper;
         
     public:
         
@@ -50,25 +48,8 @@ namespace Clean
         /*! @brief Default destructor. */
         virtual ~Shader() = default;
         
-        /*! @brief Changes the shader mapper. */
-        void setMapper(std::shared_ptr < ShaderMapper > const& mapper);
-        
-        /*! @brief Returns mapper. */
-        std::shared_ptr < ShaderMapper > getMapper() const;
-        
         /*! @brief Returns shader's type. */
         std::uint8_t getType() const;
-        
-        /*! @brief Maps the given VertexDescriptor by using this Shader's ShaderMapper.
-         *
-         * If no ShaderMapper is present for this Shader, it returns an empty ShaderAttributesMap. This can
-         * be checked with ShaderAttributesMap::isValid() which returns false.
-         *
-        **/
-        ShaderAttributesMap map(VertexDescriptor const& descriptor) const;
-        
-        /*! @brief Maps multiple VertexDescriptor to multiple ShaderAttributesMap. */
-        std::vector < ShaderAttributesMap > map(std::vector < VertexDescriptor > const& descs) const;
     };
 }
 

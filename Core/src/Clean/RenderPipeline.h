@@ -25,6 +25,14 @@ namespace Clean
      * \note Attributes bound to the shader are not stored in the pipeline states, but in the RenderCommand. 
      * This way multiple commands with different buffers can use the same pipeline states. 
      *
+     * A RenderPipeline represents how to render multiple render commands. In term of shaders, it also stores
+     * the shader for each stage. Thus, attributes and uniforms are handled at this point. The ShaderMapper is 
+     * the 'translator' that helps RenderPipeline converts VertexDescriptor to ShaderAttributes. 
+     * 
+     * ShaderAttributesMap caches and Mesh management
+     * Mesh stores in its cache all ShaderAttributesMap generated for each RenderPipeline. When a Mesh populates
+     * a RenderCommand, it uses the ShaderAttributesMap cached for this RenderPipeline. 
+     *
     **/
     class RenderPipeline 
     {
@@ -32,7 +40,10 @@ namespace Clean
         std::map < std::uint8_t, std::shared_ptr < Shader > > shaders;
         
         //! @brief Protects shaders. 
-        std::mutex shadersMutex;
+        mutable std::mutex shadersMutex;
+        
+        //! @brief ShaderMapper associated to this shader. 
+        std::shared_ptr < ShaderMapper > mapper;
         
     public:
         
@@ -61,6 +72,29 @@ namespace Clean
         
         /*! @brief Sets the current drawing method. */
         virtual void setDrawingMethod(std::uint8_t drawingMethod) const = 0;
+        
+        /*! @brief Changes the shader mapper. */
+        void setMapper(std::shared_ptr < ShaderMapper > const& mapper);
+        
+        /*! @brief Returns mapper. */
+        std::shared_ptr < ShaderMapper > getMapper() const;
+        
+       /*! @brief Maps the given VertexDescriptor by using this RenderPipeline's ShaderMapper.
+        *
+        * If no ShaderMapper is present for this pipeline, it returns an empty ShaderAttributesMap. This can
+        * be checked with ShaderAttributesMap::isValid() which returns false.
+        *
+       **/
+       ShaderAttributesMap map(VertexDescriptor const& descriptor) const;
+       
+       /*! @brief Maps multiple VertexDescriptor to multiple ShaderAttributesMap. */
+       std::vector < ShaderAttributesMap > map(std::vector < VertexDescriptor > const& descs) const;
+       
+       /*! @brief Returns true if the given attribute is present in this pipeline. */
+       virtual bool hasAttribute(std::string const& attrib) const = 0;
+       
+       /*! @brief Returns an index representing the location of a given attribute in the pipeline. */
+       virtual std::uint8_t findAttributeIndex(std::string const& attrib) const = 0;
     };
 }
 

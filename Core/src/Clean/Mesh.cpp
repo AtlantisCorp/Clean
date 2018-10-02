@@ -2,7 +2,7 @@
 **/
 
 #include "Mesh.h"
-#include "Shader.h"
+#include "RenderPipeline.h"
 #include "RenderCommand.h"
 #include "NotificationCenter.h"
 #include "Driver.h"
@@ -86,11 +86,12 @@ namespace Clean
         return result;
     }
     
-    void Mesh::populateRenderCommand(Driver const& driver, Shader const& shader, RenderCommand& command)
+    void Mesh::populateRenderCommand(Driver const& driver, RenderCommand& command)
     {
         // When we must submit a render command, first try to see if we have pregenerated ShaderAttributesMap
         // for the pair driver/shader. 
         
+        RenderPipeline const& shader = *(command.pipeline);
         auto attribs = findShaderAttributesMap(driver, shader);
         
         if (!attribs.empty())
@@ -128,7 +129,7 @@ namespace Clean
         command.batchSub(drawingMethod.load(), attribs);
     }
     
-    std::vector < ShaderAttributesMap > Mesh::findShaderAttributesMap(Driver const& driver, Shader const& shader)
+    std::vector < ShaderAttributesMap > Mesh::findShaderAttributesMap(Driver const& driver, RenderPipeline const& shader)
     {
         const std::uintptr_t driverOffset = reinterpret_cast < std::uintptr_t >(&driver);
         const std::uintptr_t shaderOffset = reinterpret_cast < std::uintptr_t >(&shader);
@@ -144,7 +145,7 @@ namespace Clean
         return shaderIt->second.shaderAttribs;
     }
     
-    void Mesh::shaderCacheStore(Driver const& driver, Shader const& shader, ShaderCache& cache)
+    void Mesh::shaderCacheStore(Driver const& driver, RenderPipeline const& shader, ShaderCache& cache)
     {
         const std::uintptr_t driverOffset = reinterpret_cast < std::uintptr_t >(&driver);
         const std::uintptr_t shaderOffset = reinterpret_cast < std::uintptr_t >(&shader);

@@ -9,6 +9,7 @@
 #include "GlContext.h"
 #include "GlRenderWindow.h"
 #include "GlBufferManager.h"
+#include "GlShaderManager.h"
 
 class GlDriver : public Clean::Driver 
 {
@@ -86,12 +87,22 @@ public:
     std::shared_ptr < Clean::Shader > findDefaultShaderForStage(std::uint8_t stage) const;
     
     /*! @brief Creates a new Shader from given source text and stage. */
-    std::shared_ptr < Shader > makeShader(const char* src, std::uint8_t stage, std::shared_ptr < ShaderMapper > const& mapper = nullptr);
+    std::shared_ptr < Shader > makeShader(const char* src, std::uint8_t stage);
     
 protected:
     
     /*! @brief Loads default shaders for this driver. */
     void loadDefaultShaders();
+    
+    /*! @brief Creates a RenderWindow. */
+    std::shared_ptr < Clean::RenderWindow > _createRenderWindow(std::size_t width, std::size_t height, 
+        std::string const& title, std::uint16_t style, bool fullscreen) const;
+        
+    /*! @brief Creates a RenderSurface. */
+    std::shared_ptr < Clean::RenderSurface > _createRenderSurface(std::size_t width, std::size_t height, NativeSurface parent) const;
+    
+    /*! @brief Creates a RenderQueue. */
+    std::shared_ptr < Clean::RenderQueue > _createRenderQueue(std::uint8_t type) const;
 };
 
 #endif // GLDRIVER_GLDRIVER_H

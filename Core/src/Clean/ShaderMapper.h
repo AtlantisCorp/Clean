@@ -8,7 +8,7 @@
 
 namespace Clean
 {
-    class Shader;
+    class RenderPipeline;
     struct VertexDescriptor;
 
     /** @brief Makes the link between a VertexDescriptor and a Shader.
@@ -36,13 +36,13 @@ namespace Clean
 
         /*! @brief Maps a given vertex's descriptor to an AttributesMap.
          *
-         * Implementation of this function should be done for one shader. It basically maps all shader's
+         * Implementation of this function should be done for one RenderPipeline. It basically maps all pipeline's
          * attributes to each component of VertexDescriptor (i.e. kVertexComponentColor, kVertexComponentNormal, ...).
          * A VertexComponent is bound to a ShaderAttribute structure which will be used by the driver to draw the render
          * command.
          *
         **/
-        virtual ShaderAttributesMap map(VertexDescriptor const& descriptor, Shader const& shader) const = 0;
+        virtual ShaderAttributesMap map(VertexDescriptor const& descriptor, RenderPipeline const& pipeline) const = 0;
 
         /* Mapper is used like this example:
 
@@ -50,41 +50,43 @@ namespace Clean
             ShaderAttributesMap result(descriptor.indexInfos);
             if (descriptor.indexInfos.elements == 0) result.setElements(descriptor.localSubmesh.elements);
 
-            if (descriptor.has(kVertexComponentColor) && shader.hasAttribute("color"))
+            if (descriptor.has(kVertexComponentColor) && pipeline.hasAttribute("color"))
             {
                 auto& infos = descriptor.findInfosFor(kVertexComponentColor);
 
                 ShaderAttribute attrib = ShaderAttribute::Enabled(
-                    shader.findAttributeIndex("color"),
+                    pipeline.findAttributeIndex("color"),
                     infos.offset, infos.stride, infos.buffer
                 );
 
                 result.add(std::move(attrib));
             }
 
-            if (descriptor.has(kVertexComponentPosition) && shader.hasAttribute("position"))
+            if (descriptor.has(kVertexComponentPosition) && pipeline.hasAttribute("position"))
             {
                 auto& infos = descriptor.findInfosFor(kVertexComponentPosition);
 
                 ShaderAttribute attrib = ShaderAttribute::Enabled(
-                    shader.findAttributeIndex("position"),
+                    pipeline.findAttributeIndex("position"),
                     infos.offset, infos.stride, infos.buffer
                 );
 
                 result.add(std::move(attrib));
             }
 
-            if (descriptor.has(kVertexComponentTexture) && shader.hasAttribute("texture"))
+            if (descriptor.has(kVertexComponentTexture) && pipeline.hasAttribute("texture"))
             {
                 auto& infos = descriptor.findInfosFor(kVertexComponentTexture);
 
                 ShaderAttribute attrib = ShaderAttribute::Enabled(
-                    shader.findAttributeIndex("texture"),
+                    pipeline.findAttributeIndex("texture"),
                     infos.offset, infos.stride, infos.buffer
                 );
 
                 result.add(std::move(attrib));
             }
+        
+            return result;
         }
 
         */

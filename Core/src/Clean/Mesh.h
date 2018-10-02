@@ -24,7 +24,7 @@
 namespace Clean
 {
     class Driver;
-    class Shader;
+    class RenderPipeline;
     struct RenderCommand;
     
     /*! @brief Automatically calls Buffer::release when the shared_ptr is destroyed. */
@@ -79,8 +79,8 @@ namespace Clean
      * about submeshes. This part is accessible freely from the user. The 'hardware' part holds all buffers in VRAM,
      * and a cached ShaderAttributesMap for each Shader used. 
      *
-     * As seen above, cache is organized by Driver AND by Shader used to render this Mesh. This lets the mesh caches
-     * all the data any driver/shader pair may need to render it correctly. 
+     * As seen above, cache is organized by Driver AND by RenderPipeline used to render this Mesh. This lets the mesh caches
+     * all the data any driver/pipeline pair may need to render it correctly. 
      *
      * Transactional update of cache
      * Whenever a user (or any kind of user/developer) needs to update the Mesh's buffers, the cache shouldn't be cleared
@@ -126,7 +126,7 @@ namespace Clean
             //! @brief Stores all buffers stored for a driver. (Key is handle of soft buffer, value is hard buffer)
             std::map < std::uintptr_t, BufferAutorelease > buffers;
             
-            //! @brief Stores all caches for each shader for this driver. (1 ShaderCache for 1 Shader)
+            //! @brief Stores all caches for each pipeline for this driver. (1 ShaderCache for 1 RenderPipeline)
             std::map < ShaderKey, ShaderCache > shaderCaches;
             
             //! @brief Stores all transactions pending for this driver. 
@@ -184,19 +184,19 @@ namespace Clean
          * function is called. Uses this function in your rendering thread.
          *
         **/
-        void populateRenderCommand(Driver const& driver, Shader const& shader, RenderCommand& command);
+        void populateRenderCommand(Driver const& driver, RenderCommand& command);
         
-        /*! @brief Finds ShaderAttributesMap cached for given Driver and Shader.
+        /*! @brief Finds ShaderAttributesMap cached for given Driver and RenderPipeline.
          *
          * If ShaderCache is not available, it returns only an empty vector. Use shaderCacheGenerate()
          * to explicitly generate the ShaderCache, or populateRenderCommand() to generate the cache and
          * populate your RenderCommand. 
          *
         **/
-        std::vector < ShaderAttributesMap > findShaderAttributesMap(Driver const& driver, Shader const& shader);
+        std::vector < ShaderAttributesMap > findShaderAttributesMap(Driver const& driver, RenderPipeline const& shader);
         
         /*! @brief Stores the given ShaderCache. */
-        void shaderCacheStore(Driver const& driver, Shader const& shader, ShaderCache& cache);
+        void shaderCacheStore(Driver const& driver, RenderPipeline const& shader, ShaderCache& cache);
 
         /*! @brief Associates this mesh to a driver.
          *

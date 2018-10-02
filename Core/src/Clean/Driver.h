@@ -245,7 +245,7 @@ namespace Clean
         virtual bool shouldReleaseResource(DriverResource const& resource) const;
         
         /*! @brief Creates a new Shader from given source text and stage. */
-        virtual std::shared_ptr < Shader > makeShader(const char* src, std::uint8_t stage, std::shared_ptr < ShaderMapper > const& mapper = nullptr) = 0;
+        virtual std::shared_ptr < Shader > makeShader(const char* src, std::uint8_t stage) = 0;
         
     protected:
         

@@ -141,7 +141,7 @@ int main()
         // will make our Mesh generate buffers from the given driver. 
         
         mesh->associate(*gldriver);
-        mesh->populateRenderCommand(*gldriver, *vertexShader, firstCommand);
+        mesh->populateRenderCommand(*gldriver, firstCommand);
         
         // VertexDescriptor describe how to render one SubMesh. Mesh::findAssociatedDescriptors return a list of VertexDescriptor 
         // which can render every mesh's submeshes for the given driver. Those descriptors needs to be mapped to ShaderAttributes
