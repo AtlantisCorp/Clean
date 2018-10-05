@@ -20,11 +20,36 @@ namespace Clean
     //! normals, tangents, bitangents, which makes only 6 attributes. 
     static constexpr const std::uint8_t kShaderAttributeMax = 20;
     
+    //! @defgroup ShaderAttribGroup Shader's attributes type
+    /** @brief Defines generic base type for each attribute's component. For example, a position has
+     *  four floats, so its type is kShaderAttribFloat. Some custom types may be handled. 
+     * @{
+    **/
+    
+    static constexpr const std::uint8_t kShaderAttribNull = 0;
+    static constexpr const std::uint8_t kShaderAttribI8 = 1;
+    static constexpr const std::uint8_t kShaderAttribU8 = 2;
+    static constexpr const std::uint8_t kShaderAttribI16 = 3;
+    static constexpr const std::uint8_t kShaderAttribU16 = 4;
+    static constexpr const std::uint8_t kShaderAttribI32 = 5;
+    static constexpr const std::uint8_t kShaderAttribU32 = 6;
+    static constexpr const std::uint8_t kShaderAttribHalfFloat = 7;
+    static constexpr const std::uint8_t kShaderAttribFloat = 8;
+    static constexpr const std::uint8_t kShaderAttribDouble = 9;
+    
+    //! @}
+    
     /** @brief Generic attribute in a shader. */
     struct ShaderAttribute final
     {
         //! @brief Index used in the shader to identify the attribute.
         std::uint8_t index = 0;
+        
+        //! @brief Type of the components to use. 
+        std::uint8_t type = kShaderAttribNull;
+        
+        //! @brief Number of components per generic vertex attribute. Must be 1, 2, 3, or 4.
+        std::uint8_t components = 0;
         
         //! @brief Offset in the buffer to localize first data, in bytes. 
         std::ptrdiff_t offset = 0;
@@ -39,7 +64,8 @@ namespace Clean
         bool enabled = false;
         
         /*! @brief Constructs a default enabled ShaderAttribute. */
-        static ShaderAttribute Enabled(std::uint8_t index, std::ptrdiff_t offset, std::ptrdiff_t stride,
+        static ShaderAttribute Enabled(std::uint8_t index, std::uint8_t type, std::uint8_t components,
+                                       std::ptrdiff_t offset, std::ptrdiff_t stride,
                                        std::shared_ptr < Buffer > const& buffer);
         
         /*! @brief Constructs a default disabled ShaderAttribute. */
@@ -116,6 +142,9 @@ namespace Clean
         
         /*! @brief Returns true if there are one or more attributes. */
         bool isValid() const;
+        
+        /*! @brief Returns number of ShaderAttributes in this map. */
+        std::size_t countAttributes() const;
     };
 }
 

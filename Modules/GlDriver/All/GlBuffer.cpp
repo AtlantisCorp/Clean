@@ -127,6 +127,21 @@ std::uint8_t GlBuffer::getUsage() const
     }
 }
 
+bool GlBuffer::isBindable() const 
+{
+    return handle != 0;
+}
+
+void GlBuffer::bind(Driver&) const 
+{
+    glBindBuffer(target, handle);
+}
+
+void GlBuffer::unbind(Driver&) const 
+{
+    glBindBuffer(target, 0);
+}
+
 void GlBuffer::releaseResource()
 {
     glDeleteBuffers(1, &handle);

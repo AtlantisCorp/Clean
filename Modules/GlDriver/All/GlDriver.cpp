@@ -5,6 +5,7 @@
 #include <Clean/Allocate.h>
 
 #include "GlDriver.h"
+#include "GlRenderPipeline.h"
 
 #ifdef CLEAN_WINDOW_COCOA
 #   include "../Cocoa/OSXGlContext.h"
@@ -106,7 +107,7 @@ public:
             auto& infos = descriptor.findInfosFor(kVertexComponentPosition);
 
             ShaderAttribute attrib = ShaderAttribute::Enabled(
-                shader.findAttributeIndex("position"),
+                shader.findAttributeIndex("position"), 4, kShaderAttribFloat,
                 infos.offset, infos.stride, infos.buffer
             );
 

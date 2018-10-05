@@ -5,11 +5,24 @@
 
 namespace Clean 
 {
+    RenderPipeline::RenderPipeline(Driver* driver) 
+        : DriverResource(driver)
+    {
+        
+    }
+    
     void RenderPipeline::shader(std::uint8_t stage, std::shared_ptr < Shader > const& shad) 
     {
         if (!shad) return;
         std::scoped_lock < std::mutex > lck(shadersMutex);
         shaders[stage] = shad;
+    }
+    
+    void RenderPipeline::bindParameters(std::vector < ShaderParameter > const& parameters) const 
+    {
+        for (ShaderParameter const& parameter : parameters) {
+            bindParameter(parameter);
+        }
     }
     
     void RenderPipeline::setMapper(std::shared_ptr < ShaderMapper > const& shaderMapper)

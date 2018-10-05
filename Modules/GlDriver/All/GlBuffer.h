@@ -92,6 +92,15 @@ public:
     /*! @brief Returns buffer's usage. */
     std::uint8_t getUsage() const;
     
+    /*! @brief Returns true if buffer is valid. **/
+    virtual bool isBindable() const;
+   
+    /*! @brief Binds the buffer to the given driver, if possible. */
+    virtual void bind(Driver& driver) const;
+   
+    /*! @brief Unbinds the buffer from the given driver, if possible. */
+    virtual void unbind(Driver& driver) const;
+    
 protected:
     
     /*! @brief Releases the buffer's handle. */

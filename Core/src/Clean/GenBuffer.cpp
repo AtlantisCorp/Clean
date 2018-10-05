@@ -122,4 +122,19 @@ namespace Clean
     {
         return usage.load();
     }
+    
+    bool GenBuffer::isBindable() const 
+    {
+        return false;
+    }
+    
+    void GenBuffer::bind(Driver&) 
+    {
+        
+    }
+    
+    void GenBuffer::unbind(Driver&)
+    {
+        
+    }
 }

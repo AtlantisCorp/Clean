@@ -6,6 +6,8 @@
 
 #include "Shader.h"
 #include "ShaderParameter.h"
+#include "DriverResource.h"
+#include "Handled.h"
 
 #include <cstdint>
 #include <map>
@@ -15,6 +17,18 @@
 namespace Clean 
 {
     class Driver;
+    
+    //! @defgroup RenderPipelineDrawingMethodGroup RenderPipeline's drawing methods
+    /** @brief Defines some drawing methods. We calls drawing methods the fact to draw vertices as points, 
+     *  lines or filled geometry (and that's all). Default is kDrawingMethodFilled.
+     *  @{
+    **/
+    
+    static constexpr const std::uint8_t kDrawingMethodPoints = 1;
+    static constexpr const std::uint8_t kDrawingMethodLines = 2;
+    static constexpr const std::uint8_t kDrawingMethodFilled = 3;
+    
+    //! @}
     
     /** @brief Generic representation of a pipeline state. 
      *
@@ -34,7 +48,7 @@ namespace Clean
      * a RenderCommand, it uses the ShaderAttributesMap cached for this RenderPipeline. 
      *
     **/
-    class RenderPipeline 
+    class RenderPipeline : public DriverResource, public Handled < RenderPipeline >
     {
         //! @brief Shaders associated to each shader stage. 
         std::map < std::uint8_t, std::shared_ptr < Shader > > shaders;
@@ -48,7 +62,7 @@ namespace Clean
     public:
         
         /*! @brief Default constructor. */
-        RenderPipeline() = default;
+        RenderPipeline(Driver* driver);
         
         /*! @brief Default destructor. */
         virtual ~RenderPipeline() = default;
@@ -65,7 +79,10 @@ namespace Clean
         virtual void bind(Driver& driver) const = 0;
         
         /*! @brief Binds multiple parameters onto this pipeline. */
-        virtual void bindParameters(std::vector < ShaderParameter > const& parameters) const = 0;
+        virtual void bindParameters(std::vector < ShaderParameter > const& parameters) const;
+        
+        /*! @brief Bind one parameter onto this pipeline. */
+        virtual void bindParameter(ShaderParameter const& parameter) const = 0;
         
         /*! @brief Binds multiple ShaderAttribute onto this pipeline. */
         virtual void bindShaderAttributes(ShaderAttributesMap const& attributes) const = 0;

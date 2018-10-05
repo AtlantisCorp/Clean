@@ -89,6 +89,17 @@ namespace Clean
         
         /*! @brief Returns the usage for this buffer. */
         virtual std::uint8_t getUsage() const = 0;
+        
+        /*! @brief Returns true if the buffer is 'bindable'. Any buffer which is created by a driver should
+         *  be bindable. However, buffers created in RAM, like GenBuffer, are not bindable.
+        **/
+        virtual bool isBindable() const = 0;
+        
+        /*! @brief Binds the buffer to the given driver, if possible. */
+        virtual void bind(Driver& driver) const = 0;
+        
+        /*! @brief Unbinds the buffer from the given driver, if possible. */
+        virtual void unbind(Driver& driver) const = 0;
     };
 }
 

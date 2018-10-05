@@ -7,11 +7,14 @@
 
 namespace Clean 
 {
-    ShaderAttribute ShaderAttribute::Enabled(std::uint8_t index, std::ptrdiff_t offset, std::ptrdiff_t stride,
+    ShaderAttribute ShaderAttribute::Enabled(std::uint8_t index, std::uint8_t type, std::uint8_t components,
+                                             std::ptrdiff_t offset, std::ptrdiff_t stride,
                                              std::shared_ptr < Buffer > const& buffer)
     {
         ShaderAttribute result;
         result.index = index;
+        result.type = type;
+        result.components = components;
         result.offset = offset;
         result.stride = stride;
         result.buffer = buffer;
@@ -82,5 +85,10 @@ namespace Clean
     bool ShaderAttributesMap::isValid() const
     {
         return attribs.size() > 0;
+    }
+    
+    std::size_t ShaderAttributesMap::countAttributes() const 
+    {
+        return attribs.size();
     }
 }

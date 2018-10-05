@@ -16,18 +16,9 @@ namespace Clean
     
     static constexpr const std::uint8_t kShaderParamNull = 0;
     
-    static constexpr const std::uint8_t kShaderParamU8 = 1;
-    static constexpr const std::uint8_t kShaderParamU16 = 2;
-    static constexpr const std::uint8_t kShaderParamU32 = 3;
-    static constexpr const std::uint8_t kShaderParamU64 = 4;
-    
-    static constexpr const std::uint8_t kShaderParamI8 = 5;
-    static constexpr const std::uint8_t kShaderParamI16 = 6;
-    static constexpr const std::uint8_t kShaderParamI32 = 7;
-    static constexpr const std::uint8_t kShaderParamI64 = 8;
-    
-    static constexpr const std::uint8_t kShaderParamFloat = 9;
-    static constexpr const std::uint8_t kShaderParamDouble = 10;
+    static constexpr const std::uint8_t kShaderParamU32 = 1;
+    static constexpr const std::uint8_t kShaderParamI32 = 2;
+    static constexpr const std::uint8_t kShaderParamFloat = 3;
     
     static constexpr const std::uint8_t kShaderParamVec2 = 11;
     static constexpr const std::uint8_t kShaderParamVec3 = 12;
@@ -76,18 +67,9 @@ namespace Clean
         
         //! @brief Holds the parameter's value. 
         union value {
-            std::uint8_t u8;
-            std::uint16_t u16;
             std::uint32_t u32;
-            std::uint64_t u64;
-            
-            std::int8_t i8;
-            std::int16_t i16;
             std::int32_t i32;
-            std::int64_t i64;
-            
             float fl;
-            double db;
             
             float vec2[2];
             float vec3[3];

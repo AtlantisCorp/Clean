@@ -90,6 +90,15 @@ namespace Clean
        
         /*! @brief Returns the usage for this buffer. */
         std::uint8_t getUsage() const;
+        
+       /*! @brief Returns always false. **/
+       virtual bool isBindable() const;
+       
+       /*! @brief Does nothing. */
+       virtual void bind(Driver& driver) const;
+       
+       /*! @brief Does nothing. */
+       virtual void unbind(Driver& driver) const;
     };
 }
 
