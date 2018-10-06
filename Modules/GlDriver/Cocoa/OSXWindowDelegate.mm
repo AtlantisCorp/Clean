@@ -25,9 +25,24 @@
     [_context update];
 }
 
+/*! @brief Called when the Window did update. 
+ * We must call NSOpenGLContext::update to ensure our GL context is correctly updated. 
+**/
 - (void)windowWillClose:(NSNotification*)notification
 {
     _caller->notifyClose((id)self);
+}
+
+/*! @brief Calls OSXGlRenderWindow::notifyFullscreen(true). */
+- (void)windowDidEnterFullscreen:(NSNotification*)notification
+{
+    _caller->notifyFullscreen(self, true);
+}
+
+/*! @brief Calls OSXGlRenderWindow::notifyFullscreen(false). */
+- (void)windowDidExitFullscreen:(NSNotification*)notification
+{
+    _caller->notifyFullscreen(self, false);
 }
 
 @end

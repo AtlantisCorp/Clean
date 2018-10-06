@@ -6,6 +6,21 @@
 #include <Clean/NotificationCenter.h>
 using namespace Clean;
 
+static GLenum GlShaderStage(std::uint8_t type)
+{
+    switch(type)
+    {
+        case kShaderTypeVertex: return GL_VERTEX_SHADER;
+        case kShaderTypeGeometry: return GL_GEOMETRY_SHADER;
+        case kShaderTypeTessEval: return GL_TESS_EVALUATION_SHADER;
+        case kShaderTypeTessControl: return GL_TESS_CONTROL_SHADER;
+        case kShaderTypeFragment: return GL_FRAGMENT_SHADER;
+            
+        default:
+        return GL_INVALID_ENUM;
+    }
+}
+
 GlShader::GlShader(const char* src, std::uint8_t type)
     : Shader(type), shaderHandle(0), compiled(false), compilerError()
 {
@@ -16,16 +31,17 @@ GlShader::GlShader(const char* src, std::uint8_t type)
     glCompileShader(shaderHandle);
     
     GLint status;
-    glGetShader(shaderHandle, GL_COMPILE_STATUS, &status);
+    glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &status);
     
     if (status != GL_TRUE) {
         GLsizei maxLength, length;
-        glGetShader(shaderHandle, GL_INFO_LOG_LENGTH, &maxLength);
+        glGetShaderiv(shaderHandle, GL_INFO_LOG_LENGTH, &maxLength);
         
         GLchar buffer[maxLength];
         glGetShaderInfoLog(shaderHandle, maxLength, &length, buffer);
         
-        Notification notif = BuildNotification(kNotificationLevelError, "Shader #%i cannot be compiled. Error is: %s", getHandle(), buffer);
+        Notification notif = BuildNotification(kNotificationLevelError, "Shader #%i cannot be compiled. Error is: %s",
+            this->getHandle(), buffer);
         NotificationCenter::GetDefault()->send(notif);
         
         compilerError = std::string(buffer, length);
@@ -42,6 +58,11 @@ GlShader::~GlShader()
     }
 }
 
+bool GlShader::isValid() const
+{
+    return shaderHandle != 0;
+}
+
 void GlShader::releaseResource()
 {
     if (!compiled) return;
@@ -49,4 +70,5 @@ void GlShader::releaseResource()
     shaderHandle = 0;
     compiled = false;
     compilerError.clear();
+    released = true;
 }

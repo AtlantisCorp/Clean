@@ -100,6 +100,9 @@ namespace Clean
         
         /*! @brief Unbinds the buffer from the given driver, if possible. */
         virtual void unbind(Driver& driver) const = 0;
+        
+        /*! @brief Returns the base type for this buffer. */
+        virtual std::uint8_t getType() const = 0;
     };
 }
 

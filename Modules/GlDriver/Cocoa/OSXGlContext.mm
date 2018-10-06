@@ -2,7 +2,9 @@
 **/
 
 #include "OSXGlContext.h"
+
 #include <Clean/Allocate.h>
+using namespace Clean;
 
 /*! @brief Fills attribs with the corresponding NSOpenGLPixelFormatAttribute values
  *  for the given pixelFormat. 
@@ -16,7 +18,7 @@
  * \return Number of attributes filled in the array, not counting the last zero.
  *
 **/
-std::size_t OSXPixelFormatAttributes(Clean::PixelFormat const& pixelFormat, NSOpenGLPixelFormatAttribute* attribs, std::size_t attribsCount)
+std::size_t OSXPixelFormatAttributes(PixelFormat const& pixelFormat, NSOpenGLPixelFormatAttribute* attribs, std::size_t attribsCount)
 {
     assert(attribs && attribsCount && "Illegal value attribs or attribsCount.");
     memset(attribs, 0, attribsCount * sizeof(NSOpenGLPixelFormatAttribute));
@@ -53,10 +55,10 @@ std::size_t OSXPixelFormatAttributes(Clean::PixelFormat const& pixelFormat, NSOp
     return currentAttrib - 1;
 }
 
-OSXGlContext::OSXGlContext(Clean::PixelFormat const& pixelFormat) : context(nil)
+OSXGlContext::OSXGlContext(Clean::PixelFormat const& pixelFormat_) : context(nil)
 {
     NSOpenGLPixelFormatAttribute attributes[30];
-    std::size_t result = OSXPixelFormatAttributes(pixelFormat, attributes, 30);
+    std::size_t result = OSXPixelFormatAttributes(pixelFormat_, attributes, 30);
     if (!result) return;
     
     NSOpenGLPixelFormat* pf = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
@@ -65,13 +67,14 @@ OSXGlContext::OSXGlContext(Clean::PixelFormat const& pixelFormat) : context(nil)
     NSOpenGLContext* glContext = [[NSOpenGLContext alloc] initWithFormat:pf shareContext:nil];
     if (!glContext) return;
     
+    pixelFormat = pixelFormat_;
     context = glContext;
 }
 
-OSXGlContext::OSXGlContext(Clean::PixelFormat const& pixelFormat, OSXGlContext const& sharedContext) : context(nil)
+OSXGlContext::OSXGlContext(Clean::PixelFormat const& pixelFormat_, OSXGlContext const& sharedContext) : context(nil)
 {
     NSOpenGLPixelFormatAttribute attributes[30];
-    bool result = OSXPixelFormatAttributes(pixelFormat, attributes, 30);
+    bool result = OSXPixelFormatAttributes(pixelFormat_, attributes, 30);
     if (!result) return;
     
     NSOpenGLPixelFormat* pf = [[NSOpenGLPixelFormat alloc] initWithAttributes:attributes];
@@ -81,6 +84,7 @@ OSXGlContext::OSXGlContext(Clean::PixelFormat const& pixelFormat, OSXGlContext c
     NSOpenGLContext* glContext = [[NSOpenGLContext alloc] initWithFormat:pf shareContext:natSharedContext];
     if (!glContext) return;
     
+    pixelFormat = pixelFormat_;
     context = glContext;
 }
 
@@ -107,18 +111,31 @@ void OSXGlContext::swapBuffers()
     }
 }
 
-void OSXGlContext::lock() 
+void OSXGlContext::lock() const
 {
     if (context) {
         [context lock];
+        [context makeCurrentContext];
     }
 }
 
-void OSXGlContext::unlock() 
+void OSXGlContext::unlock() const
 {
     if (context) {
         [context unlock];
     }
+}
+
+void OSXGlContext::makeCurrent()
+{
+    if (context) {
+        [context makeCurrentContext];
+    }
+}
+
+PixelFormat OSXGlContext::getPixelFormat() const
+{
+    return pixelFormat;
 }
 
 id OSXGlContext::toNSOpenGLContext() const 

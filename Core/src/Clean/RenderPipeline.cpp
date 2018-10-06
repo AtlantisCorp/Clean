@@ -2,6 +2,7 @@
 **/
 
 #include "RenderPipeline.h"
+#include "VertexDescriptor.h"
 
 namespace Clean 
 {

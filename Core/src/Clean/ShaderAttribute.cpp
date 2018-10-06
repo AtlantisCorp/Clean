@@ -43,7 +43,7 @@ namespace Clean
         attribs[attrib.index] = std::move(attrib);
     }
     
-    ShaderAttribute ShaderAttributesMap::find(std::uint8_t index)
+    ShaderAttribute ShaderAttributesMap::find(std::uint8_t index) const
     {
         assert(index < kShaderAttributeMax && "Invalid ShaderAttribute index.");
         return attribs[index];

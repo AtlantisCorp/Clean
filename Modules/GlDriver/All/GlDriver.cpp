@@ -1,11 +1,9 @@
 /** \file GlDriver/GlDriver.cpp
 **/
 
-#include <Clean/NotificationCenter.h>
-#include <Clean/Allocate.h>
-
 #include "GlDriver.h"
 #include "GlRenderPipeline.h"
+#include "GlRenderQueue.h"
 
 #ifdef CLEAN_WINDOW_COCOA
 #   include "../Cocoa/OSXGlContext.h"
@@ -13,6 +11,9 @@
 
 #endif
 
+#include <Clean/NotificationCenter.h>
+#include <Clean/Allocate.h>
+#include <Clean/VertexDescriptor.h>
 using namespace Clean;
 
 bool GlDriver::initialize() 
@@ -30,17 +31,7 @@ bool GlDriver::initialize()
         return false;
     }
         
-    defaultWindow = Clean::AllocateShared < OSXGlRenderWindow >(defaultNativeContext);
-        
-    if (!defaultWindow || !defaultWindow->isValid()) {
-        Clean::Notification errNotif = Clean:: BuildNotification(kNotificationLevelError,
-            "Driver %s can't create OSXGlRenderWindow.",
-            getName().data());
-        Clean::NotificationCenter::GetDefault()->send(errNotif);
-        defaultContext.reset();
-        return false;
-    }
-    
+    defaultWindow = nullptr;
     loadDefaultShaders();
         
     return true;
@@ -51,12 +42,14 @@ bool GlDriver::initialize()
 void GlDriver::destroy()
 {
     {
-        std::scoped_lock < GlContext, std::mutex > ctxtLock(defaultContext, defaultShadersMapMutex);
+        defaultContext->lock();
+        std::scoped_lock < std::mutex > ctxtLock(defaultShadersMapMutex);
         for (auto& pair : defaultShadersMap) {
             pair.second->release();
         }
         
         defaultShadersMap.clear();
+        defaultContext->unlock();
     }
     
     std::scoped_lock < std::mutex > lck(defaultsMutex);
@@ -75,20 +68,31 @@ PixelFormat GlDriver::selectPixelFormat(PixelFormat const& pixFormat, PixelForma
 #   endif
 }
     
-void GlDriver::drawShaderAttributes(std::uint8_t drawingMode, ShaderAttributesMap const& attributes)
+void GlDriver::drawShaderAttributes(ShaderAttributesMap const& attributes)
 {
-    switch(drawingMode)
-    {
-            /*
-        case kDrawingModeIndexed:
-        glDrawIndexed(...);
-        return;
-            
-        case kDrawingModeNormal:
-        case kDrawingModeVertexes:
-        glDrawArrays(...);
-        return;
-             */
+    IndexedInfos indexInfos = attributes.getIndexedInfos();
+    
+    if (indexInfos.elements && indexInfos.buffer) {
+        
+        GLvoid* pointer = NULL;
+        
+        if (indexInfos.buffer->isBindable()) {
+            indexInfos.buffer->bind(*this);
+        } else {
+            pointer = (GLvoid*) indexInfos.buffer->lock(kBufferIOReadOnly);
+        }
+        
+        glDrawElements(GL_TRIANGLES, indexInfos.elements, GL_UNSIGNED_INT, pointer);
+        
+        if (indexInfos.buffer->isBindable()) {
+            indexInfos.buffer->unbind(*this);
+        } else {
+            indexInfos.buffer->unlock(kBufferIOReadOnly);
+        }
+    }
+    
+    else if (attributes.getElements()) {
+        glDrawArrays(GL_TRIANGLES, 0, attributes.getElements());
     }
 }
 
@@ -104,7 +108,7 @@ public:
         
         if (descriptor.has(kVertexComponentPosition) && shader.hasAttribute("position"))
         {
-            auto& infos = descriptor.findInfosFor(kVertexComponentPosition);
+            VertexComponentInfos infos = descriptor.findInfosFor(kVertexComponentPosition);
 
             ShaderAttribute attrib = ShaderAttribute::Enabled(
                 shader.findAttributeIndex("position"), 4, kShaderAttribFloat,
@@ -118,9 +122,9 @@ public:
     }
 };
 
-RenderCommand GlDriver::makeRenderCommand() const 
+RenderCommand GlDriver::makeRenderCommand() 
 {
-    auto pipeline = AllocateShared < GlRenderPipeline >(defaultContext);
+    auto pipeline = AllocateShared < GlRenderPipeline >(this);
     auto defaultGlslMapper = AllocateShared < DefaultGlslMapper >();
     pipeline->setMapper(defaultGlslMapper);
     
@@ -136,24 +140,23 @@ std::shared_ptr < Buffer > GlDriver::makeBuffer(std::uint8_t type, std::shared_p
 {
     std::scoped_lock < GlContext const > ctxtLock(*defaultContext);
     
-    GLvoid* data = buffer->lock(kIOBufferReadOnly);
+    GLvoid* data = buffer->lock(kBufferIOReadOnly);
     GLsizeiptr size = static_cast < GLsizeiptr >(buffer->getSize());
     GLenum usage = GlBufferUsage(buffer->getUsage());
     
-    assert((bufType != GL_INVALID_ENUM) && "Illegal type passed.");
     assert((usage != GL_INVALID_ENUM) && "Illegal buffer usage passed.");
     auto bufHandle = AllocateShared < GlBuffer >(this, buffer->getType(), size, data, usage);
-    buffer->unlock(kIOBufferReadOnly);
+    buffer->unlock(kBufferIOReadOnly);
     
     if (!bufHandle) {
         Notification notif = BuildNotification(kNotificationLevelError, "Can't create GlBuffer from buffer #%i: "
-            "\tsize = %i\n\tusage = %i\n\ttype = %i", buffer->getHandle(), size, usage, bufType);
+            "\tsize = %i\n\tusage = %i\n\ttype = %i", buffer->getHandle(), size, usage, buffer->getType());
         NotificationCenter::GetDefault()->send(notif);
     }
     
     else {
         Notification notif = BuildNotification(kNotificationLevelInfo, "Created new GlBuffer from buffer #%i: "
-            "\tsize = %i\n\tusage = %i\n\ttype = %i", buffer->getHandle(), size, usage, bufType);
+            "\tsize = %i\n\tusage = %i\n\ttype = %i", buffer->getHandle(), size, usage, buffer->getType());
         NotificationCenter::GetDefault()->send(notif);
         bufferManager.add(bufHandle);
     }
@@ -174,8 +177,8 @@ void GlDriver::loadDefaultShaders()
     std::vector < std::shared_ptr < Shader > > defaultShaders;
     
     {
-        std::scoped_lock < GlContext > ctxtLock(defaultContext);
-    
+        defaultContext->lock();
+        
         const char* defaultGlslVertex = R"(
         
         #version 330
@@ -188,18 +191,18 @@ void GlDriver::loadDefaultShaders()
     
         void main() 
         {
-            gl_Position = projection * view * model * vert;
+            gl_Position = projection * view * model * position;
         }
         
         )";
     
-        auto defaultGlslVertexShader = makeShader(defaultGlslVertex, kBufferTypeVertex);
+        auto defaultGlslVertexShader = makeShader(defaultGlslVertex, kShaderTypeVertex);
         if (defaultGlslVertexShader) {
             defaultGlslVertexShader->retain();
             defaultShaders.push_back(defaultGlslVertexShader);
         }
     
-        const char defaultGlslFragment = R"(
+        const char* defaultGlslFragment = R"(
         
         #version 330
         
@@ -212,23 +215,25 @@ void GlDriver::loadDefaultShaders()
     
         )";
         
-        auto defaultGlslFragmentShader = makeShader(defaultGlslFragment, kBufferTypeFragment);
+        auto defaultGlslFragmentShader = makeShader(defaultGlslFragment, kShaderTypeFragment);
         if (defaultGlslFragmentShader) {
             defaultGlslFragmentShader->retain();
             defaultShaders.push_back(defaultGlslFragmentShader);
         }
+        
+        defaultContext->unlock();
     }
     
     std::scoped_lock lck(defaultShadersMapMutex);
     for (auto shader : defaultShaders) {
-        defaultShadersMap.insert(std::make_pair(shader->getType(), ReinterpretShared < GlBuffer >(shader)));
+        defaultShadersMap.insert(std::make_pair(shader->getType(), ReinterpretShared < GlShader >(shader)));
     }
 }
 
 std::shared_ptr < Shader > GlDriver::makeShader(const char* src, std::uint8_t stage)
 {
     assert(src && "Illegal empty source given.");
-    assert((stage != kBufferTypeNull) && "Illegal null shader's type.");
+    assert((stage != kShaderTypeNull) && "Illegal null shader's type.");
     std::scoped_lock < GlContext const > lck(*defaultContext);
     
     auto shader = AllocateShared < GlShader >(src, stage);
@@ -241,16 +246,8 @@ std::shared_ptr < Shader > GlDriver::makeShader(const char* src, std::uint8_t st
 std::shared_ptr < RenderWindow > GlDriver::_createRenderWindow(std::size_t width, std::size_t height, 
     std::string const& title, std::uint16_t style, bool fullscreen) const 
 {
-#   ifdef CLEAN_WINDOW_OSX
+#   ifdef CLEAN_WINDOW_COCOA
     std::scoped_lock < std::mutex > lck(defaultsMutex);
-    if (defaultWindow.use_count() == 1) {
-        defaultWindow->setSize(width, height);
-        defaultWindow->setStyle(style);
-        defaultWindow->setTitle(title);
-        defaultWindow->setFullscreen(fullscreen);
-        return defaultWindow;
-    }
-    
     auto currentContext = ReinterpretShared < OSXGlContext >(defaultContext);
     currentContext->lock();
     
@@ -275,48 +272,17 @@ std::shared_ptr < RenderWindow > GlDriver::_createRenderWindow(std::size_t width
         return nullptr;
     }
     
+    result->setFullscreen(fullscreen);
     sharedContext->unlock();
-    renderWindows.add(std::static_pointer_cast < RenderWindow >(result));
     return result;
     
-#   endif
-}
-
-std::shared_ptr < RenderSurface > GlDriver::_createRenderSurface(std::size_t width, std::size_t height, NativeSurface parent) const
-{
-#   ifdef CLEAN_WINDOW_OSX
-    auto currentContext = ReinterpretShared < OSXGlContext >(defaultContext);
-    currentContext->lock();
-    
-    auto sharedContext = AllocateShared < OSXGlContext >(currentContext->getPixelFormat(), *currentContext);
-    if (!sharedContext || !sharedContext->isValid()) {
-        Notification notif = BuildNotification(kNotificationLevelError, "OSXGlContext creation failed copy from context #%i.",
-            defaultContext->getHandle());
-        NotificationCenter::GetDefault()->send(notif);
-        currentContext->unlock();
-        return nullptr;
-    }
-    
-    currentContext->unlock();
-    sharedContext->lock();
-    
-    auto result = AllocateShared < OSXGlRenderSurface >(sharedContext, width, height, parent);
-    if (!result || !result->isValid()) {
-        Notification notif = BuildNotification(kNotificationLevelError, "OSXGlRenderSurface failed creation from context #%i.", 
-            sharedContext->getHandle());
-        NotificationCenter::GetDefault()->send(notif);
-        sharedContext->unlock();
-        return nullptr;
-    }
-    
-    sharedContext->unlock();
-    renderWindows.add(std::static_pointer_cast < RenderWindow >(result));
-    return result;
+#   else
+#   error "GlDriver::_createRenderWindow not implemented on your platform."
     
 #   endif
 }
 
 std::shared_ptr < RenderQueue > GlDriver::_createRenderQueue(std::uint8_t type) const
 {
-    return AllocateShared < RenderQueue >(type);
+    return AllocateShared < GlRenderQueue >(type);
 }

@@ -12,6 +12,6 @@ namespace Clean
             return managed->getFilepath() == path;
         });
         
-        return (check == managedList.end()) ? *check : nullptr;
+        return (check != managedList.end()) ? *check : nullptr;
     }
 }

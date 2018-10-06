@@ -120,7 +120,7 @@ namespace Clean
         void add(ShaderAttribute&& attrib);
         
         /*! @brief Returns a copy of the given ShaderAttribute. */
-        ShaderAttribute find(std::uint8_t index);
+        ShaderAttribute find(std::uint8_t index) const;
         
         /*! @brief Disable attributes at given index. */
         void disable(std::uint8_t index);

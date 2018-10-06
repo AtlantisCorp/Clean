@@ -87,7 +87,8 @@ int main()
         // Clean::ModuleManager::loadAllModules must be called after adding a new directory. 
         
         Clean::Core& core = Clean::Core::Create(listener);
-        std::size_t moduleCount = core.getModuleCount();
+        std::size_t moduleCount = core.loadAllModules();
+        core.getCurrentFileSystem().addRealPath("Mesh", "../Meshes");
         assert(moduleCount && "No module found.");
         
         // Try to find our driver 'Clean.GlDriver'. This is the default Clean::Driver for OpenGL. Driver
@@ -133,7 +134,7 @@ int main()
         auto loader = core.findFileLoader < Mesh >("obj");
         assert(loader && "No loader found to load OBJ file.");
         
-        auto mesh = loader->load("./example.obj");
+        auto mesh = loader->load("Clean://Mesh/Example.obj");
         assert(mesh && "Can't load ./example.obj file.");
         
         // Our mesh is loaded, but all its data is on the RAM. We want those buffers to be on GPU! However, Clean engine is 

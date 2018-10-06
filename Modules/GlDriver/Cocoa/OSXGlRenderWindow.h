@@ -19,10 +19,16 @@ class OSXGlRenderWindow : public GlRenderWindow
     //! @brief The NSOpenGLContext associated to this render window.
     std::shared_ptr < OSXGlContext > nativeContext;
     
+    //! @brief True if in Fullscreen mode, false otherwise.
+    std::atomic < bool > fullscreenMode;
+    
 public:
     
     /*! @brief Constructs an OSXGlRenderWindow from the given native context. */
     OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& context);
+    
+    /*! @brief Constructs an OSXGlRenderWindow from the given native context and its parameters. */
+    OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& context, std::size_t width, std::size_t height, std::uint16_t style, std::string const& title);
     
     /*! @brief Constructs an OSXGlRenderWindow from the given native RenderWindow. */
     OSXGlRenderWindow(OSXGlRenderWindow const& rhs);
@@ -107,9 +113,18 @@ public:
     /*! @brief Returns our OSXGlContext. */
     std::shared_ptr < OSXGlContext > getOSXGlContext() const;
     
+    /*! @brief Should make the Window ready to draw and receive events. */
+    void show() const;
+    
+    /*! @brief Sets the Window into fullscreen mode or windowed mode. */
+    void setFullscreen(bool value);
+    
 #   ifdef CLEAN_LANG_OBJC
     /*! @brief Notifies this render window its NSWindow will close. */
     void notifyClose(id delegate);
+    
+    /*! @brief Changes the fullscreenMode value. */
+    void notifyFullscreen(id delegate, bool value);
     
 #   endif
 };

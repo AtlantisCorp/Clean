@@ -29,14 +29,6 @@ class OSXGlRenderWindow;
 /*! @brief Initializes our delegate. */
 - (id)initWithCaller:(OSXGlRenderWindow*)caller glContext:(NSOpenGLContext*)context;
 
-/*! @brief Called when the Window did update. 
- * We must call NSOpenGLContext::update to ensure our GL context is correctly updated. 
-**/
-- (void)windowDidUpdate:(NSNotification*)notification;
-
-/*! @brief Calls OSXGlRenderWindow::notifyClose() to notify the NSWindow will close. */
-- (void)windowWillClose:(NSNotification*)notification;
-
 @end
 
 #endif // GLDRIVER_COCOA_OSXWINDOWDELEGATE_H

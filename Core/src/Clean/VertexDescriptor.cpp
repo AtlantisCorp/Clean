@@ -5,9 +5,9 @@
 
 namespace Clean 
 {
-    VertexComponentInfos VertexDescriptor::findInfosFor(VertexComponent const& component)
+    VertexComponentInfos VertexDescriptor::findInfosFor(VertexComponent const& component) const
     {
-        VertexComponentPartialInfos partial = components[component];
+        VertexComponentPartialInfos partial = components.at(component);
 
         VertexComponentInfos complete;
         complete.stride = partial.stride;

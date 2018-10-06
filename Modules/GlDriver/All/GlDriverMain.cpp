@@ -22,7 +22,7 @@ Clean::ModuleInfos GlDriverModuleInfos = {
     .name = "Clean.GlDriver",
     .description = "Clean::Driver implementation for OpenGL detected API.",
     .author = "Luk2010",
-    .version = Clean::Version::FromString("1.0.."),
+    .version = Clean::Version::FromString("1.0"),
     
     .startCallback = &GlDriverStartModule,
     .stopCallback = &GlDriverStopModule

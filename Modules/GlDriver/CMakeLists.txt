@@ -1,7 +1,6 @@
 # File: Modules/GlDriver/CMakeLists.txt
 # Purpose: Produces libGlDriver module. 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
-PROJECT(GlDriverProject)
 
 # Adds sources depending on window platform.
 FILE(GLOB GlDriverSources "Modules/GlDriver/All/*.h" "Modules/GlDriver/All/*.cpp")
@@ -42,4 +41,5 @@ ENDIF()
 # Set C++17 flag and output directory to 'bin/Modules'.
 TARGET_COMPILE_FEATURES(GlDriver PRIVATE cxx_std_17)
 SET_TARGET_PROPERTIES(GlDriver PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CLEAN_OUTPUT}/Modules)
+    LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CLEAN_OUTPUT}/Debug/Modules
+    LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CLEAN_OUTPUT}/Release/Modules)

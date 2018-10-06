@@ -10,7 +10,8 @@ target_link_libraries(Main CleanCore)
 target_compile_features(Main PRIVATE cxx_std_17)
 
 # Sets output directory. 
-set_target_properties(Main 
+SET_TARGET_PROPERTIES(Main 
     PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${CLEAN_OUTPUT}
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CLEAN_OUTPUT}/Debug
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CLEAN_OUTPUT}/Release
 )

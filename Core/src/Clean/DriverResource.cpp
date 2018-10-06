@@ -6,8 +6,8 @@
 
 namespace Clean 
 {
-    DriverResource::DriverResource(Driver* driver) 
-        : counter(0), creator(driver), released(false)
+    DriverResource::DriverResource(Driver* creator)
+        : counter(0), driver(creator), released(false)
     {
         
     }
@@ -22,8 +22,8 @@ namespace Clean
         auto currentCount = counter.fetch_sub(1) - 1;
         
         if (!currentCount) {
-            if (creator) {
-                if (creator->shouldReleaseResource(*this)) {
+            if (driver) {
+                if (driver->shouldReleaseResource(*this)) {
                     releaseResource();
                 }
             }

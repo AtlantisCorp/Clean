@@ -4,13 +4,16 @@
 #ifndef GLDRIVER_GLCONTEXT_H
 #define GLDRIVER_GLCONTEXT_H
 
+#include <Clean/Handled.h>
+#include <Clean/PixelFormat.h>
+
 /** @brief Interface for an OpenGL Context wrapper. 
  *
  * Implemented upon the selected window service, as WINGlContext, OSXGlContext, X11GlContext
  * or WlGlContext (some other implementations may be used).
  *
 **/
-class GlContext 
+class GlContext : public Clean::Handled < GlContext >
 {
 public:
     
@@ -29,6 +32,9 @@ public:
      *  only for multithreading purpose. 
     **/
     virtual void unlock() const = 0;
+    
+    /*! @brief Returns the current pixel format for this context. */
+    virtual Clean::PixelFormat getPixelFormat() const = 0;
 };
 
 #endif // GLDRIVER_GLCONTEXT_H

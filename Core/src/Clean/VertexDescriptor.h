@@ -82,7 +82,7 @@ namespace Clean
         IndexedInfos indexInfos;
 
         /*! @brief Populates a VertexComponentInfos structure from components and localSubmesh data. */
-        VertexComponentInfos findInfosFor(VertexComponent const& component);
+        VertexComponentInfos findInfosFor(VertexComponent const& component) const;
 
         /*! @brief Returns true if the given component is found in a Vertex. */
         bool has(VertexComponent const& component) const;

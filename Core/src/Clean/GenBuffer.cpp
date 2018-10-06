@@ -128,13 +128,22 @@ namespace Clean
         return false;
     }
     
-    void GenBuffer::bind(Driver&) 
+    void GenBuffer::bind(Driver&) const
     {
         
     }
     
-    void GenBuffer::unbind(Driver&)
+    void GenBuffer::unbind(Driver&) const
     {
         
+    }
+    
+    void GenBuffer::releaseResource()
+    {
+        if (pointer) {
+            Free(pointer);
+            pointer = nullptr;
+            size.store(0);
+        }
     }
 }

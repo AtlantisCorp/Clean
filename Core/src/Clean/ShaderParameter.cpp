@@ -9,18 +9,9 @@ namespace Clean
     {
         switch(type)
         {
-            case kShaderParamU8: return "u8";
-            case kShaderParamU16: return "u16";
             case kShaderParamU32: return "u32";
-            case kShaderParamU64: return "u64";
-            
-            case kShaderParamI8: return "i8";
-            case kShaderParamI16: return "i16";
             case kShaderParamI32: return "i32";
-            case kShaderParamI64: return "i64";
-            
             case kShaderParamFloat: return "fl";
-            case kShaderParamDouble: return "db";
             
             case kShaderParamVec2: return "vec2";
             case kShaderParamVec3: return "vec3";
@@ -52,18 +43,9 @@ namespace Clean
     
     std::uint8_t ShaderParameterFromString(std::string const& str)
     {
-        if (str == "u8") return kShaderParamU8;
-        if (str == "u16") return kShaderParamU16;
         if (str == "u32") return kShaderParamU32;
-        if (str == "u64") return kShaderParamU64;
-        
-        if (str == "i8") return kShaderParamI8;
-        if (str == "i16") return kShaderParamI16;
         if (str == "i32") return kShaderParamI32;
-        if (str == "i64") return kShaderParamI64;
-        
         if (str == "fl") return kShaderParamFloat;
-        if (str == "db") return kShaderParamDouble;
         
         if (str == "vec2") return kShaderParamVec2;
         if (str == "vec3") return kShaderParamVec3;

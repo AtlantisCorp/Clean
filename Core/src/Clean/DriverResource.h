@@ -28,13 +28,13 @@ namespace Clean
         friend class Driver; 
         
         //! @brief Our reference counter. 
-        std::atomic < std::size_t > counter; 
+        std::atomic < std::size_t > counter;
+        
+    protected:
         
         //! @brief A pointer to a nullable driver. When this resource is created by a driver, it must
         //! be non-null and \ref Driver::shouldReleaseResource is called as a delegate. 
-        Driver* creator;
-        
-    protected:
+        Driver* driver;
         
         //! @brief True if \ref releaseResource is called. 
         std::atomic_bool released;
@@ -42,7 +42,7 @@ namespace Clean
     public:
         
         /*! @brief Constructs the resource. */
-        DriverResource(Driver* driver = nullptr);
+        DriverResource(Driver* creator = nullptr);
         
         /*! @brief Destructs the resource. */
         virtual ~DriverResource() = default;

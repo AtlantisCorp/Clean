@@ -39,11 +39,14 @@ namespace Clean
         std::size_t it = 0;
         
         auto splitted = Platform::Split(format, '.', Platform::kSplitIncludesEmpties);
-        assert(splitted.size() == 4 && "Invalid Version format.");
+        assert(splitted.size() <= 4 && "Invalid Version format.");
         
         for (auto& comp : splitted)
         {
-            result.data[it] = std::stoi(comp, nullptr, 10);
+            if (!comp.empty()) {
+                result.data[it] = std::stoi(comp, nullptr, 10);
+            }
+            
             it++;
         }
         

@@ -24,8 +24,8 @@ GlBuffer::GlBuffer(Driver* driver, std::uint8_t glType, GLsizeiptr glSize, GLvoi
     glGenBuffers(1, &handle);
     assert(handle && "OpenGL can't create more buffer handles.");
     
-    if (glType == kBufferTypeVertex) target = GL_ARRAY_BUFFER;
-    else if (glType == kBufferTypeIndex) target = GL_ELEMENT_ARRAY_BUFFER;
+    if (type == kBufferTypeVertex) target = GL_ARRAY_BUFFER;
+    else if (type == kBufferTypeIndex) target = GL_ELEMENT_ARRAY_BUFFER;
     else target = GL_INVALID_ENUM;
     
     if (glSize) {
@@ -40,7 +40,7 @@ GlBuffer::GlBuffer(Driver* driver, std::uint8_t glType, GLsizeiptr glSize, GLvoi
     }
     
     GlError error = GlCheckError();
-    if (error.value != GL_NO_ERROR) {
+    if (error.error != GL_NO_ERROR) {
         Notification notif = BuildNotification(kNotificationLevelError, "OpenGL returned error: %s.", error.string.data());
         NotificationCenter::GetDefault()->send(notif);
     }
@@ -72,7 +72,7 @@ void* GlBuffer::lock(std::uint8_t io)
     }
 }
 
-void GlBuffer::unlock() 
+void GlBuffer::unlock(std::uint8_t)
 {
     glUnmapBuffer(target);
 }
@@ -98,7 +98,7 @@ void GlBuffer::update(const void* data, std::size_t sz, std::uint8_t usg, bool /
     glBufferData(target, static_cast < GLsizeiptr >(sz), static_cast < const GLvoid* >(data), GlBufferUsage(usg));
     
     GlError error = GlCheckError();
-    if (error.value != GL_NO_ERROR) {
+    if (error.error != GL_NO_ERROR) {
         Notification notif = BuildNotification(kNotificationLevelError, "OpenGL returned error: %s.", error.string.data());
         NotificationCenter::GetDefault()->send(notif);
     }
@@ -121,7 +121,7 @@ std::uint8_t GlBuffer::getUsage() const
         
         case GL_STREAM_DRAW:
         case GL_STREAM_READ:
-        case GL_STREAM_COPY: return kBufferStreamCopy;
+        case GL_STREAM_COPY: return kBufferUsageStream;
         
         default: return 0;
     }
@@ -140,6 +140,11 @@ void GlBuffer::bind(Driver&) const
 void GlBuffer::unbind(Driver&) const 
 {
     glBindBuffer(target, 0);
+}
+
+std::uint8_t GlBuffer::getType() const
+{
+    return type;
 }
 
 void GlBuffer::releaseResource()

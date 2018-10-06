@@ -31,20 +31,6 @@ namespace Clean
         return result;
     }
     
-    std::shared_ptr < RenderSurface > Driver::createRenderSurface(std::size_t width, std::size_t height, NativeSurface parent)
-    {
-        std::shared_ptr < RenderSurface > result = _createRenderSurface(width, height, parent);
-        if (!result) return result;
-        
-        renderWindows.addOnce(result);
-
-        auto windowManager = Core::Get().getWindowManager();
-        assert(windowManager && "Invalid WindowManager present.");
-        windowManager->addOnce(result);
-        
-        return result;
-    }
-    
     PixelFormat Driver::getPixelFormat() const 
     {
         std::lock_guard < std::mutex > lck(pixelFormatMutex);
@@ -119,7 +105,7 @@ namespace Clean
             command.pipeline->bindParameters(subCommand.parameters);
             command.pipeline->bindShaderAttributes(subCommand.attributes);
             command.pipeline->setDrawingMethod(subCommand.drawingMethod);
-            drawShaderAttributes(subCommand.drawingMode, subCommand.attributes);
+            drawShaderAttributes(subCommand.attributes);
         }
     }
     

@@ -26,6 +26,12 @@ namespace Clean
     {   
     public:
         
+        /*! @brief Constructs with null handle and parent. */
+        RenderWindow() = default;
+        
+        /*! @brief Constructs with a given handle and parent. */
+        RenderWindow(NativeSurface handle, NativeSurface parent = NULL);
+        
         /*! @brief Destructs the RenderWindow. */ 
         virtual ~RenderWindow() = default;
         

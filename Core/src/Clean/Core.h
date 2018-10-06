@@ -12,6 +12,7 @@
 #include "WindowManager.h"
 #include "DriverManager.h"
 #include "FileLoader.h"
+#include "FileSystem.h"
 
 #include <memory>
 #include <atomic>
@@ -87,7 +88,7 @@ namespace Clean
         std::list < std::string > modulesDirectories;
         
         //! @brief Protects modulesDirectories. 
-        std::mutex modulesDirMutex;
+        mutable std::mutex modulesDirMutex;
         
         //! @brief Stores a list of shared FileLoaderInterface. 
         typedef std::vector < std::shared_ptr < FileLoaderInterface > > SVFileLoaders;
@@ -96,7 +97,10 @@ namespace Clean
         std::map < std::type_index, SVFileLoaders > fileLoaders; 
         
         //! @brief Protects fileLoaders.
-        std::mutex fileLoadersMutex;
+        mutable std::mutex fileLoadersMutex;
+        
+        //! @brief Global FileSystem used by Core. 
+        FileSystem fileSystem;
         
         //! @brief Core instance. Initialized once by Create().
         static std::unique_ptr < Core > instance;
@@ -184,6 +188,25 @@ namespace Clean
             return nullptr;
         }
         
+        /*! @brief Finds the first loader responding to given name for the desired type, or returns 
+         *  nullptr if none were found. */
+        template < class ResultType >
+        auto findFileLoaderByName(std::string const& name) -> std::shared_ptr < FileLoader < ResultType > >
+        {
+            const std::type_index idx = typeid(ResultType);
+            std::scoped_lock < std::mutex > lck(fileLoadersMutex);
+            auto it = fileLoaders.find(idx);
+            if (it == fileLoaders.end()) return nullptr;
+            
+            for (auto& loader : it->second)
+            {
+                assert(loader && "Invalid FileLoader pointer.");
+                if (loader->getInfos().name == name) return ReinterpretShared < FileLoader < ResultType > >(loader);
+            }
+            
+            return nullptr;
+        }
+        
         /*! @brief Returns all file loaders for a given type. */
         template < class ResultType > 
         auto findAllFileLoaders() -> std::vector < std::shared_ptr < FileLoader < ResultType > > >
@@ -197,6 +220,22 @@ namespace Clean
             return it->second;
         }
         
+        /*! @brief Removes the given file loader from the list of loaders for the given type. */
+        template < class ResultType >
+        void removeFileLoader(std::shared_ptr < FileLoader < ResultType > > const& loader)
+        {
+            const std::type_index idx = typeid(ResultType);
+            std::scoped_lock < std::mutex > lck(fileLoadersMutex);
+            auto it = fileLoaders.find(idx);
+            if (it == fileLoaders.end()) return;
+            
+            auto localIt = std::find_if(it->second.begin(), it->second.end(), [loader](auto localLoader) { 
+                return loader.get() == localLoader.get(); });
+                
+            if (localIt != it->second.end())
+                it->second.erase(localIt);
+        }
+        
         /*! @brief Clear all file loaders. */
         void clearFileLoaders();
         
@@ -205,6 +244,9 @@ namespace Clean
         
         /*! @brief Adds the given Driver to this Core's DriverManager. */
         void addDriver(std::shared_ptr < Driver > const& driver);
+        
+        /*! @brief Returns the default file system. */
+        FileSystem& getCurrentFileSystem();
     };
 }
 

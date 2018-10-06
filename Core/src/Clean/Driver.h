@@ -130,21 +130,6 @@ namespace Clean
         **/
         virtual std::shared_ptr < RenderWindow > createRenderWindow(std::size_t width, std::size_t height, 
             std::string const& title, std::uint16_t style = kWindowStyleDefault, bool fullscreen = false);
-            
-        /*! @brief Creates a RenderSurface ready to draw on.
-         * 
-         * Returned RenderSurface is not displayable, but depends on the implementation it uses.
-         * If less portable than RenderWindow, RenderSurface allows for more customizable rendering
-         * surfaces, for a user to use a native GUI system.
-         *
-         * \param width Width for the RenderSurface, if applicable. 
-         * \param height Height for the RenderSurface, if applicable. 
-         * \param parent A NativeSurface handle to the parent's surface of the created one. 
-         *
-         * \return A valid pointer to RenderSurface, or null if failed. It also may send notifications
-         *      through NotificationCenter if an error occured. 
-        **/
-        virtual std::shared_ptr < RenderSurface > createRenderSurface(std::size_t width, std::size_t height, NativeSurface parent);
         
         /*! @brief Selects the given PixelFormat as the main pixel format for this Driver. 
          *
@@ -212,13 +197,13 @@ namespace Clean
          *
          * Only two elements in ShaderAttributesMap should be used by this function: indexInfos if indexInfos.elements
          * is superior to zero (which means indexed drawing), or elements if indexInfos.elements is zero (which means
-         * normal vertex draw). For now, drawingMode has no purpose and can be ignored.
+         * normal vertex draw).
          *
         **/
-        virtual void drawShaderAttributes(std::uint8_t drawingMode, ShaderAttributesMap const& attributes) = 0;
+        virtual void drawShaderAttributes(ShaderAttributesMap const& attributes) = 0;
         
         /*! @brief Creates a new RenderCommand. */
-        virtual RenderCommand makeRenderCommand() const = 0;
+        virtual RenderCommand makeRenderCommand() = 0;
         
         /*! @brief Returns the Driver's name. */
         virtual std::string const getName() const = 0;
@@ -252,9 +237,6 @@ namespace Clean
         /*! @brief Creates a RenderWindow from implementation. */
         virtual std::shared_ptr < RenderWindow > _createRenderWindow(std::size_t width, std::size_t height, 
             std::string const& title, std::uint16_t style, bool fullscreen) const = 0;
-            
-        /*! @brief Creates a RenderSurface. */
-        virtual std::shared_ptr < RenderSurface > _createRenderSurface(std::size_t width, std::size_t height, NativeSurface parent) const = 0;
         
         /*! @brief Implementation of createRenderQueue. 
          *

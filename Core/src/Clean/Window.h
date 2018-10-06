@@ -4,6 +4,7 @@
 #ifndef CLEAN_WINDOW_H
 #define CLEAN_WINDOW_H
 
+#include "RenderSurface.h"
 #include "Handled.h"
 #include "Emitter.h"
 #include "Key.h"
@@ -38,7 +39,11 @@ namespace Clean
     static constexpr const std::uint16_t kWindowStyleTitled = 1 << 1;
     static constexpr const std::uint16_t kWindowStyleResizable = 1 << 2;
     static constexpr const std::uint16_t kWindowStyleClosable = 1 << 3;
-    static constexpr const std::uint16_t kWindowStyleDefault = kWindowStyleBordered|kWindowStyleTitled|kWindowStyleResizable|kWindowStyleClosable;
+    static constexpr const std::uint16_t kWindowStyleMiniaturizable = 1 << 4;
+    
+    static constexpr const std::uint16_t kWindowStyleDefault = kWindowStyleBordered|kWindowStyleTitled
+                                                              |kWindowStyleResizable|kWindowStyleClosable
+                                                              |kWindowStyleMiniaturizable;
     
     class Window;
     
@@ -117,13 +122,17 @@ namespace Clean
      * window and cannot be reused. 
      *
     **/
-    class Window : public Handled < Window, std::uint16_t >, 
+    class Window : public RenderSurface,
+                   public Handled < Window, std::uint16_t >, 
                    public Emitter < WindowListener >
     {
     public:
         
+        /*! @brief Constructs a window with null handle and parent. */
+        Window();
+        
         /*! @brief Default constructor. */
-        Window() = default;
+        Window(NativeSurface handle, NativeSurface parent = NULL);
         
         /*! @brief No copy constructor. */
         Window(Window const&) = delete;
@@ -199,6 +208,12 @@ namespace Clean
         
         /*! @brief Returns true if the Window is closed. */
         virtual bool isClosed() const = 0;
+        
+        /*! @brief Should make the Window ready to draw and receive events. */
+        virtual void show() const = 0;
+        
+        /*! @brief Sets the Window into fullscreen mode or windowed mode. */
+        virtual void setFullscreen(bool value) = 0;
     };
 }
 

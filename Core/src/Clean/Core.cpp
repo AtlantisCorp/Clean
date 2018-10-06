@@ -44,9 +44,12 @@ namespace Clean
 
         windowManager = AllocateShared < WindowManager >();
         assert(windowManager && "Can't allocate Clean::WindowManager.");
+        
+        driverManager = AllocateShared < DriverManager >();
+        assert(driverManager && "Can't allocate Clean::DriverManager.");
 
         modulesDirectories.push_back("Modules");
-        loadAllModules();
+        fileSystem.addRealPath("Module", "Modules");
     }
 
     Core::~Core()
@@ -158,5 +161,10 @@ namespace Clean
         assert(loadedManager && "Null DriverManager.");
         assert(driver && "Illegal null driver passed.");
         loadedManager->add(driver);
+    }
+    
+    FileSystem& Core::getCurrentFileSystem()
+    {
+        return fileSystem;
     }
 }

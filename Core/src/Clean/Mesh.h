@@ -31,12 +31,8 @@ namespace Clean
     class BufferAutorelease : public std::shared_ptr < Buffer >
     {
     public:
-        using std::shared_ptr < Buffer >::shared_ptr;
-        
-        ~BufferAutorelease() {
-            auto ptr = get();
-            if (ptr) ptr->release();
-        }
+        BufferAutorelease(std::shared_ptr < Buffer > const& rhs);
+        ~BufferAutorelease();
     };
 
     /** @brief Represents a single draw work for a Mesh.

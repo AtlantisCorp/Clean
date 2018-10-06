@@ -16,7 +16,7 @@ class GlRenderPipeline : public Clean::RenderPipeline
 public:
     
     /*! @brief Constructs a pipeline. */
-    GlRenderPipeline(Driver* driver);
+    GlRenderPipeline(Clean::Driver* driver);
     
     /*! @brief Links the given shader to its program object. 
      *
@@ -26,13 +26,13 @@ public:
      * in GlRenderPipeline::bind(). 
      *
     **/
-    void shader(std::uint8_t stage, std::shared_ptr < Shader > const& shad);
+    void shader(std::uint8_t stage, std::shared_ptr < Clean::Shader > const& shad);
     
     /*! @brief Links the program. */
     void link();
     
     /*! @brief Binds the program to given driver. */
-    void bind(Driver& driver) const;
+    void bind(Clean::Driver& driver) const;
     
     /*! @brief Returns true if the program is linked. */
     bool isLinked() const;
@@ -43,10 +43,10 @@ public:
     /*! @brief Binds one parameter onto this pipeline. 
      *  Calls the correct glUniform* function.
     **/
-    void bindParameter(ShaderParameter const& parameters) const;
+    void bindParameter(Clean::ShaderParameter const& parameters) const;
     
     /*! @brief Binds multiple ShaderAttribute onto this pipeline. */
-    void bindShaderAttributes(ShaderAttributesMap const& attributes) const;
+    void bindShaderAttributes(Clean::ShaderAttributesMap const& attributes) const;
     
     /*! @brief Sets the current drawing method. */
     void setDrawingMethod(std::uint8_t drawingMethod) const;
@@ -56,6 +56,11 @@ public:
     
     /*! @brief Returns an index representing the location of a given attribute in the pipeline. */
     std::uint8_t findAttributeIndex(std::string const& attrib) const;
+    
+protected:
+    
+    /*! @brief Releases our GL program. */
+    void releaseResource();
 };
 
 #endif // GLDRIVER_GLRENDERPIPELINE_H

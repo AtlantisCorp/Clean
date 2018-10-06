@@ -7,12 +7,13 @@
 #include "OSXPrerequisites.h"
 #include "../All/GlContext.h"
 
-#include <Clean/PixelFormat.h>
-
 class OSXGlContext : public GlContext 
 {
     //! @brief NSOpenGLContext object to store our GL Context. 
     id context;
+    
+    //! @brief PixelFormat used to create our context.
+    Clean::PixelFormat pixelFormat;
     
 public:
     
@@ -51,13 +52,16 @@ public:
     void swapBuffers();
     
     /*! @brief Calls NSOpenGLContext::lock. */
-    void lock();
+    void lock() const;
     
     /*! @brief Calls NSOpenGLContext::unlock. */
-    void unlock();
+    void unlock() const;
     
     /*! @brief Calls NSOpenGLContext::makeCurrent. */
     void makeCurrent();
+    
+    /*! @brief Returns the used pixel format. */
+    Clean::PixelFormat getPixelFormat() const;
     
 #ifdef CLEAN_LANG_OBJC
     /*! @brief Returns the NSOpenGLContext associated. 

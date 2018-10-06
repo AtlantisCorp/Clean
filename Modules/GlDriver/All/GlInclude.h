@@ -5,13 +5,14 @@
 #define GLDRIVER_GLINCLUDE_H
 
 #ifdef CLEAN_PLATFORM_WIN
-#   include <gl.h>
+#   include <gl3.h>
+
+#elif defined(CLEAN_PLATFORM_MACOS)
+#   include <OpenGL/OpenGL.h>
+#   include <OpenGL/gl3.h>
 
 #elif defined(CLEAN_PLATFORM_LINUX)
-#   include <GL/gl.h>
-
-#elif defined(CLEAN_PLATFORM_OSX)
-#   include <OpenGL/OpenGL.h>
+#   include <GL/gl3.h>
 
 #endif
 

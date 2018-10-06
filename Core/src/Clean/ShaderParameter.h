@@ -66,7 +66,7 @@ namespace Clean
         std::string name;
         
         //! @brief Holds the parameter's value. 
-        union value {
+        union {
             std::uint32_t u32;
             std::int32_t i32;
             float fl;
@@ -93,7 +93,7 @@ namespace Clean
             float mat4x2[4][2];
             float mat3x4[3][4];
             float mat4x3[4][3];
-        };
+        } value;
     };
 }
 

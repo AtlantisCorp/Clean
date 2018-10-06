@@ -14,7 +14,7 @@ GLenum GlBufferUsage(std::uint8_t usage);
 class GlBuffer : public Clean::Buffer 
 {
     //! @brief Our GL handle. 
-    GLint handle;
+    GLuint handle;
     
     //! @brief Recorded usage for this buffer. 
     GLenum usage;
@@ -93,13 +93,16 @@ public:
     std::uint8_t getUsage() const;
     
     /*! @brief Returns true if buffer is valid. **/
-    virtual bool isBindable() const;
+    bool isBindable() const;
    
     /*! @brief Binds the buffer to the given driver, if possible. */
-    virtual void bind(Driver& driver) const;
+    void bind(Clean::Driver& driver) const;
    
     /*! @brief Unbinds the buffer from the given driver, if possible. */
-    virtual void unbind(Driver& driver) const;
+    void unbind(Clean::Driver& driver) const;
+    
+    /*! @brief Returns the base type for this buffer. */
+    std::uint8_t getType() const;
     
 protected:
     

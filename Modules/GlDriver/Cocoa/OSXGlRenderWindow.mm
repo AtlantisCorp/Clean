@@ -8,8 +8,21 @@
 #include <Clean/Allocate.h>
 using namespace Clean;
 
+/*! @brief Converts the given Clean Window Style to NSWindowStyleMask. */
+static NSWindowStyleMask OSXGlWindowStyleMask(std::uint16_t style) 
+{
+    NSWindowStyleMask result = 0;
+    
+    if (style & kWindowStyleTitled) result |= NSWindowStyleMaskTitled;
+    if (style & kWindowStyleResizable) result |= NSWindowStyleMaskResizable;
+    if (style & kWindowStyleClosable) result |= NSWindowStyleMaskClosable;
+    if (style & kWindowStyleMiniaturizable) result |= NSWindowStyleMaskMiniaturizable;
+    
+    return result;
+}
+
 OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& context)
-    : nativeWindow(nil), nativeWindowDelegate(nil), nativeContext(nil)
+    : nativeWindow(nil), nativeWindowDelegate(nil), nativeContext(nil), fullscreenMode(false)
 {
     assert(context && "Null OSXGlContext passed to constructor.");
     static constexpr const NSWindowStyleMask defaultMask = NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|
@@ -34,10 +47,43 @@ OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& con
     nativeWindow = nsWindow;
     nativeWindowDelegate = delegate;
     nativeContext = context;
+    
+    RenderSurface::resetHandles(nsWindow, NULL);
+}
+
+OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& context, std::size_t width, std::size_t height, std::uint16_t style, std::string const& title)
+{
+    assert(context && "Null OSXGlContext passed to constructor.");
+    
+    NSWindowStyleMask windowMask = OSXGlWindowStyleMask(style);
+    NSRect windowRect = NSMakeRect(0, 0, (CGFloat)width, (CGFloat)height);
+    
+    NSWindow* window = [[NSWindow alloc] initWithContentRect:windowRect
+                                                   styleMask:windowMask
+                                                     backing:NSBackingStoreBuffered
+                                                       defer:YES];
+    
+    if (!window) {
+        Notification notif = BuildNotification(kNotificationLevelError, "NSWindow couldn't be created for OSXGlRenderWindow #%i.", getHandle());
+        NotificationCenter::GetDefault()->send(notif);
+    }
+    
+    NSOpenGLContext* windowContext = (NSOpenGLContext*) context->toNSOpenGLContext();
+    [windowContext setView:[window contentView]];
+    
+    OSXWindowDelegate* delegate = [[OSXWindowDelegate alloc] initWithCaller:this glContext:windowContext];
+    [window setDelegate:delegate];
+    
+    nativeWindow = window;
+    nativeWindowDelegate = delegate;
+    nativeContext = context;
+    setTitle(title);
+    
+    RenderSurface::resetHandles(window, NULL);
 }
 
 OSXGlRenderWindow::OSXGlRenderWindow(OSXGlRenderWindow const& rhs)
-    : nativeWindow(nil), nativeWindowDelegate(nil), nativeContext(nil)
+    : nativeWindow(nil), nativeWindowDelegate(nil), nativeContext(nil), fullscreenMode(false)
 {
     static constexpr const NSWindowStyleMask defaultMask = NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|
                                                            NSWindowStyleMaskMiniaturizable|NSWindowStyleMaskResizable;
@@ -68,6 +114,8 @@ OSXGlRenderWindow::OSXGlRenderWindow(OSXGlRenderWindow const& rhs)
     nativeWindow = nsWindow;
     nativeWindowDelegate = delegate;
     nativeContext = AllocateShared < OSXGlContext >(nsContext);
+    
+    RenderSurface::resetHandles(nsWindow, NULL);
 }
 
 OSXGlRenderWindow::~OSXGlRenderWindow()
@@ -98,7 +146,7 @@ std::string OSXGlRenderWindow::getTitle() const
 
 bool OSXGlRenderWindow::isFullscreen() const 
 {
-    return false;
+    return fullscreenMode.load();
 }
 
 void OSXGlRenderWindow::update() 
@@ -253,12 +301,34 @@ std::shared_ptr < OSXGlContext > OSXGlRenderWindow::getOSXGlContext() const
     return nativeContext;
 }
 
+void OSXGlRenderWindow::show() const 
+{
+    if (nativeWindow) {
+        [nativeWindow orderFront:nil];
+        [nativeWindow makeKeyWindow];
+        [nativeWindow makeMainWindow];
+    }
+}
+
+void OSXGlRenderWindow::setFullscreen(bool value) 
+{
+    if (nativeWindow && (isFullscreen() != value)) {
+        [nativeWindow toggleFullScreen:nil];
+    }
+}
+
 void OSXGlRenderWindow::notifyClose(id delegate) 
 {
     assert((delegate == nativeWindowDelegate) && "Illegal call to OSXGlRenderWindow::notifyClose");
     nativeWindow = nil;
     nativeWindowDelegate = nil;
     nativeContext.reset();
+}
+
+void OSXGlRenderWindow::notifyFullscreen(id delegate, bool value)
+{
+    assert((delegate == nativeWindowDelegate) && "Illegal call to OSXGlRenderWindow::notifyFullscreen");
+    fullscreenMode.store(value);
 }
 
 std::uint16_t OSXGlRenderWindow::getStyle() const

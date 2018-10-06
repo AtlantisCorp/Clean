@@ -66,10 +66,11 @@ public:
     /*! @brief Select a pixel format. */
     Clean::PixelFormat selectPixelFormat(Clean::PixelFormat const& pixFormat, Clean::PixelFormatPolicy policy = Clean::kPixelFormatClosest);
     
-    void drawShaderAttributes(std::uint8_t drawingMode, Clean::ShaderAttributesMap const& attributes);
+    /*! @brief Final call to glDraw*. */
+    void drawShaderAttributes(Clean::ShaderAttributesMap const& attributes);
     
     /*! @brief Returns a RenderCommand filled with a new GlRenderPipeline. */
-    Clean::RenderCommand makeRenderCommand() const;
+    Clean::RenderCommand makeRenderCommand();
     
     /*! @brief Always return 'Clean.GlDriver' string. */
     std::string const getName() const;
@@ -87,7 +88,7 @@ public:
     std::shared_ptr < Clean::Shader > findDefaultShaderForStage(std::uint8_t stage) const;
     
     /*! @brief Creates a new Shader from given source text and stage. */
-    std::shared_ptr < Shader > makeShader(const char* src, std::uint8_t stage);
+    std::shared_ptr < Clean::Shader > makeShader(const char* src, std::uint8_t stage);
     
 protected:
     
@@ -97,9 +98,6 @@ protected:
     /*! @brief Creates a RenderWindow. */
     std::shared_ptr < Clean::RenderWindow > _createRenderWindow(std::size_t width, std::size_t height, 
         std::string const& title, std::uint16_t style, bool fullscreen) const;
-        
-    /*! @brief Creates a RenderSurface. */
-    std::shared_ptr < Clean::RenderSurface > _createRenderSurface(std::size_t width, std::size_t height, NativeSurface parent) const;
     
     /*! @brief Creates a RenderQueue. */
     std::shared_ptr < Clean::RenderQueue > _createRenderQueue(std::uint8_t type) const;

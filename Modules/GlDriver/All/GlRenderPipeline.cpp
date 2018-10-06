@@ -5,6 +5,11 @@
 #include "GlShader.h"
 #include "GlCheckError.h"
 
+#include <algorithm>
+#include <Clean/NotificationCenter.h>
+#include <Clean/Traits.h>
+using namespace Clean;
+
 static GLenum GlGetShaderAttrib(std::uint8_t type)
 {
     switch(type)
@@ -30,7 +35,7 @@ static GLenum GlGetPolygonMode(std::uint8_t mode)
     {
         case kDrawingMethodPoints: return GL_POINT;
         case kDrawingMethodLines: return GL_LINE;
-        case kDrawinfMethodFilled: return GL_FILL;
+        case kDrawingMethodFilled: return GL_FILL;
         
         default:
         return GL_INVALID_ENUM;
@@ -53,7 +58,7 @@ GlRenderPipeline::GlRenderPipeline(Driver* driver)
 void GlRenderPipeline::shader(std::uint8_t stage, std::shared_ptr < Shader > const& shad)
 {
     if (isLinked()) {
-        Notification notif = BuildNotification(kNotificationLevelWarning, 
+        Notification notif = BuildNotification(kNotificationLevelWarning,
             "Can't attach shader #%i because program #%i is already linked.", 
             shad->getHandle(), this->getHandle());
         NotificationCenter::GetDefault()->send(notif);
@@ -152,75 +157,75 @@ void GlRenderPipeline::bindParameter(ShaderParameter const& parameter) const
         break;
         
         case kShaderParamVec2:
-        glUniform2fv(location, 1, &parameter.value.vec2);
+            glUniform2fv(location, 1, parameter.value.vec2);
         break;
         
         case kShaderParamVec3:
-        glUniform3fv(location, 1, &parameter.value.vec3);
+            glUniform3fv(location, 1, parameter.value.vec3);
         break;
         
         case kShaderParamVec4:
-        glUniform4fv(location, 1, &parameter.value.vec4);
+            glUniform4fv(location, 1, parameter.value.vec4);
         break;
         
         case kShaderParamUVec2:
-        glUniform2uiv(location, 1, &parameter.value.uvec2);
+        glUniform2uiv(location, 1, parameter.value.uvec2);
         break;
         
         case kShaderParamUVec3:
-        glUniform3uiv(location, 1, &parameter.value.uvec3);
+        glUniform3uiv(location, 1, parameter.value.uvec3);
         break;
         
         case kShaderParamUVec4:
-        glUniform4uiv(location, 1, &parameter.value.uvec4);
+        glUniform4uiv(location, 1, parameter.value.uvec4);
         break;
         
         case kShaderParamIVec2:
-        glUniform2iv(location, 1, &parameter.value.ivec2);
+        glUniform2iv(location, 1, parameter.value.ivec2);
         break;
         
         case kShaderParamIVec3:
-        glUniform3iv(location, 1, &parameter.value.ivec3);
+        glUniform3iv(location, 1, parameter.value.ivec3);
         break;
         
         case kShaderParamIVec4:
-        glUniform4iv(location, 1, &parameter.value.ivec4);
+        glUniform4iv(location, 1, parameter.value.ivec4);
         break;
         
         case kShaderParamMat2:
-        glUniformMatrix2fv(location, 1, &parameter.value.mat2);
+        glUniformMatrix2fv(location, 1, false, (GLfloat*) parameter.value.mat2);
         break;
         
         case kShaderParamMat3:
-        glUniformMatrix3fv(location, 1, &parameter.value.mat3);
+        glUniformMatrix3fv(location, 1, false, (GLfloat*) parameter.value.mat3);
         break;
         
         case kShaderParamMat4:
-        glUniformMatrix4fv(location, 1, &parameter.value.mat4);
+        glUniformMatrix4fv(location, 1, false, (GLfloat*) parameter.value.mat4);
         break;
         
         case kShaderParamMat2x3:
-        glUniformMatrix2x3fv(location, 1, &parameter.value.mat2x3);
+        glUniformMatrix2x3fv(location, 1, false, (GLfloat*) parameter.value.mat2x3);
         break;
         
         case kShaderParamMat3x2:
-        glUniformMatrix3x2fv(location, 1, &parameter.value.mat3x2);
+        glUniformMatrix3x2fv(location, 1, false, (GLfloat*) parameter.value.mat3x2);
         break;
         
         case kShaderParamMat2x4:
-        glUniformMatrix2x4fv(location, 1, &parameter.value.mat2x4);
+        glUniformMatrix2x4fv(location, 1, false, (GLfloat*) parameter.value.mat2x4);
         break;
         
         case kShaderParamMat4x2:
-        glUniformMatrix4x2fv(location, 1, &parameter.value.mat4x2);
+        glUniformMatrix4x2fv(location, 1, false, (GLfloat*) parameter.value.mat4x2);
         break;
         
         case kShaderParamMat3x4:
-        glUniformMatrix3x4fv(location, 1, &parameter.value.mat3x4);
+        glUniformMatrix3x4fv(location, 1, false, (GLfloat*) parameter.value.mat3x4);
         break;
         
         case kShaderParamMat4x3:
-        glUniformMatrix4x3fv(location, 1, &parameter.value.mat4x3);
+        glUniformMatrix4x3fv(location, 1, false, (GLfloat*) parameter.value.mat4x3);
         break;
         
         default:
@@ -228,7 +233,7 @@ void GlRenderPipeline::bindParameter(ShaderParameter const& parameter) const
     }
     
     GlError error = GlCheckError();
-    if (error.value != GL_NO_ERROR) {
+    if (error.error != GL_NO_ERROR) {
         Notification notif = BuildNotification(kNotificationLevelError,
             "An error occured while glUniform: %s.",
             error.string.data());
@@ -245,7 +250,7 @@ void GlRenderPipeline::bindShaderAttributes(ShaderAttributesMap const& attribute
     assert(driver && "Null Clean::Driver provided for this pipeline.");
     std::size_t attribsCount = attributes.countAttributes();
     
-    for (std::size_t attribNum = 0; attribNum < attribCount; attribNum++)
+    for (std::size_t attribNum = 0; attribNum < attribsCount; attribNum++)
     {
         ShaderAttribute attrib = attributes.find(attribNum);
         
@@ -260,7 +265,7 @@ void GlRenderPipeline::bindShaderAttributes(ShaderAttributesMap const& attribute
             }
             
             GLuint index = static_cast < GLuint >(attrib.index);
-            GLint size = static_cast < GLint >(std::clamp(attrib.components, 1, 4));
+            GLint size = static_cast < GLint >(std::clamp<std::uint8_t>(attrib.components, 1, 4));
             GLsizei stride = static_cast < GLsizei >(attrib.stride);
             GLvoid* pointer = NULL;
             
@@ -268,16 +273,16 @@ void GlRenderPipeline::bindShaderAttributes(ShaderAttributesMap const& attribute
             assert(type != GL_INVALID_ENUM && "Illegal ShaderAttribute type.");
             
             if (attrib.buffer->isBindable()) {
-                attrib.buffer->bind(&driver);
+                attrib.buffer->bind(*driver);
             } else {
                 pointer = (GLvoid*) attrib.buffer->lock(kBufferIOReadOnly);
             }
             
             glEnableVertexAttribArray(index);
-            glVertexAttribPointer(index, size, type, stride, pointer);
+            glVertexAttribPointer(index, size, type, false, stride, pointer);
             
             GlError error = GlCheckError();
-            if (error.value != GL_NO_ERROR) {
+            if (error.error != GL_NO_ERROR) {
                 Notification notif = BuildNotification(kNotificationLevelError,
                     "Can't bind ShaderAttribute: %s",
                     error.string.data());
@@ -306,16 +311,16 @@ bool GlRenderPipeline::hasAttribute(std::string const& attrib) const
     if (!isLinked() || attrib.empty()) 
         return false;
     
-    GLint location = glGetUniformLocation(attrib.data());
+    GLint location = glGetUniformLocation(programHandle, attrib.data());
     return location > -1;
 }
 
 std::uint8_t GlRenderPipeline::findAttributeIndex(std::string const& attrib) const
 {
-    GLuint result = static_cast < GLuint >(glGetUniformLocation(attrib.data()));
+    GLuint result = static_cast < GLuint >(glGetUniformLocation(programHandle, attrib.data()));
     
     GlError error = GlCheckError();
-    if (error.value != GL_NO_ERROR) {
+    if (error.error != GL_NO_ERROR) {
         Notification notif = BuildNotification(kNotificationLevelError,
             "glGetUniformLocation('%s') failed: %s",
             attrib.data(), error.string.data());
@@ -323,4 +328,13 @@ std::uint8_t GlRenderPipeline::findAttributeIndex(std::string const& attrib) con
     }
     
     return result;
+}
+
+void GlRenderPipeline::releaseResource()
+{
+    if (programHandle) {
+        glDeleteProgram(programHandle);
+        programHandle = 0;
+        released = true;
+    }
 }

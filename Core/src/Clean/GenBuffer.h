@@ -99,6 +99,11 @@ namespace Clean
        
        /*! @brief Does nothing. */
        virtual void unbind(Driver& driver) const;
+        
+    protected:
+        
+        /*! @brief Deallocates the buffer and reset states. */
+        virtual void releaseResource();
     };
 }
 

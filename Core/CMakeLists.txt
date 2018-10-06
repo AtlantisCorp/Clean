@@ -1,18 +1,18 @@
 # File: Core/CMakeLists.txt
 # Purpose: Produces libCleanCore library. 
-
-project(CleanCoreProject)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.12)
 
 # Creates our library from all files inside Core/src. 
-file(GLOB CoreSources "Core/src/Clean/*.h" "Core/src/Clean/*.cpp")
-add_library(CleanCore SHARED ${CoreSources})
+FILE(GLOB CoreSources "Core/src/Clean/*.h" "Core/src/Clean/*.cpp")
+ADD_LIBRARY(CleanCore SHARED ${CoreSources})
 
 # Sets C++17 features enabled.
-target_compile_features(CleanCore PRIVATE cxx_std_17)
+TARGET_COMPILE_FEATURES(CleanCore PRIVATE cxx_std_17)
 
 # Sets output directory.
-set_target_properties(CleanCore 
+SET_TARGET_PROPERTIES(CleanCore 
     PROPERTIES 
-        LIBRARY_OUTPUT_DIRECTORY ${CLEAN_OUTPUT}
+        LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CLEAN_OUTPUT}/Debug
+        LIBRARY_OUTPUT_DIRECTORY_RELEASE ${CLEAN_OUTPUT}/Release
 )
 

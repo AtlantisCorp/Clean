@@ -27,6 +27,17 @@ namespace Clean
         std::vector < std::shared_ptr < Buffer > > buffers;
     };
     
+    BufferAutorelease::BufferAutorelease(std::shared_ptr < Buffer > const& rhs) : std::shared_ptr<Buffer>(rhs)
+    {
+        
+    }
+    
+    BufferAutorelease::~BufferAutorelease()
+    {
+        auto ptr = get();
+        if (ptr) ptr->release();
+    }
+    
     std::vector < VertexDescriptor > Mesh::findAssociatedDescriptors(Driver const& driver) const
     {
         const std::uintptr_t driverOffset = reinterpret_cast < std::uintptr_t >(&driver);
@@ -192,7 +203,7 @@ namespace Clean
                 }
                 
                 hardBuffer->retain();
-                cache.buffers.insert(std::make_pair(buffer.first, hardBuffer));
+                cache.buffers.insert(std::make_pair(buffer.first, BufferAutorelease(hardBuffer)));
             }
             
             for (auto const& buffer : indexBuffers)
@@ -207,7 +218,7 @@ namespace Clean
                 }
                 
                 hardBuffer->retain();
-                cache.buffers.insert(std::make_pair(buffer.first, hardBuffer));
+                cache.buffers.insert(std::make_pair(buffer.first, BufferAutorelease(hardBuffer)));
             }
         }
         
