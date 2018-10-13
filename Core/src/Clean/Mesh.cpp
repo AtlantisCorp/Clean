@@ -29,6 +29,16 @@ namespace Clean
     
     BufferAutorelease::BufferAutorelease(std::shared_ptr < Buffer > const& rhs) : std::shared_ptr<Buffer>(rhs)
     {
+        rhs->retain();
+    }
+    
+    BufferAutorelease::BufferAutorelease(BufferAutorelease const& rhs) : std::shared_ptr<Buffer>(rhs)
+    {
+        rhs->retain();
+    }
+    
+    BufferAutorelease::BufferAutorelease(BufferAutorelease&& rhs) : std::shared_ptr<Buffer>(std::move(rhs))
+    {
         
     }
     
@@ -36,6 +46,11 @@ namespace Clean
     {
         auto ptr = get();
         if (ptr) ptr->release();
+    }
+    
+    Mesh::Mesh() : drawingMethod(kDrawingMethodFilled)
+    {
+        
     }
     
     std::vector < VertexDescriptor > Mesh::findAssociatedDescriptors(Driver const& driver) const
@@ -103,6 +118,7 @@ namespace Clean
         // for the pair driver/shader. 
         
         RenderPipeline const& shader = *(command.pipeline);
+        shader.bind(driver);
         auto attribs = findShaderAttributesMap(driver, shader);
         
         if (!attribs.empty())
@@ -202,7 +218,7 @@ namespace Clean
                     hardBuffer = buffer.second;
                 }
                 
-                hardBuffer->retain();
+                // hardBuffer->retain();
                 cache.buffers.insert(std::make_pair(buffer.first, BufferAutorelease(hardBuffer)));
             }
             
@@ -217,7 +233,7 @@ namespace Clean
                     hardBuffer = buffer.second;
                 }
                 
-                hardBuffer->retain();
+                // hardBuffer->retain();
                 cache.buffers.insert(std::make_pair(buffer.first, BufferAutorelease(hardBuffer)));
             }
         }
@@ -463,6 +479,13 @@ namespace Clean
             Transaction transaction(type, nullptr, tp);
             pair.second.transactions.push(std::move(transaction));
         }
+    }
+    
+    void Mesh::addSubMeshes(std::vector < SubMesh > const& sm)
+    {
+        std::scoped_lock < std::mutex > lck(submeshesMutex);
+        submeshes.insert(submeshes.end(), sm.begin(), sm.end());
+        submitTransaction(kMeshTransactionAddSubMesh);
     }
     
     /*

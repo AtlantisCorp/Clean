@@ -34,6 +34,10 @@ namespace Clean
         
         /*! @brief Binds this target onto the given driver. */
         virtual void bind(Driver& driver) const = 0;
+        
+        /*! @brief Prepares the RenderTarget for drawing. It can be setting the viewport, clearing buffers,
+         *  or anything that should be done before drawing to it. */
+        virtual void prepare(Driver& driver) const = 0;
     };
 }
 

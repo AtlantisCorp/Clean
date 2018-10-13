@@ -72,4 +72,23 @@ namespace Clean
         
         return kShaderParamNull;
     }
+    
+    ShaderParameter::ShaderParameter(ShaderParameter const& rhs)
+    {
+        type = rhs.type;
+        idx = rhs.idx;
+        name = rhs.name;
+        memcpy(&value, &rhs.value, sizeof(value));
+    }
+    
+    ShaderParameter::ShaderParameter(std::uint8_t t, std::string const& n) : type(t), idx(-1), name(n)
+    {
+        
+    }
+    
+    ShaderParameter::ShaderParameter(std::uint8_t t, std::string const& n, std::int16_t i, ShaderValue const& v)
+        : type(t), idx(i), name(n)
+    {
+        memcpy(&value, &v, sizeof(ShaderValue));
+    }
 }

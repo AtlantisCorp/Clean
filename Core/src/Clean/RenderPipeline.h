@@ -76,7 +76,7 @@ namespace Clean
         virtual void shader(std::uint8_t stage, std::shared_ptr < Shader > const& shad);
         
         /*! @brief Binds this pipeline onto the given Driver. */
-        virtual void bind(Driver& driver) const = 0;
+        virtual void bind(Driver const& driver) const = 0;
         
         /*! @brief Binds multiple parameters onto this pipeline. */
         virtual void bindParameters(std::vector < ShaderParameter > const& parameters) const;

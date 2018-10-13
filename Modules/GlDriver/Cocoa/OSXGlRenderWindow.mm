@@ -3,6 +3,8 @@
 
 #include "OSXGlRenderWindow.h"
 #include "OSXWindowDelegate.h"
+#include "OSXGlView.h"
+#include "../All/GlCheckError.h"
 
 #include <Clean/NotificationCenter.h>
 #include <Clean/Allocate.h>
@@ -25,13 +27,14 @@ OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& con
     : nativeWindow(nil), nativeWindowDelegate(nil), nativeContext(nil), fullscreenMode(false)
 {
     assert(context && "Null OSXGlContext passed to constructor.");
+    
     static constexpr const NSWindowStyleMask defaultMask = NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|
                                                            NSWindowStyleMaskMiniaturizable|NSWindowStyleMaskResizable;
     
     NSWindow* nsWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 10, 10)
                                                      styleMask:defaultMask
                                                        backing:NSBackingStoreBuffered
-                                                         defer:YES];
+                                                         defer:NO];
     
     if (!nsWindow) {
         Notification notif = BuildNotification(kNotificationLevelError, "NSWindow couldn't be created for OSXGlRenderWindow #%i.", getHandle());
@@ -39,14 +42,23 @@ OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& con
     }
     
     NSOpenGLContext* nsContext = (NSOpenGLContext*) context->toNSOpenGLContext();
-    [nsContext setView:[nsWindow contentView]];
+    OSXGlView* windowView = [[OSXGlView alloc] initWithFrame:[nsWindow frame] andContext:nsContext];
+    
+    [nsWindow setContentView:windowView];
+    [nsContext setView:windowView];
     
     OSXWindowDelegate* delegate = [[OSXWindowDelegate alloc] initWithCaller:this glContext:nsContext];
     [nsWindow setDelegate:delegate];
     
+    [nsWindow center];
+    [nsWindow makeFirstResponder:windowView];
+    [nsWindow setAcceptsMouseMovedEvents:YES];
+    [nsWindow setRestorable:NO];
+    
     nativeWindow = nsWindow;
     nativeWindowDelegate = delegate;
     nativeContext = context;
+    nativeView = windowView;
     
     RenderSurface::resetHandles(nsWindow, NULL);
 }
@@ -61,7 +73,7 @@ OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& con
     NSWindow* window = [[NSWindow alloc] initWithContentRect:windowRect
                                                    styleMask:windowMask
                                                      backing:NSBackingStoreBuffered
-                                                       defer:YES];
+                                                       defer:NO];
     
     if (!window) {
         Notification notif = BuildNotification(kNotificationLevelError, "NSWindow couldn't be created for OSXGlRenderWindow #%i.", getHandle());
@@ -69,14 +81,24 @@ OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& con
     }
     
     NSOpenGLContext* windowContext = (NSOpenGLContext*) context->toNSOpenGLContext();
-    [windowContext setView:[window contentView]];
+    OSXGlView* windowView = [[OSXGlView alloc] initWithFrame:[window frame] andContext:windowContext];
+    
+    [window setContentView:windowView];
+    [windowContext setView:windowView];
     
     OSXWindowDelegate* delegate = [[OSXWindowDelegate alloc] initWithCaller:this glContext:windowContext];
     [window setDelegate:delegate];
     
+    [window center];
+    [window makeFirstResponder:windowView];
+    [window setAcceptsMouseMovedEvents:YES];
+    [window setRestorable:NO];
+    [window setAutodisplay:YES];
+    
     nativeWindow = window;
     nativeWindowDelegate = delegate;
     nativeContext = context;
+    nativeView = windowView;
     setTitle(title);
     
     RenderSurface::resetHandles(window, NULL);
@@ -84,14 +106,14 @@ OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& con
 
 OSXGlRenderWindow::OSXGlRenderWindow(OSXGlRenderWindow const& rhs)
     : nativeWindow(nil), nativeWindowDelegate(nil), nativeContext(nil), fullscreenMode(false)
-{
+{   
     static constexpr const NSWindowStyleMask defaultMask = NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|
                                                            NSWindowStyleMaskMiniaturizable|NSWindowStyleMaskResizable;
     
     NSWindow* nsWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0, 0, 10, 10)
                                                      styleMask:defaultMask
                                                        backing:NSBackingStoreBuffered
-                                                         defer:YES];
+                                                         defer:NO];
     
     if (!nsWindow) {
         Notification notif = BuildNotification(kNotificationLevelError, "NSWindow couldn't be created for OSXGlRenderWindow #%i.", getHandle());
@@ -106,14 +128,23 @@ OSXGlRenderWindow::OSXGlRenderWindow(OSXGlRenderWindow const& rhs)
         NotificationCenter::GetDefault()->send(notif);
     }
     
-    [nsContext setView:[nsWindow contentView]];
+    OSXGlView* windowView = [[OSXGlView alloc] initWithFrame:[nsWindow frame] andContext:nsContext];
+    
+    [nsWindow setContentView:windowView];
+    [nsContext setView:windowView];
     
     OSXWindowDelegate* delegate = [[OSXWindowDelegate alloc] initWithCaller:this glContext:nsContext];
     [nsWindow setDelegate:delegate];
     
+    [nsWindow center];
+    [nsWindow makeFirstResponder:windowView];
+    [nsWindow setAcceptsMouseMovedEvents:YES];
+    [nsWindow setRestorable:NO];
+    
     nativeWindow = nsWindow;
     nativeWindowDelegate = delegate;
     nativeContext = AllocateShared < OSXGlContext >(nsContext);
+    nativeView = windowView;
     
     RenderSurface::resetHandles(nsWindow, NULL);
 }
@@ -152,16 +183,22 @@ bool OSXGlRenderWindow::isFullscreen() const
 void OSXGlRenderWindow::update() 
 {
     if (nativeWindow) {
-        NSEvent* event = [nativeWindow nextEventMatchingMask:NSEventMaskAny
-                                                   untilDate:[NSDate distantFuture]
-                                                      inMode:NSDefaultRunLoopMode
-                                                     dequeue:YES];
         
-        if (event) {
-            [nativeWindow sendEvent:event];
-        }
+        NSEvent* event = nil;
         
-        [nativeWindow update];
+        do
+        {
+            event = [NSApp nextEventMatchingMask:NSEventMaskAny
+                                              untilDate:[NSDate distantPast]
+                                                 inMode:NSDefaultRunLoopMode
+                                                dequeue:YES];
+            
+            if (event) {
+                [NSApp sendEvent:event];
+                [nativeWindow update];
+            }
+            
+        } while(event);
     }
 }
 
@@ -293,6 +330,7 @@ void OSXGlRenderWindow::bind(Driver& driver) const
 {
     if (nativeContext) {
         nativeContext->makeCurrent();
+        GlRenderWindow::bind(driver);
     }
 }
 
@@ -314,6 +352,27 @@ void OSXGlRenderWindow::setFullscreen(bool value)
 {
     if (nativeWindow && (isFullscreen() != value)) {
         [nativeWindow toggleFullScreen:nil];
+    }
+}
+
+void OSXGlRenderWindow::prepare(Driver& driver) const
+{
+    if (nativeWindow)
+    {
+        bind(driver);
+        
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        
+        glDisable(GL_CULL_FACE);
+        
+        glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+        glClearDepth(1.0f);
+        glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
+        
+        NSRect frame = [[nativeWindow contentView] frame];
+        glViewport(0, 0, (GLsizei)frame.size.width, (GLsizei)frame.size.height);
     }
 }
 

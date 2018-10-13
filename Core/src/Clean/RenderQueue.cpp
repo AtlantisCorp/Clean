@@ -27,11 +27,11 @@ namespace Clean
             // does not change during the operation to economize two atomic operations (-1 +1).
             
             commandsMutex.lock();
-            RenderCommand command = std::move(commands.front());
+            RenderCommand command = commands.front();
             commands.pop();
+            commands.push(command);
             commandsMutex.unlock();
             
-            commands.push(command);
             return command;
         }
         
@@ -47,10 +47,10 @@ namespace Clean
         throw IllformedConstantException("kRenderQueueType* ill-formed.");
     }
     
-    void RenderQueue::addCommand(RenderCommand&& command)
+    void RenderQueue::addCommand(RenderCommand const& command)
     {
         std::scoped_lock < std::mutex > lck(commandsMutex);
-        commands.push(std::move(command));
+        commands.push(command);
         commitedCommands.fetch_add(1);
     }
     

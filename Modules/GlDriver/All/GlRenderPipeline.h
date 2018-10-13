@@ -32,7 +32,7 @@ public:
     void link();
     
     /*! @brief Binds the program to given driver. */
-    void bind(Clean::Driver& driver) const;
+    void bind(Clean::Driver const& driver) const;
     
     /*! @brief Returns true if the program is linked. */
     bool isLinked() const;

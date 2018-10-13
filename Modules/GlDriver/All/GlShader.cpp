@@ -63,6 +63,11 @@ bool GlShader::isValid() const
     return shaderHandle != 0;
 }
 
+GLuint GlShader::getGLHandle() const
+{
+    return shaderHandle;
+}
+
 void GlShader::releaseResource()
 {
     if (!compiled) return;

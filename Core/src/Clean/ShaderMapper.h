@@ -5,11 +5,13 @@
 #define CLEAN_SHADERMAPPER_H
 
 #include "ShaderAttribute.h"
+#include "ShaderParameter.h"
 
 namespace Clean
 {
     class RenderPipeline;
     struct VertexDescriptor;
+    struct EffectParameter;
 
     /** @brief Makes the link between a VertexDescriptor and a Shader.
      *
@@ -90,6 +92,9 @@ namespace Clean
         }
 
         */
+        
+        /*! @brief Maps an Effect name to the correct shader's parameter name or index. */
+        virtual ShaderParameter map(EffectParameter const& param, RenderPipeline const& pipeline) const;
     };
 }
 

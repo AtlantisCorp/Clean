@@ -32,6 +32,9 @@ namespace Clean
     {
     public:
         BufferAutorelease(std::shared_ptr < Buffer > const& rhs);
+        BufferAutorelease(BufferAutorelease const& rhs);
+        BufferAutorelease(BufferAutorelease&& rhs);
+        
         ~BufferAutorelease();
     };
 
@@ -144,7 +147,7 @@ namespace Clean
         Mesh();
         
         /*! @brief Moves the mesh. */
-        Mesh(Mesh&&);
+        Mesh(Mesh&&) = default;
         
         /*! @brief A Mesh is not copyiable. Delete this function. */
         Mesh(Mesh const&) = delete;
@@ -290,6 +293,9 @@ namespace Clean
         
         /*! @brief Submits a transaction with no data. */
         void submitTransaction(std::uint8_t type, Transaction::Clock::time_point const& tp = Transaction::Clock::time_point::max());
+        
+        /*! @brief Adds multiple SubMeshes to this Mesh. */
+        void addSubMeshes(std::vector < SubMesh > const& submeshes);
     };
     
     /** @brief Interface for all Mesh loaders. */

@@ -43,7 +43,7 @@ namespace Clean
     struct ShaderAttribute final
     {
         //! @brief Index used in the shader to identify the attribute.
-        std::uint8_t index = 0;
+        std::uint8_t index = kShaderAttributeMax;
         
         //! @brief Type of the components to use. 
         std::uint8_t type = kShaderAttribNull;

@@ -4,6 +4,8 @@
 #ifndef CLEAN_SHADERPARAMETER_H
 #define CLEAN_SHADERPARAMETER_H
 
+#include "ShaderValue.h"
+
 #include <string>
 #include <cstddef>
 
@@ -66,34 +68,19 @@ namespace Clean
         std::string name;
         
         //! @brief Holds the parameter's value. 
-        union {
-            std::uint32_t u32;
-            std::int32_t i32;
-            float fl;
-            
-            float vec2[2];
-            float vec3[3];
-            float vec4[4];
-            
-            std::uint32_t uvec2[2];
-            std::uint32_t uvec3[3];
-            std::uint32_t uvec4[4];
-            
-            std::int32_t ivec2[2];
-            std::int32_t ivec3[3];
-            std::int32_t ivec4[4];
-            
-            float mat2[2][2];
-            float mat3[3][3];
-            float mat4[4][4];
-            
-            float mat2x3[2][3];
-            float mat3x2[3][2];
-            float mat2x4[2][4];
-            float mat4x2[4][2];
-            float mat3x4[3][4];
-            float mat4x3[4][3];
-        } value;
+        ShaderValue value;
+        
+        /*! @brief Default constructor. */
+        ShaderParameter() = default;
+        
+        /*! @brief Copy constructor. */
+        ShaderParameter(ShaderParameter const& rhs);
+        
+        /*! @brief Creates a ShaderParameter with type and name. */
+        ShaderParameter(std::uint8_t t, std::string const& n);
+        
+        /*! @brief Creates a ShaderParameter with all params. */
+        ShaderParameter(std::uint8_t t, std::string const& n, std::int16_t i, ShaderValue const& v);
     };
 }
 

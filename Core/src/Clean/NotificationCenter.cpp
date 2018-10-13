@@ -25,6 +25,10 @@ namespace Clean
                         cachedNotifMutex.unlock();
                         std::unique_lock < std::mutex > lock(condLoopThreadMutex);
                         condLoopThread.wait(lock);
+                        
+                        if (exitLoopThread)
+                            break;
+                        
                         cachedNotifMutex.lock();
                     }
 
@@ -47,7 +51,7 @@ namespace Clean
 
     NotificationCenter::~NotificationCenter()
     {
-        if (mode)
+        if (mode && loopThread.joinable())
         {
             exitLoopThread.store(true);
 

@@ -44,14 +44,18 @@ namespace Clean
     
     void Driver::update() 
     {
+        renderWindows.forEach([this](std::shared_ptr < RenderWindow >& wnd){
+            assert(wnd && "Null window stored.");
+            wnd->prepare(*this);
+        });
+        
         commitAllQueues();
         
         renderWindows.forEach([](std::shared_ptr < RenderWindow >& wnd){
             assert(wnd && "Null window stored.");
             wnd->swapBuffers();
+            wnd->update();
         });
-        
-        renderWindows.updateAllWindows();
     }
     
     void Driver::commitAllQueues() 
@@ -91,20 +95,23 @@ namespace Clean
     void Driver::renderCommand(RenderCommand const& command)
     {
         assert(command.target && command.pipeline && "Null RenderTarget or RenderPipeline for given RenderCommand.");
+        RenderPipeline const& pipeline = *(command.pipeline);
+        
         command.bind(*this);
         
         // Notes: Now RenderTarget and RenderPipeline are bound. We must ensure all parameters for the render command
         // are set for the current pipeline. 
         
-        command.pipeline->bindParameters(command.parameters);
+        effSession.bind(pipeline);
+        pipeline.bindParameters(command.parameters);
         
         // Now just render each subcommands. 
         
         for (RenderSubCommand const& subCommand : command.subCommands)
         {
-            command.pipeline->bindParameters(subCommand.parameters);
-            command.pipeline->bindShaderAttributes(subCommand.attributes);
-            command.pipeline->setDrawingMethod(subCommand.drawingMethod);
+            pipeline.bindParameters(subCommand.parameters);
+            pipeline.bindShaderAttributes(subCommand.attributes);
+            pipeline.setDrawingMethod(subCommand.drawingMethod);
             drawShaderAttributes(subCommand.attributes);
         }
     }
@@ -113,6 +120,11 @@ namespace Clean
     {
         // NOTES: Default implementation always return true. We do not support persistent data by default.
         return true;
+    }
+    
+    EffectSession& Driver::getEffectSession()
+    {
+        return effSession;
     }
     
     /** Pseudo-code sample for Driver::commit(): 

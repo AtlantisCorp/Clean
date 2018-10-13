@@ -29,7 +29,7 @@ struct OBJVertex
 
 struct OBJFace 
 {
-    std::vector < std::size_t > idx;
+    std::uint32_t idx[3];
 };
 
 struct OBJMesh 
@@ -39,6 +39,7 @@ struct OBJMesh
 
 struct OBJFile 
 {
+    std::string comments;
     std::vector < OBJVertex > vertexes;
     std::vector < OBJMesh > meshes;
     
@@ -77,7 +78,10 @@ protected:
     OBJMesh makeOBJMesh(std::istream& stream, OBJFile& file) const;
     
     /*! @brief Process all global markers. */
-    bool processDefaultMarkers(char marker, char* line, OBJFile& file) const;
+    bool processDefaultMarkers(char marker, char marker2, char* line, OBJFile& file) const;
+    
+    /*! @brief Converts given OBJFile to a valid Clean::Mesh. */
+    std::shared_ptr < Clean::Mesh > convertOBJFile(OBJFile& file) const;
 };
 
 #endif // OBJMESHLOADER_OBJLOADER_H

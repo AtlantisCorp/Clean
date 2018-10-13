@@ -66,7 +66,7 @@ namespace Clean
             std::list < std::string > foundFiles = Platform::FindFiles(realFile);
             
             if (!foundFiles.empty())
-                return foundFiles.at(0);
+                return foundFiles.front();
         }
         
         return std::string();
@@ -80,7 +80,9 @@ namespace Clean
     
     std::string FileSystem::findVirtualDirectoryName(std::string const& path) const 
     {
-        return path.substr(strlen("Clean://"), path.find_first_of('/', strlen("Clean://")));
+        std::size_t firstPos = strlen("Clean://");
+        std::size_t secondSlash = path.find_first_of('/', firstPos) - firstPos;
+        return path.substr(firstPos, secondSlash);
     }
     
     std::string FileSystem::findVirtualFileName(std::string const& path) const

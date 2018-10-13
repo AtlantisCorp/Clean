@@ -49,8 +49,11 @@ std::size_t OSXPixelFormatAttributes(PixelFormat const& pixelFormat, NSOpenGLPix
     
     attribs[currentAttrib + 0] = NSOpenGLPFAOpenGLProfile;
     attribs[currentAttrib + 1] = (NSOpenGLPixelFormatAttribute) NSOpenGLProfileVersion3_2Core;
-    attribs[currentAttrib + 2] = NSOpenGLPFAMaximumPolicy;
-    currentAttrib += 3;
+    attribs[currentAttrib + 2] = NSOpenGLPFAClosestPolicy;
+    attribs[currentAttrib + 3] = NSOpenGLPFAAccelerated;
+    attribs[currentAttrib + 4] = NSOpenGLPFADepthSize;
+    attribs[currentAttrib + 5] = (NSOpenGLPixelFormatAttribute)24;
+    currentAttrib += 6;
     
     return currentAttrib - 1;
 }
@@ -114,7 +117,7 @@ void OSXGlContext::swapBuffers()
 void OSXGlContext::lock() const
 {
     if (context) {
-        [context lock];
+        // [context lock];
         [context makeCurrentContext];
     }
 }
@@ -122,14 +125,17 @@ void OSXGlContext::lock() const
 void OSXGlContext::unlock() const
 {
     if (context) {
-        [context unlock];
+        // [context unlock];
     }
 }
 
 void OSXGlContext::makeCurrent()
 {
     if (context) {
-        [context makeCurrentContext];
+        NSOpenGLContext* currentCtxt = [NSOpenGLContext currentContext];
+        if (currentCtxt != context) {
+            [context makeCurrentContext];
+        }
     }
 }
 

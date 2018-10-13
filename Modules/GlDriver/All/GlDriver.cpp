@@ -4,10 +4,12 @@
 #include "GlDriver.h"
 #include "GlRenderPipeline.h"
 #include "GlRenderQueue.h"
+#include "GlCheckError.h"
 
 #ifdef CLEAN_WINDOW_COCOA
 #   include "../Cocoa/OSXGlContext.h"
 #   include "../Cocoa/OSXGlRenderWindow.h"
+#   include "../Cocoa/OSXGlApplication.h"
 
 #endif
 
@@ -19,6 +21,8 @@ using namespace Clean;
 bool GlDriver::initialize() 
 { 
 #   ifdef CLEAN_WINDOW_COCOA 
+    OSXGlCheckNSApplicationRunning();
+    
     std::scoped_lock < std::mutex, std::mutex > lck(defaultsMutex, pixelFormatMutex); 
     auto defaultNativeContext = Clean::AllocateShared < OSXGlContext >(pixelFormat); 
     defaultContext = std::static_pointer_cast < GlContext >(defaultNativeContext);
@@ -104,14 +108,14 @@ public:
     ShaderAttributesMap map(VertexDescriptor const& descriptor, RenderPipeline const& shader) const
     {
         ShaderAttributesMap result(descriptor.indexInfos);
-        if (descriptor.indexInfos.elements == 0) result.setElements(descriptor.localSubmesh.elements);
+        result.setElements(descriptor.localSubmesh.elements);
         
         if (descriptor.has(kVertexComponentPosition) && shader.hasAttribute("position"))
         {
             VertexComponentInfos infos = descriptor.findInfosFor(kVertexComponentPosition);
 
             ShaderAttribute attrib = ShaderAttribute::Enabled(
-                shader.findAttributeIndex("position"), 4, kShaderAttribFloat,
+                shader.findAttributeIndex("position"), kShaderAttribFloat, 4,
                 infos.offset, infos.stride, infos.buffer
             );
 
@@ -119,6 +123,25 @@ public:
         }
         
         return result;
+    }
+    
+    /*! @brief Maps generic uniforms to our shader. */
+    ShaderParameter map(EffectParameter const& param, RenderPipeline const& pipeline) const 
+    {
+        switch (param.hash)
+        {
+            case kEffectProjectionMat4Hash:
+            return ShaderParameter(kShaderParamMat4, "projection", 0, param.value);
+            
+            case kEffectViewMat4Hash:
+            return ShaderParameter(kShaderParamMat4, "view", 4, param.value);
+            
+            case kEffectModelMat4Hash:
+            return ShaderParameter(kShaderParamMat4, "model", 8, param.value);
+            
+            default:
+            return ShaderMapper::map(param, pipeline);
+        }
     }
 };
 
@@ -181,7 +204,7 @@ void GlDriver::loadDefaultShaders()
         
         const char* defaultGlslVertex = R"(
         
-        #version 330
+        #version 330 core
         
         layout(location = 0) in vec4 position;
     
@@ -204,13 +227,13 @@ void GlDriver::loadDefaultShaders()
     
         const char* defaultGlslFragment = R"(
         
-        #version 330
+        #version 330 core
         
-        out vec4 fragColor;
+        out vec4 FragColor;
     
         void main() 
         {
-            fragColor = vec4(1.0, 0.0, 0.0, 1.0);
+            FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
         }
     
         )";

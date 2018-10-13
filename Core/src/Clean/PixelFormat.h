@@ -37,7 +37,7 @@ namespace Clean
         bool fullscreen = false;
         
         //! @brief Number of wanted buffers. 
-        std::uint8_t buffers;
+        std::uint8_t buffers = 2;
         
         //! @brief True if wanting a multisampled pixel format.
         bool multisampled = false;

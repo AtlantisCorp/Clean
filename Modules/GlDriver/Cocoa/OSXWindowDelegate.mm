@@ -45,4 +45,14 @@
     _caller->notifyFullscreen(self, false);
 }
 
+- (void)windowDidMove:(NSNotification *)notification
+{
+    
+}
+
+- (void)windowDidBecomeMain:(NSNotification *)notification
+{
+    
+}
+
 @end

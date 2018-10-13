@@ -22,6 +22,9 @@ class OSXGlRenderWindow : public GlRenderWindow
     //! @brief True if in Fullscreen mode, false otherwise.
     std::atomic < bool > fullscreenMode;
     
+    //! @brief Our specialized view.
+    id nativeView;
+    
 public:
     
     /*! @brief Constructs an OSXGlRenderWindow from the given native context. */
@@ -118,6 +121,14 @@ public:
     
     /*! @brief Sets the Window into fullscreen mode or windowed mode. */
     void setFullscreen(bool value);
+    
+    /*! @brief Prepares the RenderTarget for drawing.
+     *
+     * Clears OpenGL buffers, and set the viewport to the correct contentView size. OpenGL
+     * can be used to draw on the window after this function.
+     *
+    **/
+    void prepare(Clean::Driver& driver) const;
     
 #   ifdef CLEAN_LANG_OBJC
     /*! @brief Notifies this render window its NSWindow will close. */

@@ -54,7 +54,7 @@ namespace Clean
 
     Core::~Core()
     {
-        clearFileLoaders();
+        
     }
 
     std::shared_ptr < NotificationCenter > Core::getNotificationCenter()
@@ -166,5 +166,23 @@ namespace Clean
     FileSystem& Core::getCurrentFileSystem()
     {
         return fileSystem;
+    }
+    
+    void Core::destroy()
+    {
+        NotificationCenter::GetDefault()->exitLoopThread = true;
+        
+        {
+            std::unique_lock < std::mutex > lock(NotificationCenter::GetDefault()->condLoopThreadMutex);
+            NotificationCenter::GetDefault()->condLoopThread.notify_all();
+        }
+        
+        NotificationCenter::GetDefault()->loopThread.join();
+        
+        clearFileLoaders();
+        windowManager.reset();
+        driverManager.reset();
+        moduleManager.reset();
+        dynlibManager.reset();
     }
 }

@@ -247,6 +247,9 @@ namespace Clean
         
         /*! @brief Returns the default file system. */
         FileSystem& getCurrentFileSystem();
+        
+        /*! @brief Destroys the main Core but do not unload its global pointer. */
+        void destroy();
     };
 }
 

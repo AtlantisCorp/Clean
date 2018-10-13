@@ -6,6 +6,8 @@
 #include "GlCheckError.h"
 
 #include <algorithm>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <Clean/NotificationCenter.h>
 #include <Clean/Traits.h>
 using namespace Clean;
@@ -66,7 +68,15 @@ void GlRenderPipeline::shader(std::uint8_t stage, std::shared_ptr < Shader > con
     }
     
     auto shader = ReinterpretShared < GlShader >(shad);
-    glAttachShader(programHandle, shader->getHandle());
+    glAttachShader(programHandle, shader->getGLHandle());
+    
+    GlError error = GlCheckError();
+    if (error.error != GL_NO_ERROR) {
+        Notification notif = BuildNotification(kNotificationLevelError,
+            "An error occured while glAttachShader: %s.",
+            error.string.data());
+        NotificationCenter::GetDefault()->send(notif);
+    }
 }
 
 void GlRenderPipeline::link()
@@ -91,7 +101,7 @@ void GlRenderPipeline::link()
     }
 }
 
-void GlRenderPipeline::bind(Driver& driver) const 
+void GlRenderPipeline::bind(Driver const& driver) const 
 {
     if (!isLinked()) {
         const_cast < GlRenderPipeline* >(this)->link();
@@ -157,75 +167,75 @@ void GlRenderPipeline::bindParameter(ShaderParameter const& parameter) const
         break;
         
         case kShaderParamVec2:
-            glUniform2fv(location, 1, parameter.value.vec2);
+            glUniform2fv(location, 1, glm::value_ptr(parameter.value.vec2));
         break;
         
         case kShaderParamVec3:
-            glUniform3fv(location, 1, parameter.value.vec3);
+            glUniform3fv(location, 1, glm::value_ptr(parameter.value.vec3));
         break;
         
         case kShaderParamVec4:
-            glUniform4fv(location, 1, parameter.value.vec4);
+            glUniform4fv(location, 1, glm::value_ptr(parameter.value.vec4));
         break;
         
         case kShaderParamUVec2:
-        glUniform2uiv(location, 1, parameter.value.uvec2);
+        glUniform2uiv(location, 1, glm::value_ptr(parameter.value.uvec2));
         break;
         
         case kShaderParamUVec3:
-        glUniform3uiv(location, 1, parameter.value.uvec3);
+        glUniform3uiv(location, 1, glm::value_ptr(parameter.value.uvec3));
         break;
         
         case kShaderParamUVec4:
-        glUniform4uiv(location, 1, parameter.value.uvec4);
+        glUniform4uiv(location, 1, glm::value_ptr(parameter.value.uvec4));
         break;
         
         case kShaderParamIVec2:
-        glUniform2iv(location, 1, parameter.value.ivec2);
+        glUniform2iv(location, 1, glm::value_ptr(parameter.value.ivec2));
         break;
         
         case kShaderParamIVec3:
-        glUniform3iv(location, 1, parameter.value.ivec3);
+        glUniform3iv(location, 1, glm::value_ptr(parameter.value.ivec3));
         break;
         
         case kShaderParamIVec4:
-        glUniform4iv(location, 1, parameter.value.ivec4);
+        glUniform4iv(location, 1, glm::value_ptr(parameter.value.ivec4));
         break;
         
         case kShaderParamMat2:
-        glUniformMatrix2fv(location, 1, false, (GLfloat*) parameter.value.mat2);
+        glUniformMatrix2fv(location, 1, false, glm::value_ptr(parameter.value.mat2));
         break;
         
         case kShaderParamMat3:
-        glUniformMatrix3fv(location, 1, false, (GLfloat*) parameter.value.mat3);
+        glUniformMatrix3fv(location, 1, false, glm::value_ptr(parameter.value.mat3));
         break;
         
         case kShaderParamMat4:
-        glUniformMatrix4fv(location, 1, false, (GLfloat*) parameter.value.mat4);
+        glUniformMatrix4fv(location, 1, false, glm::value_ptr(parameter.value.mat4));
         break;
         
         case kShaderParamMat2x3:
-        glUniformMatrix2x3fv(location, 1, false, (GLfloat*) parameter.value.mat2x3);
+        glUniformMatrix2x3fv(location, 1, false, glm::value_ptr(parameter.value.mat2x3));
         break;
         
         case kShaderParamMat3x2:
-        glUniformMatrix3x2fv(location, 1, false, (GLfloat*) parameter.value.mat3x2);
+        glUniformMatrix3x2fv(location, 1, false, glm::value_ptr(parameter.value.mat3x2));
         break;
         
         case kShaderParamMat2x4:
-        glUniformMatrix2x4fv(location, 1, false, (GLfloat*) parameter.value.mat2x4);
+        glUniformMatrix2x4fv(location, 1, false, glm::value_ptr(parameter.value.mat2x4));
         break;
         
         case kShaderParamMat4x2:
-        glUniformMatrix4x2fv(location, 1, false, (GLfloat*) parameter.value.mat4x2);
+        glUniformMatrix4x2fv(location, 1, false, glm::value_ptr(parameter.value.mat4x2));
         break;
         
         case kShaderParamMat3x4:
-        glUniformMatrix3x4fv(location, 1, false, (GLfloat*) parameter.value.mat3x4);
+        glUniformMatrix3x4fv(location, 1, false, glm::value_ptr(parameter.value.mat3x4));
         break;
         
         case kShaderParamMat4x3:
-        glUniformMatrix4x3fv(location, 1, false, (GLfloat*) parameter.value.mat4x3);
+        glUniformMatrix4x3fv(location, 1, false, glm::value_ptr(parameter.value.mat4x3));
         break;
         
         default:
@@ -278,8 +288,8 @@ void GlRenderPipeline::bindShaderAttributes(ShaderAttributesMap const& attribute
                 pointer = (GLvoid*) attrib.buffer->lock(kBufferIOReadOnly);
             }
             
-            glEnableVertexAttribArray(index);
             glVertexAttribPointer(index, size, type, false, stride, pointer);
+            glEnableVertexAttribArray(index);
             
             GlError error = GlCheckError();
             if (error.error != GL_NO_ERROR) {
@@ -294,7 +304,7 @@ void GlRenderPipeline::bindShaderAttributes(ShaderAttributesMap const& attribute
             }
         }
         
-        else 
+        else if (attrib.index < kShaderAttributeMax)
         {
             glDisableVertexAttribArray(static_cast < GLuint >(attrib.index));
         }
@@ -311,18 +321,18 @@ bool GlRenderPipeline::hasAttribute(std::string const& attrib) const
     if (!isLinked() || attrib.empty()) 
         return false;
     
-    GLint location = glGetUniformLocation(programHandle, attrib.data());
+    GLint location = glGetAttribLocation(programHandle, attrib.data());
     return location > -1;
 }
 
 std::uint8_t GlRenderPipeline::findAttributeIndex(std::string const& attrib) const
 {
-    GLuint result = static_cast < GLuint >(glGetUniformLocation(programHandle, attrib.data()));
+    GLuint result = static_cast < GLuint >(glGetAttribLocation(programHandle, attrib.data()));
     
     GlError error = GlCheckError();
     if (error.error != GL_NO_ERROR) {
         Notification notif = BuildNotification(kNotificationLevelError,
-            "glGetUniformLocation('%s') failed: %s",
+            "glGetAttribLocation('%s') failed: %s",
             attrib.data(), error.string.data());
         NotificationCenter::GetDefault()->send(notif);
     }

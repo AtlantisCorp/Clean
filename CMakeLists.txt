@@ -5,7 +5,12 @@ PROJECT(MainProject)
 
 INCLUDE(CMake/CleanMacros.cmake)
 
-set(CLEAN_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+SET(CLEAN_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/bin")
+
+# Includes GLM directory. If not found, we can't compile any Clean project.
+FIND_PACKAGE(GLM REQUIRED)
+INCLUDE_DIRECTORIES(${GLM_INCLUDE_DIRS})
+MESSAGE(STATUS "GLM Dir: ${GLM_INCLUDE_DIRS}")
 
 # Includes Core/src directory to compiler directories when looking for file. 
 # This way the Main target will see <Clean/Core.h> file form. 
@@ -17,3 +22,4 @@ include(Main/CMakeLists.txt)
 
 # Adds here every CMake files for modules. 
 include(Modules/GlDriver/CMakeLists.txt)
+include(Modules/OBJMeshLoader/CMakeLists.txt)

@@ -32,6 +32,9 @@ public:
     /*! @brief Returns true if shader is valid. */
     bool isValid() const;
     
+    /*! @brief Returns GL Handle. */
+    GLuint getGLHandle() const;
+    
 protected:
     
     /*! @brief Releases the shader object. */

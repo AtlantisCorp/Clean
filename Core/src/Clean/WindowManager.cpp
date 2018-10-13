@@ -7,7 +7,7 @@ namespace Clean
 {
     bool WindowManager::allWindowClosed() const 
     {
-        bool result;
+        bool result = true;
         
         forEach([&result](std::shared_ptr < Window > const& window){
             assert(window && "Null pointer stored.");

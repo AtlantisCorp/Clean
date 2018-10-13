@@ -15,7 +15,7 @@ namespace Clean
     
     bool RenderWindowManager::allWindowClosed() const 
     {
-        bool result;
+        bool result = true;
         
         forEach([&result](std::shared_ptr < RenderWindow > const& window){
             assert(window && "Null pointer stored.");

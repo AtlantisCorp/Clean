@@ -64,7 +64,7 @@ namespace Clean
         RenderCommand nextCommand();
         
         /*! @brief Adds a RenderCommand to the back of the queue. */
-        virtual void addCommand(RenderCommand&& command);
+        virtual void addCommand(RenderCommand const& command);
         
         /*! @brief Releases queue's internal resource. */
         virtual void release() = 0;

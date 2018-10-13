@@ -9,6 +9,7 @@
 #include "RenderSurface.h"
 #include "PixelFormat.h"
 #include "RenderQueueManager.h"
+#include "EffectSession.h"
 
 namespace Clean
 {       
@@ -93,6 +94,9 @@ namespace Clean
         
         //! @brief Handles RenderQueue registered in this driver. 
         RenderQueueManager renderQueues;
+        
+        //! @brief Global session for the whole driver. 
+        EffectSession effSession;
         
     public:
         
@@ -231,6 +235,9 @@ namespace Clean
         
         /*! @brief Creates a new Shader from given source text and stage. */
         virtual std::shared_ptr < Shader > makeShader(const char* src, std::uint8_t stage) = 0;
+        
+        /*! @brief Returns the EffectSession active for this driver. */
+        virtual EffectSession& getEffectSession();
         
     protected:
         
