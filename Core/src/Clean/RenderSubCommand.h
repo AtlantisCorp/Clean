@@ -5,7 +5,7 @@
 #define CLEAN_RENDERSUBCOMMAND_H
 
 #include "ShaderAttribute.h"
-#include "ShaderParameter.h"
+#include "EffectSession.h"
 
 namespace Clean 
 {
@@ -31,7 +31,7 @@ namespace Clean
         ShaderAttributesMap attributes;
         
         //! @brief Lists ShaderParameters set for this sub command. 
-        std::vector < ShaderParameter > parameters;
+        EffectSession parameters;
         
         RenderSubCommand() = default;
         RenderSubCommand(RenderSubCommand const&) = default;

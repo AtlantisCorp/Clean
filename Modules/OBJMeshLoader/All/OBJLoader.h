@@ -34,12 +34,15 @@ struct OBJFace
 
 struct OBJMesh 
 {
+    std::string material;
     std::vector < OBJFace > faces;
 };
 
 struct OBJFile 
 {
     std::string comments;
+    std::string materialLib;
+    
     std::vector < OBJVertex > vertexes;
     std::vector < OBJMesh > meshes;
     
@@ -78,7 +81,7 @@ protected:
     OBJMesh makeOBJMesh(std::istream& stream, OBJFile& file) const;
     
     /*! @brief Process all global markers. */
-    bool processDefaultMarkers(char marker, char marker2, char* line, OBJFile& file) const;
+    bool processDefaultMarkers(char* line, OBJFile& file) const;
     
     /*! @brief Converts given OBJFile to a valid Clean::Mesh. */
     std::shared_ptr < Clean::Mesh > convertOBJFile(OBJFile& file) const;

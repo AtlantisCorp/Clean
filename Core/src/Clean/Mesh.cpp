@@ -488,6 +488,16 @@ namespace Clean
         submitTransaction(kMeshTransactionAddSubMesh);
     }
     
+    std::string Mesh::getFilePath() const 
+    {
+        return origin.load();
+    }
+    
+    void Mesh::setFilePath(std::string const& path)
+    {
+        origin.store(path);
+    }
+    
     /*
     {
         Buffer buf = new GenBuffer(data, size*sizeof(Data), kBufferUsageStatic);
@@ -496,6 +506,8 @@ namespace Clean
         VertexDescriptor descriptor;
         descriptor.addComponent(kVertexComponentPosition, 0, sizeof(Data));
         descriptor.addComponent(kvertexComponentColor, sizeof(float)*4, sizeof(Data));
+    
+        Material material = loadFile < Material > ("Clean://Materials/Cube.mtl");
         
         SubMesh submesh;
         submesh.elements = size;
@@ -503,6 +515,7 @@ namespace Clean
         submesh.indexCount = idxSize;
         submesh.indexBuffer = ibuf;
         submesh.descriptor = descriptor;
+        submesh.material = material;
         
         Mesh result;
         result.addSubMesh(submesh);

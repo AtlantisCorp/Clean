@@ -17,6 +17,7 @@
 namespace Clean 
 {
     class RenderPipeline;
+    class Material;
     
     /** @brief Manages multiple EffectParameter for a 'session'. 
      *
@@ -35,6 +36,9 @@ namespace Clean
         /*! @brief Default constructor. */
         EffectSession() = default;
         
+        /*! @brief Copies the EffectSession. */
+        EffectSession(EffectSession const& rhs);
+        
         /*! @brief Default destructor. */
         ~EffectSession() = default;
         
@@ -52,6 +56,14 @@ namespace Clean
         **/
         std::weak_ptr < EffectParameter > add(std::string const& name, ShaderValue const& value, std::uint8_t const& type = kShaderParamNull);
         
+        /*! @brief Adds a parameter possibly shared with other objects. 
+         *
+         * \param[in] parameter Pointer to an EffectParameter to add. It is checked that the parameter is not already 
+         *      in the session before adding it. If this parameter is null, nothing is done. 
+         *
+        **/
+        std::weak_ptr < EffectParameter > add(std::shared_ptr < EffectParameter > const& parameter);
+        
         /*! @brief Removes the parameter designated by name. **/
         void remove(std::string const& name);
         
@@ -60,6 +72,13 @@ namespace Clean
         
         /*! @brief Binds all globals parameters to the given RenderPipeline. */
         void bind(RenderPipeline const& pipeline) const;
+        
+        /*! @brief Adds Material's parameters to this EffectSession. */
+        void addMaterial(Material const& material);
+        
+        /*! @brief Adds multiple Materials making in sort that there will be not more than one hash
+         * registered in this session. */
+        void batchAddOneHash(std::vector < std::shared_ptr < EffectParameter > > const& parameters);
     };
 }
 

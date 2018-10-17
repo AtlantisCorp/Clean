@@ -13,6 +13,8 @@
 #include "DriverManager.h"
 #include "FileLoader.h"
 #include "FileSystem.h"
+#include "MeshManager.h"
+#include "MaterialManager.h"
 
 #include <memory>
 #include <atomic>
@@ -101,6 +103,12 @@ namespace Clean
         
         //! @brief Global FileSystem used by Core. 
         FileSystem fileSystem;
+        
+        //! @brief MeshManager used by Core.
+        MeshManager meshManager;
+        
+        //! @brief MaterialManager used by Core.
+        MaterialManager materialManager;
         
         //! @brief Core instance. Initialized once by Create().
         static std::unique_ptr < Core > instance;
@@ -250,6 +258,12 @@ namespace Clean
         
         /*! @brief Destroys the main Core but do not unload its global pointer. */
         void destroy();
+        
+        /*! @brief Returns the MeshManager. */
+        MeshManager& getMeshManager();
+        
+        /*! @brief Returns the MaterialManager. */
+        MaterialManager& getMaterialManager();
     };
 }
 

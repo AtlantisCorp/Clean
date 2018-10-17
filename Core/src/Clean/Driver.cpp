@@ -100,16 +100,16 @@ namespace Clean
         command.bind(*this);
         
         // Notes: Now RenderTarget and RenderPipeline are bound. We must ensure all parameters for the render command
-        // are set for the current pipeline. 
+        // are set for the current pipeline. Notes also that EffectSession binds its parameters here for the RenderCommand.
         
         effSession.bind(pipeline);
-        pipeline.bindParameters(command.parameters);
+        command.parameters.bind(pipeline);
         
         // Now just render each subcommands. 
         
         for (RenderSubCommand const& subCommand : command.subCommands)
         {
-            pipeline.bindParameters(subCommand.parameters);
+            subCommand.parameters.bind(pipeline);
             pipeline.bindShaderAttributes(subCommand.attributes);
             pipeline.setDrawingMethod(subCommand.drawingMethod);
             drawShaderAttributes(subCommand.attributes);

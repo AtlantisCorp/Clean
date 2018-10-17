@@ -1,5 +1,7 @@
 # Blender v2.61 (sub 0) OBJ File: ''
 # www.blender.org
+mtllib Clean://Material/Example.mtl
+usemtl Example
 v 0.605903 0.005903 -0.000000
 v 0.000000 0.000000 0.000000
 v 0.584584 0.005902 -0.162696

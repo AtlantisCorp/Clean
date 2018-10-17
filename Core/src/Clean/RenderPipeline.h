@@ -4,10 +4,11 @@
 #ifndef CLEAN_RENDERPIPELINE_H
 #define CLEAN_RENDERPIPELINE_H
 
+#include "Handled.h"
 #include "Shader.h"
 #include "ShaderParameter.h"
 #include "DriverResource.h"
-#include "Handled.h"
+#include "EffectParameter.h"
 
 #include <cstdint>
 #include <map>
@@ -77,6 +78,12 @@ namespace Clean
         
         /*! @brief Binds this pipeline onto the given Driver. */
         virtual void bind(Driver const& driver) const = 0;
+        
+        /*! @brief Binds multiple EffectParameters onto this pipeline. */
+        virtual void bindEffectParameters(std::vector < std::shared_ptr < EffectParameter > > const& parameters) const;
+        
+        /*! @brief Binds one EffectParameter onto this pipeline. */
+        virtual void bindEffectParameter(std::shared_ptr < EffectParameter > const& parameter) const;
         
         /*! @brief Binds multiple parameters onto this pipeline. */
         virtual void bindParameters(std::vector < ShaderParameter > const& parameters) const;

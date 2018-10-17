@@ -48,6 +48,20 @@ namespace Clean
                 managedList.push_back(rhs);
         }
         
+        /*! @brief Performs addOnce on multiple objects. */
+        virtual void batchAddOnce(std::vector < std::shared_ptr < Managed > > const& rhsList) 
+        {
+            std::lock_guard < std::mutex > lck(managedListMutex);
+            
+            for (auto& rhs : rhsList)
+            {
+                auto check = std::find(managedList.begin(), managedList.end(), rhs);
+            
+                if (check == managedList.end()) 
+                    managedList.push_back(rhs);
+            }
+        }
+        
         /*! @brief Removes a managed object. */
         virtual void erase(std::shared_ptr < Managed > const& rhs)
         {
@@ -131,6 +145,13 @@ namespace Clean
         {
             std::lock_guard < std::mutex > lck(managedListMutex);
             return std::find(managedList.begin(), managedList.end(), rhs) != managedList.end();
+        }
+        
+        /*! @brief Clears the current list of objects. */
+        void reset()
+        {
+            std::lock_guard < std::mutex > lck(managedListMutex);
+            managedList.clear();
         }
     };
 }

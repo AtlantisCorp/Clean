@@ -184,5 +184,24 @@ namespace Clean
             
             return lookup[n][m];
         }
+        
+        std::string PathGetExtension(std::string const& path)
+        {
+            return path.substr(path.find_last_of('.') + 1, std::string::npos);
+        }
+        
+        void StreamGetContent(std::istream& stream, std::string& out) 
+        {
+            // See: https://stackoverflow.com/a/2602060
+            // Implementation should be efficient enough with large files as memory is allocated
+            // before inserting in the string. 
+            
+            stream.seekg(0, std::ios::end);
+            out.reserve(stream.tellg());
+            stream.seekg(0, std::ios::beg);
+            
+            out.assign((std::istreambuf_iterator<char>(stream)),
+                        std::istreambuf_iterator<char>());
+        }
     }
 }

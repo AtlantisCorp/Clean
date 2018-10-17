@@ -89,8 +89,12 @@ int main()
         // Clean::ModuleManager::loadAllModules must be called after adding a new directory. 
         
         Clean::Core& core = Clean::Core::Create(listener);
+        
+        Clean::FileSystem& fs = core.getCurrentFileSystem();
+        fs.addRealPath("Mesh", "../Meshes");
+        fs.addRealPath("Material", "../Materials");
+        
         std::size_t moduleCount = core.loadAllModules();
-        core.getCurrentFileSystem().addRealPath("Mesh", "../Meshes");
         assert(moduleCount && "No module found.");
         
         {
@@ -135,10 +139,7 @@ int main()
             // its vertex buffer. As we know our mesh only contains one object, we will directly load its first vertex buffer. We
             // must ensure a loader is available to load our Mesh.
             
-            auto loader = core.findFileLoader < Mesh >("obj");
-            assert(loader && "No loader found to load OBJ file.");
-            
-            auto mesh = loader->load("Clean://Mesh/Example.obj");
+            auto mesh = MeshManager::Current().load("Clean://Mesh/Example.obj");
             assert(mesh && "Can't load ./example.obj file.");
             
             // Our mesh is loaded, but all its data is on the RAM. We want those buffers to be on GPU! However, Clean engine is
@@ -147,6 +148,14 @@ int main()
             
             mesh->associate(*gldriver);
             mesh->populateRenderCommand(*gldriver, firstCommand);
+            
+            // We also want to associate a Material to this Mesh. Normally, Example.obj will load one Material specially for this
+            // mesh, named Example. We will bind this Material to the RenderCommand to let it add its parameters directly to the
+            // RenderCommand. As EffectParameters are used with shared_ptr, changing one will produce effect into the other. 
+            
+            auto material = MaterialManager::Current().findByName("Example");
+            assert(material && "Material 'Example' not found.");
+            firstCommand.parameters.addMaterial(*material);
             
             // VertexDescriptor describe how to render one SubMesh. Mesh::findAssociatedDescriptors return a list of VertexDescriptor
             // which can render every mesh's submeshes for the given driver. Those descriptors needs to be mapped to ShaderAttributes

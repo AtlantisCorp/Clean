@@ -83,8 +83,12 @@ namespace Clean
          * If path is not a Clean's Resource Path, it returns a std::ifstream(path, mode) without
          * modifying the path. If it is, it returns std::ifstream(findRealPath(path), mode).
          *
+         * \param[in] path Path we want to open a stream. 
+         * \param[in] mode The opening mode for the file. 
+         * \param[out] realPath If not null, holds the real path used to open the file. 
+         *
         **/
-        std::fstream open(std::string const& path, std::ios_base::openmode mode) const;
+        std::fstream open(std::string const& path, std::ios_base::openmode mode, std::string* realPath = nullptr) const;
         
         /*! @brief Extracts the Virtual Directory's name from the given Clean path. */
         std::string findVirtualDirectoryName(std::string const& path) const;

@@ -3,6 +3,7 @@
 
 #include "RenderPipeline.h"
 #include "VertexDescriptor.h"
+#include "NotificationCenter.h"
 
 namespace Clean 
 {
@@ -17,6 +18,41 @@ namespace Clean
         if (!shad) return;
         std::scoped_lock < std::mutex > lck(shadersMutex);
         shaders[stage] = shad;
+    }
+    
+    void RenderPipeline::bindEffectParameters(std::vector < std::shared_ptr < EffectParameter > > const& parameters) const 
+    {
+        if (!parameters.size()) return;
+        
+        std::shared_ptr < ShaderMapper > loadedMapper = std::atomic_load(&mapper);
+        
+        if (!loadedMapper) {
+            Notification notif = BuildNotification(kNotificationLevelError, "Null ShaderMapper or EffectParameters given to pipeline #%i.", getHandle());
+            NotificationCenter::GetDefault()->send(notif);
+            return;
+        }
+        
+        for (auto parameter : parameters)
+        {
+            std::lock_guard < std::mutex > lck(parameter->mutex);
+            ShaderParameter sparam = loadedMapper->map(*parameter, *this);
+            bindParameter(sparam);
+        }
+    }
+    
+    void RenderPipeline::bindEffectParameter(std::shared_ptr < EffectParameter > const& parameter) const 
+    {
+        std::shared_ptr < ShaderMapper > loadedMapper = std::atomic_load(&mapper);
+        
+        if (!loadedMapper || !parameter) {
+            Notification notif = BuildNotification(kNotificationLevelError, "Null ShaderMapper or EffectParameter given to pipeline #%i.", getHandle());
+            NotificationCenter::GetDefault()->send(notif);
+            return;
+        }
+        
+        std::lock_guard < std::mutex > lck(parameter->mutex);
+        ShaderParameter sparam = loadedMapper->map(*parameter, *this);
+        bindParameter(sparam);
     }
     
     void RenderPipeline::bindParameters(std::vector < ShaderParameter > const& parameters) const 

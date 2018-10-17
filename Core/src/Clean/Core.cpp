@@ -47,6 +47,12 @@ namespace Clean
         
         driverManager = AllocateShared < DriverManager >();
         assert(driverManager && "Can't allocate Clean::DriverManager.");
+        
+        MeshManager::currentManager.store(&meshManager);
+        assert(MeshManager::currentManager.load() && "Can't store Clean::MeshManager.");
+        
+        MaterialManager::currentManager.store(&materialManager);
+        assert(MaterialManager::currentManager.load() && "Can't store Clean::MeshManager.");
 
         modulesDirectories.push_back("Modules");
         fileSystem.addRealPath("Module", "Modules");
@@ -180,9 +186,21 @@ namespace Clean
         NotificationCenter::GetDefault()->loopThread.join();
         
         clearFileLoaders();
+        materialManager.reset();
+        meshManager.reset();
         windowManager.reset();
         driverManager.reset();
         moduleManager.reset();
         dynlibManager.reset();
+    }
+    
+    MeshManager& Core::getMeshManager() 
+    {
+        return meshManager;
+    }
+    
+    MaterialManager& Core::getMaterialManager()
+    {
+        return materialManager;
     }
 }

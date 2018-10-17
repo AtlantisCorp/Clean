@@ -6,10 +6,16 @@
 
 #include "EffectSession.h"
 #include "RenderPipeline.h"
+#include "Material.h"
 #include "Allocate.h"
 
 namespace Clean 
 {
+    EffectSession::EffectSession(EffectSession const& rhs)
+    {
+        globals.store(rhs.globals.load());
+    }
+    
     std::weak_ptr < EffectParameter > EffectSession::add(std::string const& name, ShaderValue const& value, std::uint8_t const& type) 
     {
         std::shared_ptr < EffectParameter > param = AllocateShared < EffectParameter >(name, value, type);
@@ -20,6 +26,21 @@ namespace Clean
         globals.unlock();
         
         return param;
+    }
+    
+    std::weak_ptr < EffectParameter > EffectSession::add(std::shared_ptr < EffectParameter > const& parameter)
+    {
+        if (!parameter)
+            return {};
+        
+        auto& params = globals.lock();
+        auto it = std::find_if(params.begin(), params.end(), [parameter](auto p) { return p == parameter; });
+        
+        if (params.end() == it) 
+            params.push_back(parameter);
+        
+        globals.unlock();
+        return parameter;
     }
     
     void EffectSession::remove(std::string const& name)
@@ -39,19 +60,29 @@ namespace Clean
     
     void EffectSession::bind(RenderPipeline const& pipeline) const
     {
-        auto params = globals.load();
-        auto mapper = pipeline.getMapper();
-        assert(mapper && "Null ShaderMapper for RenderPipeline.");
+        pipeline.bindEffectParameters(globals.load());
+    }
+    
+    void EffectSession::addMaterial(Material const& material)
+    {
+        auto parameters = material.findAllParameters();
+        batchAddOneHash(parameters);
+    }
+    
+    void EffectSession::batchAddOneHash(std::vector < std::shared_ptr < EffectParameter > > const& p)
+    {
+        auto& parameters = globals.lock();
         
-        std::vector < ShaderParameter > sparameters;
-        sparameters.reserve(params.size());
-        
-        for (auto p : params)
+        for (auto& param : p)
         {
-            ShaderParameter parameter = mapper->map(*p, pipeline);
-            sparameters.push_back(parameter);
+            auto it = std::find_if(parameters.begin(), parameters.end(), [param](auto& pointer) { return pointer->hash == param->hash; });
+            
+            if (it != parameters.end()) 
+                (*it) = param;
+            else 
+                parameters.push_back(param);
         }
         
-        pipeline.bindParameters(sparameters);
+        globals.unlock();
     }
 }

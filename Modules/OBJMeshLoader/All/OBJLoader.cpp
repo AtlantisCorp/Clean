@@ -8,12 +8,14 @@
 #include <Clean/Core.h>
 using namespace Clean;
 
-static constexpr const char kOBJMarkerComment = '#';
-static constexpr const char kOBJMarkerNewObject = 'o';
-static constexpr const char kOBJMarkerVertice = 'v';
+static constexpr const char* kOBJMarkerComment = "#";
+static constexpr const char* kOBJMarkerNewObject = "o";
+static constexpr const char* kOBJMarkerVertice = "v";
 static constexpr const char* kOBJMarkerNormal = "vn";
 static constexpr const char* kOBJMarkerTexture = "vt";
-static constexpr const char kOBJMarkerFace = 'f';
+static constexpr const char* kOBJMarkerFace = "f";
+static constexpr const char* kOBJMarkerMaterial = "usemtl";
+static constexpr const char* kOBJMarkerMaterialLib = "mtllib";
 
 struct OBJFaceTriplet 
 {
@@ -80,12 +82,45 @@ static OBJVec3 OBJMakeVec3(char* line)
     return result;
 }
 
+static std::string OBJMaterialLib(char* line) 
+{
+    std::size_t const length = strlen(line);
+    std::size_t const markerLength = strlen(kOBJMarkerMaterialLib);
+    std::string result;
+    
+    if (length > markerLength)
+    {
+        std::string name(line + markerLength);
+        std::stringstream stream(name);
+        stream >> result;
+    }
+    
+    return result;
+}
+
+static std::string OBJMaterialName(char* line)
+{
+    std::size_t const length = strlen(line);
+    std::size_t const markerLength = strlen(kOBJMarkerMaterial);
+    std::string result;
+    
+    if (length > markerLength)
+    {
+        std::string name(line + markerLength);
+        std::stringstream stream(name);
+        stream >> result;
+    }
+    
+    return result;
+}
+
 std::shared_ptr < Mesh > OBJLoader::load(std::string const& path) const
 {
     // Path must be verified by using the Core's current filesystem. Our mesh could be in any of 
     // our resource's directories, but under the localized Mesh trees.
+    std::string realPath;
     FileSystem& currentFilesystem = Clean::Core::Get().getCurrentFileSystem();
-    std::fstream stream = currentFilesystem.open(path, std::ios_base::in);
+    std::fstream stream = currentFilesystem.open(path, std::ios_base::in, &realPath);
     
     if (!stream) {
         Notification notif = BuildNotification(kNotificationLevelError, 
@@ -113,6 +148,7 @@ std::shared_ptr < Mesh > OBJLoader::load(std::string const& path) const
     if (file.meshes.empty()) return nullptr;
     
     std::shared_ptr < Mesh > result = convertOBJFile(file);
+    result->setFilePath(realPath);
     return result;
 }
 
@@ -155,17 +191,14 @@ OBJMesh OBJLoader::makeOBJMesh(std::istream& stream, OBJFile& file) const
     OBJMesh result;
     
     while (!stream.eof())
-    {
-        char marker = line[0];
-        char marker2 = line[1];
-        
-        if (processDefaultMarkers(marker, marker2, line, file))
+    {   
+        if (processDefaultMarkers(line, file))
         {
             stream.getline(line, 256);
             continue;
         }
         
-        else if (marker == kOBJMarkerFace) 
+        else if (!strncmp(kOBJMarkerFace, line, strlen(kOBJMarkerFace)))
         {
             std::size_t currentVertice = 0;
             std::size_t current = 1;
@@ -205,7 +238,7 @@ OBJMesh OBJLoader::makeOBJMesh(std::istream& stream, OBJFile& file) const
             result.faces.push_back(newFace);
         }
         
-        else if (marker == kOBJMarkerNewObject)
+        else if (!strncmp(kOBJMarkerNewObject, line, strlen(kOBJMarkerNewObject)))
         {
             if (result.faces.size())
             {
@@ -214,40 +247,56 @@ OBJMesh OBJLoader::makeOBJMesh(std::istream& stream, OBJFile& file) const
             }
         }
         
+        else if (!strncmp(kOBJMarkerMaterial, line, strlen(kOBJMarkerMaterial)))
+        {
+            std::string material = OBJMaterialName(line);
+            result.material = material;
+        }
+        
         stream.getline(line, 256);
     }
     
     return result;
 }
 
-bool OBJLoader::processDefaultMarkers(char marker, char marker2, char* line, OBJFile& file) const
+bool OBJLoader::processDefaultMarkers(char* line, OBJFile& file) const
 {
     assert(line && "Null line given.");
     
-    if (marker == kOBJMarkerComment)
+    if (strlen(line) < 2) 
+        return false;
+    
+    if (!strncmp(kOBJMarkerComment, line, strlen(kOBJMarkerComment)))
     {
         file.comments.append(line);
         return true;
     }
     
-    else if (marker == kOBJMarkerVertice && std::isspace(marker2))
+    else if (!strncmp(kOBJMarkerVertice, line, strlen(kOBJMarkerVertice)))
     {
         OBJVec4 vert = OBJMakeVec4(line + 1);
         file.globVerts.push_back(vert);
         return true;
     }
     
-    else if (marker == kOBJMarkerNormal[0] && marker2 == kOBJMarkerNormal[1])
+    else if (!strncmp(kOBJMarkerNormal, line, strlen(kOBJMarkerNormal)))
     {
         OBJVec3 norm = OBJMakeVec3(line + 1);
         file.globNorms.push_back(norm);
         return true;
     }
     
-    else if (marker == kOBJMarkerTexture[0] && marker2 == kOBJMarkerTexture[1])
+    else if (!strncmp(kOBJMarkerTexture, line, strlen(kOBJMarkerTexture)))
     {
         OBJVec3 text = OBJMakeVec3(line + 1);
         file.globTexts.push_back(text);
+        return true;
+    }
+    
+    else if (!strncmp(kOBJMarkerMaterialLib, line, strlen(kOBJMarkerMaterialLib)))
+    {
+        std::string materialLib = OBJMaterialLib(line);
+        file.materialLib = materialLib;
         return true;
     }
     
@@ -256,6 +305,20 @@ bool OBJLoader::processDefaultMarkers(char marker, char marker2, char* line, OBJ
 
 std::shared_ptr < Mesh > OBJLoader::convertOBJFile(OBJFile &file) const
 {
+    // If the OBJFile holds a valid material file, try to load it now. Takes in account that this material
+    // file path must not be relative to the OBJ file path. Material path can be a Clean's Resource Path.
+    
+    if (!file.materialLib.empty())
+    {
+        auto result = MaterialManager::Current().load(file.materialLib);
+        
+        if (result.empty()) 
+        {
+            Notification notif = BuildNotification(kNotificationLevelWarning, "Material file '%s' cannot be loaded.", file.materialLib.data());
+            NotificationCenter::GetDefault()->send(notif);
+        }
+    }
+    
     // We will organize the mesh like so:
     // - All vertexes will be in one shared buffer object. This buffer will contain all vertexes
     //   for the whole mesh.
@@ -294,6 +357,24 @@ std::shared_ptr < Mesh > OBJLoader::convertOBJFile(OBJFile &file) const
         
         submesh.descriptor = descriptor;
         submeshes.push_back(submesh);
+        
+        // Register our default Material.
+        
+        if (!mesh.material.empty())
+        {
+            auto material = MaterialManager::Current().findByName(mesh.material);
+            
+            if (!material)
+            {
+                Notification notif = BuildNotification(kNotificationLevelWarning, "Material %s not found.", mesh.material.data());
+                NotificationCenter::GetDefault()->send(notif);
+            }
+            
+            else 
+            {
+                submesh.material = material;
+            }
+        }
     }
     
     std::shared_ptr < Mesh > result = AllocateShared < Mesh >();

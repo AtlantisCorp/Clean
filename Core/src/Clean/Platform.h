@@ -72,6 +72,12 @@ namespace Clean
         
         /*! @brief Returns true if the given path matches given pattern. */
         bool PathPatternMatches(std::string const& path, std::string const& pattern);
+        
+        /*! @brief Returns the given file extension. */
+        std::string PathGetExtension(std::string const& path);
+        
+        /*! @brief Reads the whole stream into a std string. */
+        void StreamGetContent(std::istream& stream, std::string& out);
     }
 }
 

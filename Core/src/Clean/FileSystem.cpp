@@ -72,9 +72,10 @@ namespace Clean
         return std::string();
     }
     
-    std::fstream FileSystem::open(std::string const& path, std::ios_base::openmode mode) const
+    std::fstream FileSystem::open(std::string const& path, std::ios_base::openmode mode, std::string* out) const
     {
         std::string realPath = findRealPath(path);
+        if (out) *out = realPath;
         return std::fstream(realPath.data(), mode);
     }
     

@@ -8,7 +8,7 @@
 #include "RenderPipeline.h"
 #include "RenderSubCommand.h"
 #include "ShaderAttribute.h"
-#include "ShaderParameter.h"
+#include "EffectSession.h"
 
 #include <cstdint>
 #include <memory>
@@ -49,8 +49,8 @@ namespace Clean
         //! @brief List of RenderSubCommands that have to be executed by the driver. 
         std::vector < RenderSubCommand > subCommands;
         
-        //! @brief Lists ShaderParameters set for this command. 
-        std::vector < ShaderParameter > parameters;
+        //! @brief Lists EffectParameters set for this command. 
+        EffectSession parameters;
         
         /*! @brief Creates a new sub command with its type and its ShaderAttributesMap.
          *

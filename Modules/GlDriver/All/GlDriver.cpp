@@ -139,6 +139,15 @@ public:
             case kEffectModelMat4Hash:
             return ShaderParameter(kShaderParamMat4, "model", 8, param.value);
             
+            case kEffectMaterialAmbientVec4Hash:
+            return ShaderParameter(kShaderParamVec4, "material.ambient", -1, param.value);
+            
+            case kEffectMaterialDiffuseVec4Hash:
+            return ShaderParameter(kShaderParamVec4, "material.diffuse", -1, param.value);
+            
+            case kEffectMaterialSpecularVec4Hash:
+            return ShaderParameter(kShaderParamVec4, "material.specular", -1, param.value);
+            
             default:
             return ShaderMapper::map(param, pipeline);
         }
@@ -230,6 +239,15 @@ void GlDriver::loadDefaultShaders()
         #version 330 core
         
         out vec4 FragColor;
+        
+        struct Material 
+        {
+            vec4 ambient;
+            vec4 diffuse;
+            vec4 specular;
+        };
+        
+        uniform Material material;
     
         void main() 
         {
