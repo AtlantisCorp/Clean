@@ -4,13 +4,15 @@
  *  \author Luk2010
 **/
 
+#include "Loader.h"
+
 #include <Clean/Core.h>
 #include <Clean/Module.h>
 
 void RegisterLoader(void)
 {
     Clean::Core& core = Clean::Core::Get();
-    // core.addFileLoader < Clean::ShaderMapper, JSONMapperLoader >(Clean::AllocateShared < JSONMapperLoader >());
+    core.addFileLoader < Clean::ShaderMapper, JSONMapperLoader >(Clean::AllocateShared < JSONMapperLoader >());
 }
 
 void UnregisterLoader(void)
@@ -18,8 +20,7 @@ void UnregisterLoader(void)
     Clean::Core& core = Clean::Core::Get();
     
     auto loader = core.findFileLoaderByName < Clean::ShaderMapper >("JSONMapperLoader");
-    assert(loader && "Null FileLoader found.");
-    core.removeFileLoader(loader);
+    if (loader) core.removeFileLoader(loader);
 }
 
 Clean::ModuleInfos JSONMapperModule = {

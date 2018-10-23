@@ -37,6 +37,25 @@ namespace Clean
     static constexpr const std::uint8_t kShaderAttribFloat = 8;
     static constexpr const std::uint8_t kShaderAttribDouble = 9;
     
+    /*! @brief Converts the given string as a ShaderAttrib type constant. 
+     *
+     * Supported value are as following:
+     *
+     * | String    	| Value                  	|
+     * |-----------	|------------------------	|
+     * | I8        	| kShaderAttribI8        	|
+     * | U8        	| kShaderAttribU8        	|
+     * | I16       	| kShaderAttribI16       	|
+     * | U16       	| kShaderAttribU16       	|
+     * | I32       	| kShaderAttribI32       	|
+     * | U32       	| kShaderAttribU32       	|
+     * | HalfFloat 	| kShaderAttribHalfFloat 	|
+     * | Float     	| kShaderAttribFloat     	|
+     * | Double    	| kShaderAttribDouble    	|
+     *
+    **/
+    std::uint8_t ShaderAttribTypeFromString(std::string const& rhs);
+    
     //! @}
     
     /** @brief Generic attribute in a shader. */

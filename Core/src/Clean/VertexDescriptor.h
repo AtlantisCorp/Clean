@@ -69,6 +69,30 @@ namespace Clean
     static constexpr const std::uint8_t kVertexComponentOther3 = 9;
     static constexpr const std::uint8_t kVertexComponentMax = 10;
     
+    /*! @brief Converts the given string to the given vertex component. */
+    std::uint8_t VertexComponentFromString(std::string const& rhs);
+    
+    /*! @brief Returns the ShaderAttribute type associated to the given vertex component, if possible. */
+    std::uint8_t VertexComponentGetShaderAttribType(std::uint8_t const& rhs);
+    
+    /*! @brief Returns the number of elements for a standard vertex component. 
+     *
+     * Values reported are :
+     *
+     * | Component Value           | Number of basic elements |
+     * |---------------------------|-------------------------:|
+     * | kVertexComponentPosition  |                        4 |
+     * | kVertexComponentColor     |                        4 |
+     * | kVertexComponentNormal    |                        4 |
+     * | kVertexComponentTexture   |                        3 |
+     * | kVertexComponentTangent   |                        3 |
+     * | kVertexComponentBiTangent |                        3 |
+     *
+     * Other values are returned as zero and are not valid for this function. 
+     *
+    **/
+    std::uint8_t VertexComponentCount(std::uint8_t const& rhs);
+    
     //! @}
 
     struct VertexDescriptor

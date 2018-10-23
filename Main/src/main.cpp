@@ -93,6 +93,7 @@ int main()
         Clean::FileSystem& fs = core.getCurrentFileSystem();
         fs.addRealPath("Mesh", "../Meshes");
         fs.addRealPath("Material", "../Materials");
+        fs.addRealPath("Shader", "../Shaders");
         
         std::size_t moduleCount = core.loadAllModules();
         assert(moduleCount && "No module found.");
@@ -194,10 +195,18 @@ int main()
             // holds an instance of EffectSession that can be used to set global parameters. When Driver::renderCommand executes, it
             // binds this Session with EffectSession::bind.
             
+            glm::vec3 camera = { 0.0f, 0.0f, 1.0f };
+            
             EffectSession& session = gldriver->getEffectSession();
             session.add(kEffectProjectionMat4, { .mat4 = {glm::perspective(60.0f, 4.0f/3.0f, 0.1f, 100.0f)} });
-            session.add(kEffectViewMat4, { .mat4 = {glm::mat4(1.0f)} });
+            session.add(kEffectViewMat4, { .mat4 = glm::lookAt(camera, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}) });
             session.add(kEffectModelMat4, { .mat4 = {glm::mat4(1.0f)} });
+            
+            // Adds here our shader contants.
+            session.add("lightColor", { .vec3 = glm::vec3(1.0f, 1.0f, 1.0f) });
+            session.add("objectColor", { .vec3 = glm::vec3(1.0f, 0.5, 0.31f) });
+            session.add("lightPos", { .vec3 = glm::vec3(1.2f, 1.0f, 2.0f) });
+            session.add("viewPos", { .vec3 = camera });
             
             // We can add our command to our RenderQueue. This must be done only *after* the command is completed, because
             // RenderQueue adds its command by moving objects. Updating a command already added will not take effect in the

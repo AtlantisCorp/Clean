@@ -65,6 +65,9 @@ namespace Clean
         //! @brief Holds constants defined for the shader. 
         Property < std::vector < Constant > > constants;
         
+        //! @brief Name of this mapper. 
+        Property < std::string > name;
+        
     public:
         
         /*! @brief Maps the given descriptor to given pipeline. 
@@ -97,6 +100,12 @@ namespace Clean
         
         /*! @brief Clears all attributes and constants. */
         void clear();
+        
+        /*! @brief Changes name. */
+        void setName(std::string const& value);
+        
+        /*! @brief Returns name. */
+        std::string getName() const;
     };
     
     /* Example use of an hypothetic JSON Mapper loader. 

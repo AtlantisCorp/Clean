@@ -4,8 +4,8 @@
     
     "Attributes": 
     {
-        "aPos": { "name": "kVertexComponentPosition", "type": "vec4" },
-        "aNormal": { "name": "kVertexComponentNormal", "type": "vec4" }
+        "aPos": { "name": "kVertexComponentPosition", "type": "Float" },
+        "aNormal": { "name": "kVertexComponentNormal", "type": "Float" }
     },
     
     "Constants":
@@ -14,10 +14,10 @@
         "view": { "name": "kEffectViewMat4" },
         "model": { "name": "kEffectModelMat4" },
         
-        "lightPos": { "name": "kEffectLightPosVec3" },
-        "viewPos": { "name": "kEffectViewPosVec3" },
-        "lightColor": { "name": "kEffectLightColorVec3" },
-        "objectColor": { "name": "kEffectFragmentColorVec3" }
+        "lightPos": { "name": "lightPos", "type": "vec3" },
+        "viewPos": { "name": "viewPos", "type": "vec3" },
+        "lightColor": { "name": "lightColor", "type": "vec3" },
+        "objectColor": { "name": "objectColor", "type": "vec3" }
     }
 }
 

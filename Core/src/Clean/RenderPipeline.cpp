@@ -33,6 +33,7 @@ namespace Clean
             std::uint8_t stage = shader->getType();
             assert(stage && "Illegal Shader's stage given.");
             shaders[stage] = shader;
+            this->shader(stage, shader);
         }
     }
     

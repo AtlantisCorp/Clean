@@ -69,7 +69,7 @@ namespace Clean
     bool BuildableShaderMapper::addAttribute(BuildableShaderMapper::Attribute const& attrib) 
     {
         Attribute foundAttrib = findAttribute(attrib.vertexComponent);
-        if (foundAttrib.type) return false;
+        if (foundAttrib.type > 0) return false;
         
         auto& attribs = attributes.lock();
         attribs.push_back(attrib);
@@ -80,7 +80,7 @@ namespace Clean
     bool BuildableShaderMapper::addConstant(BuildableShaderMapper::Constant const& constant)
     {
         Constant foundConstant = findConstant(constant.hash);
-        if (constant.type) return false;
+        if (foundConstant.type > 0) return false;
         
         auto& consts = constants.lock();
         consts.push_back(constant);
@@ -92,5 +92,15 @@ namespace Clean
     {
         attributes.store({});
         constants.store({});
+    }
+    
+    void BuildableShaderMapper::setName(std::string const& value)
+    {
+        name.store(value);
+    }
+    
+    std::string BuildableShaderMapper::getName() const 
+    {
+        return name.load();
     }
 }

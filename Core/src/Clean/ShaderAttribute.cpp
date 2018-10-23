@@ -3,10 +3,28 @@
 
 #include "ShaderAttribute.h"
 #include "Buffer.h"
+
 #include <algorithm>
+#include <cstring>
+#include <string>
 
 namespace Clean 
 {
+    std::uint8_t ShaderAttribTypeFromString(std::string const& rhs)
+    {
+        if (!strcmp(rhs.data(), "I8")) return kShaderAttribI8;
+        else if (!strcmp(rhs.data(), "U8")) return kShaderAttribU8;
+        else if (!strcmp(rhs.data(), "I16")) return kShaderAttribI16;
+        else if (!strcmp(rhs.data(), "U16")) return kShaderAttribU16;
+        else if (!strcmp(rhs.data(), "I32")) return kShaderAttribI32;
+        else if (!strcmp(rhs.data(), "U32")) return kShaderAttribU32;
+        else if (!strcmp(rhs.data(), "HalfFloat")) return kShaderAttribHalfFloat;
+        else if (!strcmp(rhs.data(), "Float")) return kShaderAttribFloat;
+        else if (!strcmp(rhs.data(), "Double")) return kShaderAttribDouble;
+        
+        return kShaderAttribNull;
+    }
+    
     ShaderAttribute ShaderAttribute::Enabled(std::uint8_t index, std::uint8_t type, std::uint8_t components,
                                              std::ptrdiff_t offset, std::ptrdiff_t stride,
                                              std::shared_ptr < Buffer > const& buffer)
