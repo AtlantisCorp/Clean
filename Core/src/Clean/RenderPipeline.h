@@ -76,6 +76,9 @@ namespace Clean
         **/
         virtual void shader(std::uint8_t stage, std::shared_ptr < Shader > const& shad);
         
+        /*! @brief Registers multiple shaders for their given stage. */
+        virtual void batchShaders(std::vector < std::shared_ptr < Shader > > const& shaders);
+        
         /*! @brief Binds this pipeline onto the given Driver. */
         virtual void bind(Driver const& driver) const = 0;
         
@@ -119,6 +122,18 @@ namespace Clean
        
        /*! @brief Returns an index representing the location of a given attribute in the pipeline. */
        virtual std::uint8_t findAttributeIndex(std::string const& attrib) const = 0;
+       
+       /*! @brief Builds a ShaderMapper from given file. 
+        *
+        * Basically it tries to get a FileLoader < ShaderMapper > for the given file. Next, it uses 
+        * FileLoader::load to load the file and get a ShaderMapper. Generally the loader will use 
+        * BuildableShaderMapper to create the mapper but this is not disallowed to get another derived
+        * class. 
+        *
+        * \return True on success, false otherwise.
+        *
+       **/
+       bool buildMapper(std::string const& filepath);
     };
 }
 

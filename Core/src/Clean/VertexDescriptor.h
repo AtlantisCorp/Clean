@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <memory>
 #include <map>
+#include <vector>
 
 namespace Clean 
 {
@@ -32,6 +33,9 @@ namespace Clean
     **/
     struct VertexComponentInfos
     {
+        //! @brief Component representative of this VertexComponent.
+        std::uint8_t type;
+        
         //! @brief Offset of the component in the buffer, in bytes.
         std::ptrdiff_t offset;
 
@@ -89,6 +93,9 @@ namespace Clean
         
         /*! @brief Adds a component to this VertexDescriptor. */
         void addComponent(std::uint8_t component, std::ptrdiff_t offset, std::ptrdiff_t stride);
+        
+        /*! @brief Populates a VertexComponentInfos for each component. */
+        std::vector < VertexComponentInfos > findAllComponents() const;
     };
 }
 

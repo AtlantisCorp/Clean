@@ -11,6 +11,15 @@ namespace Clean
         
     }
     
+    std::atomic < FileSystem* > FileSystem::currentManager = nullptr;
+    
+    FileSystem& FileSystem::Current()
+    {
+        FileSystem* manager = currentManager.load();
+        assert(manager && "Null Current FileSystem. Perhaps Core class is not created yet.");
+        return *manager;
+    }
+    
     void FileSystem::makeVirtualDirectory(std::string const& name)
     {
         std::lock_guard < std::mutex > lck(virtualDirectoriesMutex);

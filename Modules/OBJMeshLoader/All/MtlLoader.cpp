@@ -53,7 +53,7 @@ std::vector < std::shared_ptr < Material > > MtlLoader::load(std::string const& 
     
     std::stringstream cstream(fileContent);
     std::vector < std::shared_ptr < Material > > result;
-    std::size_t lineCount;
+    std::size_t lineCount = 0;
     
     do 
     {
@@ -95,8 +95,9 @@ std::shared_ptr < Material > MtlLoader::findNextMaterial(std::istream& stream, s
                     return material;
                 }
                 
-                // We encountered a new material and we havn't one yet so create it. 
-                material = AllocateShared < Material >();
+                // We encountered a new material and we havn't one yet so create it.
+                lineStream >> word;
+                material = AllocateShared < Material >(word);
             }
             
             else if (!strcmp(word.data(), kMtlMarkerKa))
@@ -104,7 +105,7 @@ std::shared_ptr < Material > MtlLoader::findNextMaterial(std::istream& stream, s
                 if (!material) {
                     Notification notif = BuildNotification(kNotificationLevelError, 
                         "Error parsing Mtl file at line %i: %s was used out of a Material context.", 
-                        word.data(), lineCount);
+                        lineCount, word.data());
                     NotificationCenter::GetDefault()->send(notif);
                     continue;
                 }
@@ -121,7 +122,7 @@ std::shared_ptr < Material > MtlLoader::findNextMaterial(std::istream& stream, s
                 if (!material) {
                     Notification notif = BuildNotification(kNotificationLevelError, 
                         "Error parsing Mtl file at line %i: %s was used out of a Material context.", 
-                        word.data(), lineCount);
+                        lineCount, word.data());
                     NotificationCenter::GetDefault()->send(notif);
                     continue;
                 }
@@ -138,7 +139,7 @@ std::shared_ptr < Material > MtlLoader::findNextMaterial(std::istream& stream, s
                 if (!material) {
                     Notification notif = BuildNotification(kNotificationLevelError, 
                         "Error parsing Mtl file at line %i: %s was used out of a Material context.", 
-                        word.data(), lineCount);
+                        lineCount, word.data());
                     NotificationCenter::GetDefault()->send(notif);
                     continue;
                 }
@@ -155,7 +156,7 @@ std::shared_ptr < Material > MtlLoader::findNextMaterial(std::istream& stream, s
                 if (!material) {
                     Notification notif = BuildNotification(kNotificationLevelError, 
                         "Error parsing Mtl file at line %i: %s was used out of a Material context.", 
-                        word.data(), lineCount);
+                        lineCount, word.data());
                     NotificationCenter::GetDefault()->send(notif);
                     continue;
                 }
@@ -171,7 +172,7 @@ std::shared_ptr < Material > MtlLoader::findNextMaterial(std::istream& stream, s
             {
                 Notification notif = BuildNotification(kNotificationLevelWarning, 
                     "Error parsing Mtl file at line %i: %s keyword is not interpreted by this loader.", 
-                    word.data(), lineCount);
+                    lineCount, word.data());
                 NotificationCenter::GetDefault()->send(notif);
                 continue;
             }

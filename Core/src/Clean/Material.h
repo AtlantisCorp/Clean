@@ -41,6 +41,9 @@ namespace Clean
         /*! @brief Constructs an empty material. */
         Material();
         
+        /*! @brief Constructs a material with a name. */
+        Material(std::string const& name);
+        
         /*! @brief Copies a given material. */
         Material(Material const& rhs) = default;
         

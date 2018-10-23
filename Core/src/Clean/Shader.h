@@ -12,6 +12,7 @@
 #include <atomic>
 #include <memory>
 #include <vector>
+#include <string>
 
 namespace Clean 
 {
@@ -37,6 +38,10 @@ namespace Clean
         //! @brief Type related to this shader.
         std::atomic < std::uint8_t > type;
         
+        //! @brief Original file path used to load this Shader. It is generally filled directly
+        //! by the Driver class when loading a shader with Driver::makeShaders. 
+        std::string originPath;
+        
     public:
         
         /*! @brief Default constructor. */
@@ -50,6 +55,12 @@ namespace Clean
         
         /*! @brief Returns shader's type. */
         std::uint8_t getType() const;
+        
+        /*! @brief Sets the original file path. */
+        void setOriginPath(std::string const& origin);
+        
+        /*! @brief Returns the original file path. */
+        std::string getOriginPath() const;
     };
 }
 

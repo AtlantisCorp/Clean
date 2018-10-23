@@ -25,6 +25,23 @@ namespace Clean
         assert(emissiveColor);
     }
     
+    Material::Material(std::string const& n)
+    {
+        diffuseColor = AllocateShared < EffectParameter >(kEffectMaterialDiffuseVec4, ShaderValue(), kShaderParamVec4);
+        assert(diffuseColor);
+        
+        specularColor = AllocateShared < EffectParameter >(kEffectMaterialSpecularVec4, ShaderValue(), kShaderParamVec4);
+        assert(specularColor);
+        
+        ambientColor = AllocateShared < EffectParameter >(kEffectMaterialAmbientVec4, ShaderValue(), kShaderParamVec4);
+        assert(ambientColor);
+        
+        emissiveColor = AllocateShared < EffectParameter >(kEffectMaterialEmissiveVec4, ShaderValue(), kShaderParamVec4);
+        assert(emissiveColor);
+        
+        name.store(n);
+    }
+    
     glm::vec4 Material::getDiffuseColor() const 
     {
         SharedParameter param = std::atomic_load(&diffuseColor);
@@ -87,6 +104,7 @@ namespace Clean
         result.push_back(std::atomic_load(&ambientColor));
         result.push_back(std::atomic_load(&diffuseColor));
         result.push_back(std::atomic_load(&specularColor));
+        result.push_back(std::atomic_load(&emissiveColor));
         return result;
     }
     

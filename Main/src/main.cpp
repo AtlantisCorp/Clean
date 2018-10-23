@@ -130,17 +130,26 @@ int main()
             // Now we will load a shader and add it to the pipeline state. For now, we will only load the default shader for
             // two stages, Vertex and Fragment stages. Notes that shader objects are stored as shared pointers.
             
-            auto vertexShader = gldriver->findDefaultShaderForStage(kShaderTypeVertex);
-            firstCommand.pipeline->shader(kShaderTypeVertex, vertexShader);
-            auto fragmentShader = gldriver->findDefaultShaderForStage(kShaderTypeFragment);
-            firstCommand.pipeline->shader(kShaderTypeFragment, fragmentShader);
+            auto shaders = gldriver->makeShaders({
+                {kShaderTypeVertex, "Clean://Shader/GLSL/BasicLighting.vs"}, 
+                {kShaderTypeFragment, "Clean://Shader/GLSL/BasicLighting.fs"}
+            });
+            
+            firstCommand.pipeline->batchShaders(shaders);
+            assert(firstCommand.pipeline->buildMapper("Clean://Shader/GLSL/BasicLighting.json"));
+            
+            // auto vertexShader = gldriver->findDefaultShaderForStage(kShaderTypeVertex);
+            // firstCommand.pipeline->shader(kShaderTypeVertex, vertexShader);
+            // auto fragmentShader = gldriver->findDefaultShaderForStage(kShaderTypeFragment);
+            // firstCommand.pipeline->shader(kShaderTypeFragment, fragmentShader);
             
             // Now we have to load our vertex buffer from our .obj file. This is done by loading a Mesh structure, and requesting
             // its vertex buffer. As we know our mesh only contains one object, we will directly load its first vertex buffer. We
             // must ensure a loader is available to load our Mesh.
             
-            auto mesh = MeshManager::Current().load("Clean://Mesh/Example.obj");
-            assert(mesh && "Can't load ./example.obj file.");
+            std::string meshfile = "Clean://Mesh/Cube.obj";
+            auto mesh = MeshManager::Current().load(meshfile);
+            assert(mesh && "Can't load mesh file.");
             
             // Our mesh is loaded, but all its data is on the RAM. We want those buffers to be on GPU! However, Clean engine is
             // optimized in the case multiple drivers are concurrently running. Thus, we must associate a Mesh to a driver. This
@@ -153,7 +162,7 @@ int main()
             // mesh, named Example. We will bind this Material to the RenderCommand to let it add its parameters directly to the
             // RenderCommand. As EffectParameters are used with shared_ptr, changing one will produce effect into the other. 
             
-            auto material = MaterialManager::Current().findByName("Example");
+            auto material = MaterialManager::Current().findByName("cube");
             assert(material && "Material 'Example' not found.");
             firstCommand.parameters.addMaterial(*material);
             

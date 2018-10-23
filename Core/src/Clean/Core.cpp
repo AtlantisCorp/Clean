@@ -53,6 +53,9 @@ namespace Clean
         
         MaterialManager::currentManager.store(&materialManager);
         assert(MaterialManager::currentManager.load() && "Can't store Clean::MeshManager.");
+        
+        FileSystem::currentManager.store(&fileSystem);
+        assert(FileSystem::currentManager.load() && "Can't store Clean::FileSystem.");
 
         modulesDirectories.push_back("Modules");
         fileSystem.addRealPath("Module", "Modules");

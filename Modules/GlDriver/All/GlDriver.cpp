@@ -122,6 +122,18 @@ public:
             result.add(std::move(attrib));
         }
         
+        else if (descriptor.has(kVertexComponentNormal) && shader.hasAttribute("normal"))
+        {
+            VertexComponentInfos infos = descriptor.findInfosFor(kVertexComponentNormal);
+            
+            ShaderAttribute attrib = ShaderAttribute::Enabled(
+                shader.findAttributeIndex("normal"), kShaderAttribFloat, 4,
+                infos.offset, infos.stride, infos.buffer
+            );
+            
+            result.add(std::move(attrib));
+        }
+        
         return result;
     }
     
@@ -131,22 +143,25 @@ public:
         switch (param.hash)
         {
             case kEffectProjectionMat4Hash:
-            return ShaderParameter(kShaderParamMat4, "projection", 0, param.value);
+            return ShaderParameter(kShaderParamMat4, "projection", 3, param.value);
             
             case kEffectViewMat4Hash:
-            return ShaderParameter(kShaderParamMat4, "view", 4, param.value);
+            return ShaderParameter(kShaderParamMat4, "view", 11, param.value);
             
             case kEffectModelMat4Hash:
-            return ShaderParameter(kShaderParamMat4, "model", 8, param.value);
+            return ShaderParameter(kShaderParamMat4, "model", 7, param.value);
             
             case kEffectMaterialAmbientVec4Hash:
-            return ShaderParameter(kShaderParamVec4, "material.ambient", -1, param.value);
+            return ShaderParameter(kShaderParamVec4, "material.ambient", 0, param.value);
             
             case kEffectMaterialDiffuseVec4Hash:
-            return ShaderParameter(kShaderParamVec4, "material.diffuse", -1, param.value);
+            return ShaderParameter(kShaderParamVec4, "material.diffuse", 1, param.value);
             
             case kEffectMaterialSpecularVec4Hash:
-            return ShaderParameter(kShaderParamVec4, "material.specular", -1, param.value);
+            return ShaderParameter(kShaderParamVec4, "material.specular", 2, param.value);
+                
+            case kEffectMaterialEmissiveVec4Hash:
+            return ShaderParameter(kShaderParamVec4, "material.emissive", -1, param.value);
             
             default:
             return ShaderMapper::map(param, pipeline);
@@ -216,6 +231,9 @@ void GlDriver::loadDefaultShaders()
         #version 330 core
         
         layout(location = 0) in vec4 position;
+        layout(location = 1) in vec4 aNormal;
+        
+        out vec3 Normal;
     
         uniform mat4 projection;
         uniform mat4 view;
@@ -224,6 +242,7 @@ void GlDriver::loadDefaultShaders()
         void main() 
         {
             gl_Position = projection * view * model * position;
+            Normal = aNormal.xyz;
         }
         
         )";
@@ -238,6 +257,7 @@ void GlDriver::loadDefaultShaders()
         
         #version 330 core
         
+        in vec3 Normal;
         out vec4 FragColor;
         
         struct Material 
@@ -251,7 +271,7 @@ void GlDriver::loadDefaultShaders()
     
         void main() 
         {
-            FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+            FragColor = material.ambient + material.diffuse + material.specular;
         }
     
         )";
@@ -282,6 +302,11 @@ std::shared_ptr < Shader > GlDriver::makeShader(const char* src, std::uint8_t st
     
     shaderManager.add(shader);
     return std::static_pointer_cast < Shader >(shader);
+}
+
+std::shared_ptr < Shader > GlDriver::findShaderPath(std::string const& origin) const 
+{
+    return shaderManager.findByPath(origin);
 }
 
 std::shared_ptr < RenderWindow > GlDriver::_createRenderWindow(std::size_t width, std::size_t height, 

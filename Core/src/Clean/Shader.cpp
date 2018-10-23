@@ -15,4 +15,14 @@ namespace Clean
     {
         return type.load();
     }
+    
+    void Shader::setOriginPath(std::string const& origin)
+    {
+        originPath = origin;
+    }
+    
+    std::string Shader::getOriginPath() const 
+    {
+        return originPath;
+    }
 }

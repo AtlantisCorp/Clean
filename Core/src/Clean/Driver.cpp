@@ -3,6 +3,7 @@
 
 #include "Driver.h"
 #include "Core.h"
+#include "Platform.h"
 
 namespace Clean 
 {
@@ -125,6 +126,55 @@ namespace Clean
     EffectSession& Driver::getEffectSession()
     {
         return effSession;
+    }
+    
+    std::vector < std::shared_ptr < Shader > > Driver::makeShaders(std::vector < std::pair < std::uint8_t, std::string > > const& loadMap)
+    {
+        std::vector < std::shared_ptr < Shader > > result;
+        
+        for (auto const& pair : loadMap) 
+        {
+            std::uint8_t shaderStage = pair.first;
+            if (!shaderStage) {
+                NotificationCenter::GetDefault()->send(BuildNotification(kNotificationLevelError, "Invalid shader stage.", 0));
+                continue;
+            }
+            
+            std::string shaderFile = pair.second;
+            if (shaderFile.empty()) {
+                NotificationCenter::GetDefault()->send(BuildNotification(kNotificationLevelError, "Shader file is empty.", 0));
+                continue;
+            }
+            
+            auto foundShader = findShaderPath(shaderFile);
+            if (foundShader) { result.push_back(foundShader); continue; }
+            
+            std::fstream shaderStream = FileSystem::Current().open(shaderFile, std::ios::in);
+            if (!shaderStream) {
+                NotificationCenter::GetDefault()->send(BuildNotification(kNotificationLevelError, "Shader file %s not found.", shaderFile.data()));
+                continue;
+            }
+            
+            std::string shaderSource;
+            Platform::StreamGetContent(shaderStream, shaderSource);
+            shaderStream.close();
+            
+            if (shaderSource.empty()) {
+                NotificationCenter::GetDefault()->send(BuildNotification(kNotificationLevelError, "Shader file %s has no source.", shaderFile.data()));
+                continue;
+            }
+            
+            foundShader = makeShader(shaderSource.data(), shaderStage);
+            if (!foundShader) {
+                NotificationCenter::GetDefault()->send(BuildNotification(kNotificationLevelError, "Error while loading file %s.", shaderFile.data()));
+                continue;
+            }
+            
+            foundShader->setOriginPath(shaderFile);
+            result.push_back(foundShader);
+        }
+        
+        return result;
     }
     
     /** Pseudo-code sample for Driver::commit(): 

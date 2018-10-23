@@ -5,6 +5,9 @@
 #include "VertexDescriptor.h"
 #include "NotificationCenter.h"
 
+#include "Platform.h"
+#include "Core.h"
+
 namespace Clean 
 {
     RenderPipeline::RenderPipeline(Driver* driver) 
@@ -18,6 +21,19 @@ namespace Clean
         if (!shad) return;
         std::scoped_lock < std::mutex > lck(shadersMutex);
         shaders[stage] = shad;
+    }
+    
+    void RenderPipeline::batchShaders(std::vector < std::shared_ptr < Shader > > const& shads)
+    {
+        std::scoped_lock < std::mutex > lck(shadersMutex);
+        
+        for (std::shared_ptr < Shader > shader : shads)
+        {
+            assert(shader && "Null Shader given.");
+            std::uint8_t stage = shader->getType();
+            assert(stage && "Illegal Shader's stage given.");
+            shaders[stage] = shader;
+        }
     }
     
     void RenderPipeline::bindEffectParameters(std::vector < std::shared_ptr < EffectParameter > > const& parameters) const 
@@ -93,5 +109,22 @@ namespace Clean
         }
         
         return result;
+    }
+    
+    bool RenderPipeline::buildMapper(std::string const& filepath)
+    {
+        std::string const extension = Platform::PathGetExtension(filepath);
+        assert(!extension.empty() && "Empty file extension.");
+        
+        auto loader = Core::Get().findFileLoader < ShaderMapper >(extension);
+        if (!loader) {
+            NotificationCenter::GetDefault()->send(BuildNotification(kNotificationLevelError, "No loader found for file %s.", filepath.data()));
+            return false;
+        }
+        
+        auto mapper = loader->load(filepath);
+        if (mapper) setMapper(mapper);
+        
+        return (bool)mapper;
     }
 }

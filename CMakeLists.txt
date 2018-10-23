@@ -23,3 +23,4 @@ include(Main/CMakeLists.txt)
 # Adds here every CMake files for modules. 
 include(Modules/GlDriver/CMakeLists.txt)
 include(Modules/OBJMeshLoader/CMakeLists.txt)
+include(Modules/JSONMapperLoader/CMakeLists.txt)

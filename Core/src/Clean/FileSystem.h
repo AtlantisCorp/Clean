@@ -40,6 +40,19 @@ namespace Clean
     **/
     class FileSystem 
     {
+        //! @brief Current pointer to the global MaterialManager.
+        static std::atomic < FileSystem* > currentManager;
+        
+        //! @brief Makes our Core class a friend.
+        friend class Core;
+        
+    public:
+        
+        /*! @brief Returns the current manager or throw an exception if not found. */
+        static FileSystem& Current();
+        
+    private:
+        
         //! @brief List all Virtual Directories registered.
         std::vector < VirtualDirectory > virtualDirectories;
         

@@ -2,7 +2,7 @@
 # cube.obj
 #
 
-mtllib cube.mtl
+mtllib Clean://Material/Cube.mtl
 o cube
 
 v -0.500000 -0.500000 0.500000

@@ -90,6 +90,9 @@ public:
     /*! @brief Creates a new Shader from given source text and stage. */
     std::shared_ptr < Clean::Shader > makeShader(const char* src, std::uint8_t stage);
     
+    /*! @brief Finds a shader by its original file path. */
+    std::shared_ptr < Clean::Shader > findShaderPath(std::string const& origin) const;
+    
 protected:
     
     /*! @brief Loads default shaders for this driver. */

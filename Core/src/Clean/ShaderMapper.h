@@ -6,6 +6,7 @@
 
 #include "ShaderAttribute.h"
 #include "ShaderParameter.h"
+#include "FileLoader.h"
 
 namespace Clean
 {
@@ -50,7 +51,7 @@ namespace Clean
 
         {
             ShaderAttributesMap result(descriptor.indexInfos);
-            if (descriptor.indexInfos.elements == 0) result.setElements(descriptor.localSubmesh.elements);
+            result.setElements(descriptor.localSubmesh.elements);
 
             if (descriptor.has(kVertexComponentColor) && pipeline.hasAttribute("color"))
             {
@@ -95,6 +96,14 @@ namespace Clean
         
         /*! @brief Maps an Effect name to the correct shader's parameter name or index. */
         virtual ShaderParameter map(EffectParameter const& param, RenderPipeline const& pipeline) const;
+    };
+    
+    template <>
+    class FileLoader < ShaderMapper > : public FileLoaderInterface 
+    {
+    public:
+        virtual ~FileLoader() = default;
+        virtual std::shared_ptr < ShaderMapper > load(std::string const& file) const = 0;
     };
 }
 

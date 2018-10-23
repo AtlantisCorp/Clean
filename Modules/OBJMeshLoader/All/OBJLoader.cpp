@@ -222,11 +222,11 @@ OBJMesh OBJLoader::makeOBJMesh(std::istream& stream, OBJFile& file) const
                     newVertex.pos = file.globVerts[triplet.ver - 1];
                 }
                 
-                if (triplet.nor) {
+                if (triplet.nor && file.globNorms.size()) {
                     newVertex.nor = file.globNorms[triplet.nor - 1];
                 }
                 
-                if (triplet.tex) {
+                if (triplet.tex && file.globTexts.size()) {
                     newVertex.tex = file.globTexts[triplet.tex - 1];
                 }
                 
@@ -356,7 +356,6 @@ std::shared_ptr < Mesh > OBJLoader::convertOBJFile(OBJFile &file) const
         buffers.push_back(ibuffer);
         
         submesh.descriptor = descriptor;
-        submeshes.push_back(submesh);
         
         // Register our default Material.
         
@@ -375,6 +374,8 @@ std::shared_ptr < Mesh > OBJLoader::convertOBJFile(OBJFile &file) const
                 submesh.material = material;
             }
         }
+        
+        submeshes.push_back(submesh);
     }
     
     std::shared_ptr < Mesh > result = AllocateShared < Mesh >();

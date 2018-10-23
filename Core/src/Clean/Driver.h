@@ -239,6 +239,19 @@ namespace Clean
         /*! @brief Returns the EffectSession active for this driver. */
         virtual EffectSession& getEffectSession();
         
+        /*! @brief Creates multiple shaders and return them. 
+         *
+         * \param[in] loadMap A list of pair containing the shader's type/stage and the filepath. The filepath 
+         *      for each shader can be a Clean's Resource Path. If the shader's type is not valid, the shader 
+         *      will not be loaded.
+         *
+         * \return An empty vector on failure, a filled vector on success.
+        **/
+        std::vector < std::shared_ptr < Shader > > makeShaders(std::vector < std::pair < std::uint8_t, std::string > > const& loadMap);
+        
+        /*! @brief Finds a shader by its original file path. */
+        virtual std::shared_ptr < Shader > findShaderPath(std::string const& origin) const = 0;
+        
     protected:
         
         /*! @brief Creates a RenderWindow from implementation. */
