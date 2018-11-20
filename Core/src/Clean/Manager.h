@@ -8,6 +8,7 @@
 #include <list>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 namespace Clean 
 {
@@ -141,14 +142,14 @@ namespace Clean
         }
         
         /*! @brief Returns true if the given managed object is already in this manager. */
-        bool exists(std::shared_ptr < Managed > const& rhs) const 
+        virtual bool exists(std::shared_ptr < Managed > const& rhs) const 
         {
             std::lock_guard < std::mutex > lck(managedListMutex);
             return std::find(managedList.begin(), managedList.end(), rhs) != managedList.end();
         }
         
         /*! @brief Clears the current list of objects. */
-        void reset()
+        virtual void reset()
         {
             std::lock_guard < std::mutex > lck(managedListMutex);
             managedList.clear();

@@ -25,11 +25,19 @@ namespace Clean
      * used by RenderPipeline. However other EffectSession can be used to manage different groups
      * of parameters. 
      *
+     * TexturedParameter structure is used to bind one or more texture to the RenderPipeline. A TexturedParameter
+     * holds a classic EffectParameter with a shared pointer to a Texture object. RenderPipeline actives the correct
+     * texture unit, binds the texture and binds the texture unit to the parameter. In this case, TexturedParameter
+     * lets the RenderPipeline know which texture to bind to a new available texture unit. 
+     *
     **/
     class EffectSession 
     {
         //! @brief List of EffectParameters we manage. 
         Property < std::vector < std::shared_ptr < EffectParameter > > > globals;
+        
+        //! @brief List of TexturedParameters we manage.
+        Property < std::vector < std::shared_ptr < TexturedParameter > > > texturedParams;
         
     public:
         
@@ -79,6 +87,9 @@ namespace Clean
         /*! @brief Adds multiple Materials making in sort that there will be not more than one hash
          * registered in this session. */
         void batchAddOneHash(std::vector < std::shared_ptr < EffectParameter > > const& parameters);
+        
+        /*! @brief Adds multiple TexturedParameters once by hash in this session. */
+        void batchAddOneHash(std::vector < std::shared_ptr < TexturedParameter > > const& parameters);
     };
 }
 

@@ -54,8 +54,14 @@ namespace Clean
         MaterialManager::currentManager.store(&materialManager);
         assert(MaterialManager::currentManager.load() && "Can't store Clean::MeshManager.");
         
-        FileSystem::currentManager.store(&fileSystem);
-        assert(FileSystem::currentManager.load() && "Can't store Clean::FileSystem.");
+        FileSystem::currentInstance.store(&fileSystem);
+        assert(FileSystem::currentInstance.load() && "Can't store Clean::FileSystem.");
+        
+        PixelSetConverterManager::currentInstance.store(&pixConvManager);
+        assert(PixelSetConverterManager::currentInstance.load() && "Can't store Clean::PixelSetConverterManager.");
+        
+        ImageManager::currentInstance.store(&imgManager);
+        assert(ImageManager::currentInstance.load() && "Can't store Clean::ImageManager.");
 
         modulesDirectories.push_back("Modules");
         fileSystem.addRealPath("Module", "Modules");
@@ -189,6 +195,8 @@ namespace Clean
         NotificationCenter::GetDefault()->loopThread.join();
         
         clearFileLoaders();
+        imgManager.reset();
+        pixConvManager.reset();
         materialManager.reset();
         meshManager.reset();
         windowManager.reset();
@@ -205,5 +213,10 @@ namespace Clean
     MaterialManager& Core::getMaterialManager()
     {
         return materialManager;
+    }
+    
+    PixelSetConverterManager& Core::getPixelSetConverterManager()
+    {
+        return pixConvManager;
     }
 }

@@ -128,4 +128,44 @@ namespace Clean
         
         return (bool)mapper;
     }
+    
+    void RenderPipeline::bindTexturedParameters(std::vector < std::shared_ptr < TexturedParameter > > const& params) const
+    {
+        if (!params.size()) return;
+        
+        auto loadedMapper = std::atomic_load(&mapper);
+        
+        if (!loadedMapper) {
+            Notification notif = BuildNotification(kNotificationLevelError, "Null ShaderMapper given to pipeline #%i.", getHandle());
+            NotificationCenter::GetDefault()->send(notif);
+            return;
+        }
+        
+        for (auto const& param : params)
+        {
+            if (!param->texture) continue;
+            
+            std::lock_guard < std::mutex > lck(param->param.mutex);
+            ShaderParameter sparam = loadedMapper->map(param->param, *this);
+            bindTexture(sparam, *param->texture);
+        }
+    }
+    
+    void RenderPipeline::bindTexturedParameter(std::shared_ptr < TexturedParameter > const& param) const
+    {
+        auto loadedMapper = std::atomic_load(&mapper);
+        
+        if (!loadedMapper) {
+            Notification notif = BuildNotification(kNotificationLevelError, "Null ShaderMapper given to pipeline #%i.", getHandle());
+            NotificationCenter::GetDefault()->send(notif);
+            return;
+        }
+        
+        
+        if (!param->texture) return;
+            
+        std::lock_guard < std::mutex > lck(param->param.mutex);
+        ShaderParameter sparam = loadedMapper->map(param->param, *this);
+        bindTexture(sparam, *param->texture);
+    }
 }

@@ -4,6 +4,7 @@
 #include "Driver.h"
 #include "Core.h"
 #include "Platform.h"
+#include "ImageManager.h"
 
 namespace Clean 
 {
@@ -175,6 +176,49 @@ namespace Clean
         }
         
         return result;
+    }
+    
+    std::shared_ptr < Texture > Driver::makeTexture(std::string const& filepath) 
+    {
+        auto image = ImageManager::Current().load(filepath);
+        
+        if (!image) {
+            NotificationCenter::GetDefault()->send(BuildNotification(kNotificationLevelError, "Image file %s not found.", filepath.data()));
+            return nullptr;
+        }
+        
+        std::uint8_t bestPixelFormat = 0;
+        if (shouldConvertPixelFormat(image->pixelFormat(), bestPixelFormat))
+        {   
+            auto converter = PixelSetConverterManager::Current().findConverter(image->pixelFormat(), bestPixelFormat);
+            
+            if (converter)
+            {
+                auto convertedImage = AllocateShared < Image >();
+                convertedImage->setOrigin(image->getOrigin());
+                convertedImage->setSize(image->getSize());
+            
+                auto pixels = converter->convert(image->getPixelSet());
+                convertedImage->setPixelSet(pixels);
+                
+                image = convertedImage;
+                
+                // NOTES: ImageManager does not store this new image because it is used only to create the texture. It will
+                // be destroyed immediatly after the texture creation. 
+            }
+            
+            else 
+            {
+                NotificationCenter::GetDefault()->send(BuildNotification(kNotificationLevelWarning, "PixelFormat %i used instead of %i because PixelSetConverter cannot convert it.", image->pixelFormat(), bestPixelFormat));
+            }
+        }
+        
+        return makeTexture(image);
+    }
+    
+    bool Driver::shouldConvertPixelFormat(std::uint8_t src, std::uint8_t& best) const
+    {
+        return false;
     }
     
     /** Pseudo-code sample for Driver::commit(): 

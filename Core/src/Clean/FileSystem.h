@@ -4,6 +4,8 @@
 #ifndef CLEAN_FILESYSTEM_H
 #define CLEAN_FILESYSTEM_H
 
+#include "Singleton.h"
+
 #include <string>
 #include <vector>
 #include <mutex>
@@ -38,21 +40,8 @@ namespace Clean
      * be returned. 
      *
     **/
-    class FileSystem 
-    {
-        //! @brief Current pointer to the global MaterialManager.
-        static std::atomic < FileSystem* > currentManager;
-        
-        //! @brief Makes our Core class a friend.
-        friend class Core;
-        
-    public:
-        
-        /*! @brief Returns the current manager or throw an exception if not found. */
-        static FileSystem& Current();
-        
-    private:
-        
+    class FileSystem : public Singleton < FileSystem >
+    {   
         //! @brief List all Virtual Directories registered.
         std::vector < VirtualDirectory > virtualDirectories;
         

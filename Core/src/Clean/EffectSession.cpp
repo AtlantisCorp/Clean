@@ -61,12 +61,16 @@ namespace Clean
     void EffectSession::bind(RenderPipeline const& pipeline) const
     {
         pipeline.bindEffectParameters(globals.load());
+        pipeline.bindTexturedParameters(texturedParams.load());
     }
     
     void EffectSession::addMaterial(Material const& material)
     {
         auto parameters = material.findAllParameters();
         batchAddOneHash(parameters);
+        
+        auto texturedParameters = material.findAllTexturedParameters();
+        batchAddOneHash(texturedParameters);
     }
     
     void EffectSession::batchAddOneHash(std::vector < std::shared_ptr < EffectParameter > > const& p)
@@ -84,5 +88,23 @@ namespace Clean
         }
         
         globals.unlock();
+    }
+    
+    void EffectSession::batchAddOneHash(std::vector < std::shared_ptr < TexturedParameter > > const& p)
+    {
+        auto& parameters = texturedParams.lock();
+        
+        for (auto& param : p)
+        {
+            auto it = std::find_if(parameters.begin(), parameters.end(), [param](auto& ptr) { 
+                return ptr->param.hash == param->param.hash; });
+            
+            if (it != parameters.end()) 
+                (*it) = param;
+            else 
+                parameters.push_back(param);
+        }
+        
+        texturedParams.unlock();
     }
 }

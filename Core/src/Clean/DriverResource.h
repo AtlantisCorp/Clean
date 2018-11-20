@@ -60,7 +60,13 @@ namespace Clean
         
     protected:
         
-        /*! @brief Implementation of the real resource releasing. */
+        /*! @brief Implementation of the real resource releasing. 
+         *
+         * \note 
+         * Releasing the resource should always be followed by storing value true to \ref released,
+         * in order to communicate to other objects if this resource is already released or not. 
+         *
+        **/
         virtual void releaseResource() = 0;
     };
 }

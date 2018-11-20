@@ -82,6 +82,9 @@ namespace Clean
 
         Property() = default;
         virtual ~Property() = default;
+        
+        /*! @brief Copies the given Property to this instance. */
+        Property(Property const& rhs) { lock_.store(rhs.load()); }
     
         /*! @brief Returns a locked reference to the property.
          *

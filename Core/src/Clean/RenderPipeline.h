@@ -9,6 +9,7 @@
 #include "ShaderParameter.h"
 #include "DriverResource.h"
 #include "EffectParameter.h"
+#include "Texture.h"
 
 #include <cstdint>
 #include <map>
@@ -134,6 +135,15 @@ namespace Clean
         *
        **/
        bool buildMapper(std::string const& filepath);
+       
+       /*! @brief Binds multiple TexturedParameters onto this Pipeline. */
+       virtual void bindTexturedParameters(std::vector < std::shared_ptr < TexturedParameter > > const& params) const;
+       
+       /*! @brief Binds a TexturedParameter onto this Pipeline. */
+       virtual void bindTexturedParameter(std::shared_ptr < TexturedParameter > const& param) const;
+       
+       /*! @brief Binds the given Texture to the given ShaderParameter. */
+       virtual void bindTexture(ShaderParameter const& parameter, Texture const& texture) const = 0;
     };
 }
 

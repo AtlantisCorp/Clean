@@ -52,7 +52,7 @@ static GLuint GlGetCurrentProgram(void)
 }
 
 GlRenderPipeline::GlRenderPipeline(Driver* driver)
-    : RenderPipeline(driver)
+    : RenderPipeline(driver), unitCounter(0)
 {
     programHandle = glCreateProgram();
 }
@@ -81,6 +81,10 @@ void GlRenderPipeline::shader(std::uint8_t stage, std::shared_ptr < Shader > con
 
 void GlRenderPipeline::link()
 {
+    textureUnits.lock().clear();
+    textureUnits.unlock();
+    unitCounter.reset(0);
+    
     glLinkProgram(programHandle);
     
     GLint result;
@@ -144,7 +148,7 @@ void GlRenderPipeline::bindParameter(ShaderParameter const& parameter) const
     if (location < 0) {
         location = glGetUniformLocation(programHandle, parameter.name.data());
         if (location < 0) {
-            Notification notif = BuildNotification(kNotificationLevelWarning,
+            Notification notif = BuildNotification(kNotificationLevelInfo,
                 "Can't bind ShaderParameter '%s' because it was not found in GlRenderPipeline #%i.",
                 parameter.name.data(), this->getHandle());
             NotificationCenter::GetDefault()->send(notif);
@@ -340,6 +344,59 @@ std::uint8_t GlRenderPipeline::findAttributeIndex(std::string const& attrib) con
     return result;
 }
 
+void GlRenderPipeline::bindTexture(ShaderParameter const& parameter, Texture const& texture) const
+{
+    GLuint currentProgram = GlGetCurrentProgram();
+    bool rebindCurrent = false;
+    
+    if (currentProgram != programHandle) {
+        glUseProgram(programHandle);
+        rebindCurrent = true;
+    }
+    
+    GLint location = static_cast < GLint >(parameter.idx);
+    if (location < 0) {
+        location = glGetUniformLocation(programHandle, parameter.name.data());
+        if (location < 0) {
+            Notification notif = BuildNotification(kNotificationLevelInfo,
+                "Can't bind ShaderParameter '%s' because it was not found in GlRenderPipeline #%i.",
+                parameter.name.data(), this->getHandle());
+            NotificationCenter::GetDefault()->send(notif);
+            return;
+        }
+    }
+    
+    // Based on location, we find the texture unit associated to this parameter. Next, we have to activate
+    // this texture unit and bind the texture to it. 
+    
+    GLint unit = findTextureUnit(location);
+    
+    if (unit == -1) 
+    {
+        Notification notif = BuildNotification(kNotificationLevelWarning, 
+            "Parameter location %i can't be associated to a Texture unit. (GlRenderPipeline #%i)",
+            location, getHandle());
+        NotificationCenter::GetDefault()->send(notif);
+        return;
+    }
+    
+    glActiveTexture(GL_TEXTURE0 + unit);
+    glUniform1i(location, unit);
+    texture.bind();
+    
+    GlError error = GlCheckError();
+    if (error.error != GL_NO_ERROR) {
+        Notification notif = BuildNotification(kNotificationLevelError,
+            "An error occured: %s.",
+            error.string.data());
+        NotificationCenter::GetDefault()->send(notif);
+    }
+    
+    if (rebindCurrent) {
+        glUseProgram(currentProgram);
+    }
+}
+
 void GlRenderPipeline::releaseResource()
 {
     if (programHandle) {
@@ -347,4 +404,27 @@ void GlRenderPipeline::releaseResource()
         programHandle = 0;
         released = true;
     }
+}
+
+GLint GlRenderPipeline::findTextureUnit(GLint location) const 
+{
+    auto& units = textureUnits.lock();
+    auto it = units.find(location);
+    
+    if (it == units.end()) 
+    {
+        GLint allocatedUnit = unitCounter.next();
+        if (allocatedUnit >= GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS) {
+            unitCounter.undo();
+            return -1;
+        }
+        
+        units[location] = allocatedUnit;
+        textureUnits.unlock();
+        return allocatedUnit;
+    }
+    
+    GLint allocatedUnit = it->second;
+    textureUnits.unlock();
+    return allocatedUnit;
 }

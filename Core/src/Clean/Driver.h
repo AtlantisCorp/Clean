@@ -10,6 +10,8 @@
 #include "PixelFormat.h"
 #include "RenderQueueManager.h"
 #include "EffectSession.h"
+#include "TextureManager.h"
+#include "Image.h"
 
 namespace Clean
 {       
@@ -97,6 +99,10 @@ namespace Clean
         
         //! @brief Global session for the whole driver. 
         EffectSession effSession;
+        
+        //! @brief Handles Textures created by this driver. 
+        //! Calls DriverResource::release on each resources created by this driver.
+        TextureManager textureManager;
         
     public:
         
@@ -251,6 +257,27 @@ namespace Clean
         
         /*! @brief Finds a shader by its original file path. */
         virtual std::shared_ptr < Shader > findShaderPath(std::string const& origin) const = 0;
+        
+        /*! @brief Makes a texture. 
+         *
+         * \param[in] filepath Path for the texture's file. The file is loaded through ImageManager and can 
+         *      be converted to the best advised pixel format by calling \ref shouldConvertPixelFormat.
+         *
+         * \return A null texture if not loaded.
+        **/
+        virtual std::shared_ptr < Texture > makeTexture(std::string const& filepath);
+        
+        /*! @brief Returns true if the given PixelFormat is not adapted to this driver. 
+         *  Default implementation returns always false.
+         *
+         * \param[in] src Source PixelFormat.
+         * \param[out] best Best PixelFormat adapted for the source format. Used only when returning true.
+         *
+        **/
+        virtual bool shouldConvertPixelFormat(std::uint8_t src, std::uint8_t& best) const;
+        
+        /*! @brief Makes a texture from an Image. */
+        virtual std::shared_ptr < Texture > makeTexture(std::shared_ptr < Image > const& image) = 0;
         
     protected:
         

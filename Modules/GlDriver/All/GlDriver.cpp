@@ -5,6 +5,7 @@
 #include "GlRenderPipeline.h"
 #include "GlRenderQueue.h"
 #include "GlCheckError.h"
+#include "GlTexture.h"
 
 #ifdef CLEAN_WINDOW_COCOA
 #   include "../Cocoa/OSXGlContext.h"
@@ -52,7 +53,7 @@ void GlDriver::destroy()
             pair.second->release();
         }
         
-        defaultShadersMap.clear();
+        defaultShadersMap.clear();    
         defaultContext->unlock();
     }
     
@@ -307,6 +308,28 @@ std::shared_ptr < Shader > GlDriver::makeShader(const char* src, std::uint8_t st
 std::shared_ptr < Shader > GlDriver::findShaderPath(std::string const& origin) const 
 {
     return shaderManager.findByPath(origin);
+}
+
+std::shared_ptr < Texture > GlDriver::makeTexture(std::shared_ptr < Image > const& image)
+{
+    GLenum target = GL_TEXTURE_2D;
+    GLuint handle; glGenTextures(1, &handle);
+    assert(target && handle && "glGenTextures failed.");
+    
+    auto texture = AllocateShared < GlTexture >(this, handle, target);
+    assert(texture && "Clean::AllocateShared failed (maybe memory is not available?).");
+    
+    if (!texture->upload(image)) 
+    {
+        NotificationCenter::GetDefault()->send(BuildNotification(kNotificationLevelError, "Texture #%i was unable to upload data from Image #%i.", 
+            texture->getHandle(), image->getHandle()));
+        return nullptr;
+    }
+    
+    texture->retain();
+    textureManager.add(std::static_pointer_cast < Texture >(texture));
+    
+    return std::static_pointer_cast < Texture >(texture);
 }
 
 std::shared_ptr < RenderWindow > GlDriver::_createRenderWindow(std::size_t width, std::size_t height, 

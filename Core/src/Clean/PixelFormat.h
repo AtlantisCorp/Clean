@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <utility>
+#include <string>
 
 namespace Clean 
 {
@@ -66,6 +67,26 @@ namespace Clean
     static constexpr const std::uint8_t kPixelFormatLowest = 3;
     
     /** @} */
+    
+    /** @defgroup PixelFormatTypes PixelFormat Types
+     *
+     * \brief Multiple pixel formats can be used internally to store images (\see PixelSet).
+     * Those constants defines the types supported by the Engine.
+     *
+     * \{
+    **/
+    
+    static constexpr const std::uint8_t kPixelFormatNull = 0;
+    static constexpr const std::uint8_t kPixelFormatRGB8 = 1;
+    static constexpr const std::uint8_t kPixelFormatRGBA8 = 2;
+    
+    /*! @brief Returns the size of the given PixelFormat's pixel, in bytes. */
+    std::size_t PixelFormatGetSize(std::uint8_t const format);
+    
+    /*! @brief Returns a very brief description of the pixel format. */
+    std::string PixelFormatToString(std::uint8_t const format);
+    
+    /** \} */
 }
 
 #endif // CLEAN_PIXELFORMAT_H

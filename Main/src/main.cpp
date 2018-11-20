@@ -94,6 +94,7 @@ int main()
         fs.addRealPath("Mesh", "../Meshes");
         fs.addRealPath("Material", "../Materials");
         fs.addRealPath("Shader", "../Shaders");
+        fs.addRealPath("Texture", "../Textures");
         
         std::size_t moduleCount = core.loadAllModules();
         assert(moduleCount && "No module found.");
@@ -207,6 +208,10 @@ int main()
             session.add("objectColor", { .vec3 = glm::vec3(1.0f, 0.5, 0.31f) });
             session.add("lightPos", { .vec3 = glm::vec3(1.2f, 1.0f, 2.0f) });
             session.add("viewPos", { .vec3 = camera });
+            
+            // Tries to load our Texture. 
+            auto texture = gldriver->makeTexture("Clean://Texture/Cube.png");
+            material->setAmbientTexture(texture);
             
             // We can add our command to our RenderQueue. This must be done only *after* the command is completed, because
             // RenderQueue adds its command by moving objects. Updating a command already added will not take effect in the

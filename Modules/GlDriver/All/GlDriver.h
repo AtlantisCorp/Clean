@@ -93,6 +93,9 @@ public:
     /*! @brief Finds a shader by its original file path. */
     std::shared_ptr < Clean::Shader > findShaderPath(std::string const& origin) const;
     
+    /*! @brief Makes a texture from an Image. */
+    std::shared_ptr < Clean::Texture > makeTexture(std::shared_ptr < Clean::Image > const& image);
+    
 protected:
     
     /*! @brief Loads default shaders for this driver. */

@@ -23,22 +23,15 @@ namespace Clean
         
         emissiveColor = AllocateShared < EffectParameter >(kEffectMaterialEmissiveVec4, ShaderValue(), kShaderParamVec4);
         assert(emissiveColor);
+        
+        diffuseTexture = AllocateShared < TexturedParameter >(kEffectMaterialDiffuseTexture, ShaderValue(), kShaderParamI32);
+        ambientTexture = AllocateShared < TexturedParameter >(kEffectMaterialAmbientTexture, ShaderValue(), kShaderParamI32);
+        specularTexture = AllocateShared < TexturedParameter >(kEffectMaterialSpecularTexture, ShaderValue(), kShaderParamI32);
+        assert(diffuseTexture && ambientTexture && specularTexture);
     }
     
-    Material::Material(std::string const& n)
+    Material::Material(std::string const& n) : Material()
     {
-        diffuseColor = AllocateShared < EffectParameter >(kEffectMaterialDiffuseVec4, ShaderValue(), kShaderParamVec4);
-        assert(diffuseColor);
-        
-        specularColor = AllocateShared < EffectParameter >(kEffectMaterialSpecularVec4, ShaderValue(), kShaderParamVec4);
-        assert(specularColor);
-        
-        ambientColor = AllocateShared < EffectParameter >(kEffectMaterialAmbientVec4, ShaderValue(), kShaderParamVec4);
-        assert(ambientColor);
-        
-        emissiveColor = AllocateShared < EffectParameter >(kEffectMaterialEmissiveVec4, ShaderValue(), kShaderParamVec4);
-        assert(emissiveColor);
-        
         name.store(n);
     }
     
@@ -108,8 +101,53 @@ namespace Clean
         return result;
     }
     
+    std::vector < std::shared_ptr < TexturedParameter > > Material::findAllTexturedParameters() const
+    {
+        std::vector < SharedTexParam > result;
+        result.push_back(std::atomic_load(&diffuseTexture));
+        result.push_back(std::atomic_load(&ambientTexture));
+        result.push_back(std::atomic_load(&specularTexture));
+        return result;
+    }
+    
     std::string Material::getName() const
     {
         return name.load();
+    }
+    
+    std::shared_ptr < Texture > Material::getDiffuseTexture() const 
+    {
+        SharedTexParam tex = std::atomic_load(&diffuseTexture);
+        return std::atomic_load(&(tex->texture));
+    }
+    
+    void Material::setDiffuseTexture(std::shared_ptr < Texture > const& texture)
+    {
+        SharedTexParam tex = std::atomic_load(&diffuseTexture);
+        std::atomic_store(&(tex->texture), texture);
+    }
+    
+    std::shared_ptr < Texture > Material::getAmbientTexture() const 
+    {
+        SharedTexParam tex = std::atomic_load(&ambientTexture);
+        return std::atomic_load(&(tex->texture));
+    }
+    
+    void Material::setAmbientTexture(std::shared_ptr < Texture > const& texture)
+    {
+        SharedTexParam tex = std::atomic_load(&ambientTexture);
+        std::atomic_store(&(tex->texture), texture);
+    }
+    
+    std::shared_ptr < Texture > Material::getSpecularTexture() const 
+    {
+        SharedTexParam tex = std::atomic_load(&specularTexture);
+        return std::atomic_load(&(tex->texture));
+    }
+    
+    void Material::setSpecularTexture(std::shared_ptr < Texture > const& texture)
+    {
+        SharedTexParam tex = std::atomic_load(&specularTexture);
+        std::atomic_store(&(tex->texture), texture);
     }
 }

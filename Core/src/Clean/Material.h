@@ -16,10 +16,11 @@
 #include <vector>
 
 namespace Clean 
-{
+{   
     class Material : public Handled < Material >
     {
         typedef std::shared_ptr < EffectParameter > SharedParameter;
+        typedef std::shared_ptr < TexturedParameter > SharedTexParam;
         
         //! @brief Diffuse color. 
         SharedParameter diffuseColor;
@@ -32,6 +33,15 @@ namespace Clean
         
         //! @brief Emissive color.
         SharedParameter emissiveColor;
+        
+        //! @brief Diffuse texture.
+        SharedTexParam diffuseTexture;
+        
+        //! @brief Ambient texture.
+        SharedTexParam ambientTexture;
+        
+        //! @brief Specular texture.
+        SharedTexParam specularTexture;
         
         //! @brief Material's name.
         Property < std::string > name;
@@ -74,8 +84,29 @@ namespace Clean
         /*! @brief Returns all EffectParameters. */
         std::vector < std::shared_ptr < EffectParameter > > findAllParameters() const;
         
+        /*! @brief Returns all TexturedParameters. */
+        std::vector < std::shared_ptr < TexturedParameter > > findAllTexturedParameters() const;
+        
         /*! @brief Returns name. */
         std::string getName() const;
+        
+        /*! @brief Returns the diffuse Texture. */
+        std::shared_ptr < Texture > getDiffuseTexture() const;
+        
+        /*! @brief Changes the diffuse Texture. */
+        void setDiffuseTexture(std::shared_ptr < Texture > const& texture);
+        
+        /*! @brief Returns the ambient Texture. */
+        std::shared_ptr < Texture > getAmbientTexture() const;
+        
+        /*! @brief Changes the ambient Texture. */
+        void setAmbientTexture(std::shared_ptr < Texture > const& texture);
+        
+        /*! @brief Returns the specular Texture. */
+        std::shared_ptr < Texture > getSpecularTexture() const;
+        
+        /*! @brief Changes the specular Texture. */
+        void setSpecularTexture(std::shared_ptr < Texture > const& texture);
     };
     
     /** @brief Specialization of FileLoader for Material. */

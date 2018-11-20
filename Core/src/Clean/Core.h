@@ -15,6 +15,8 @@
 #include "FileSystem.h"
 #include "MeshManager.h"
 #include "MaterialManager.h"
+#include "PixelSetConverterManager.h"
+#include "ImageManager.h"
 
 #include <memory>
 #include <atomic>
@@ -109,6 +111,12 @@ namespace Clean
         
         //! @brief MaterialManager used by Core.
         MaterialManager materialManager;
+        
+        //! @brief PixelSetConverterManager used by this Core to store pixel converters.
+        PixelSetConverterManager pixConvManager;
+        
+        //! @brief ImageManager used to hold currently loaded images.
+        ImageManager imgManager;
         
         //! @brief Core instance. Initialized once by Create().
         static std::unique_ptr < Core > instance;
@@ -264,6 +272,9 @@ namespace Clean
         
         /*! @brief Returns the MaterialManager. */
         MaterialManager& getMaterialManager();
+        
+        /*! @brief Returns pixConvManager. */
+        PixelSetConverterManager& getPixelSetConverterManager();
     };
 }
 

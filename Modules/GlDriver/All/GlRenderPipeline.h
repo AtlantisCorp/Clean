@@ -7,11 +7,19 @@
 #include "GlInclude.h"
 
 #include <Clean/RenderPipeline.h>
+#include <Clean/Property.h>
+#include <Clean/AtomicCounter.h>
 
 class GlRenderPipeline : public Clean::RenderPipeline
 {
     //! @brief OpenGL Program object.
     GLuint programHandle;
+    
+    //! @brief Association map between parameter's location and texture unit. 
+    mutable Clean::Property < std::map < GLint, GLint > > textureUnits;
+    
+    //! @brief Counter for newly allocated texture units. 
+    mutable Clean::AtomicCounter < GLint > unitCounter;
     
 public:
     
@@ -57,10 +65,23 @@ public:
     /*! @brief Returns an index representing the location of a given attribute in the pipeline. */
     std::uint8_t findAttributeIndex(std::string const& attrib) const;
     
+    /*! @brief Binds the given Texture to the given EffectParameter.
+     * 
+     * Texture unit is guessed from the current session. Each ShaderParameter's location used is associated
+     * to a new Texture unit. The Texture is bound to the Texture unit guessed from the parameter's location.
+     * This way, there is no need to purge the Texture's list as it will always overwrite the parameter's
+     * location associated texture. 
+     * 
+    **/
+    void bindTexture(Clean::ShaderParameter const& parameter, Clean::Texture const& texture) const;
+    
 protected:
     
     /*! @brief Releases our GL program. */
     void releaseResource();
+    
+    /*! @brief Finds the Texture Unit associated to given parameter's location. */
+    GLint findTextureUnit(GLint location) const;
 };
 
 #endif // GLDRIVER_GLRENDERPIPELINE_H

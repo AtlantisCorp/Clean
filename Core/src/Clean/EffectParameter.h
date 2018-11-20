@@ -58,6 +58,15 @@ namespace Clean
     static constexpr const char* kEffectMaterialEmissiveVec4 = "kEffectMaterialEmissiveVec4";
     static constexpr const std::uint64_t kEffectMaterialEmissiveVec4Hash = Hash64Const(kEffectMaterialEmissiveVec4);
     
+    static constexpr const char* kEffectMaterialDiffuseTexture = "kEffectMaterialDiffuseTexture";
+    static constexpr const std::uint64_t kEffectMaterialDiffuseTextureHash = Hash64Const(kEffectMaterialDiffuseTexture);
+    
+    static constexpr const char* kEffectMaterialAmbientTexture = "kEffectMaterialAmbientTexture";
+    static constexpr const std::uint64_t kEffectMaterialAmbientTextureHash = Hash64Const(kEffectMaterialAmbientTexture);
+    
+    static constexpr const char* kEffectMaterialSpecularTexture = "kEffectMaterialSpecularTexture";
+    static constexpr const std::uint64_t kEffectMaterialSpecularTextureHash = Hash64Const(kEffectMaterialSpecularTexture);
+    
     /*! @brief Returns the ShaderParam type constant from given Hash. 
      *
      * Hash must be a valid value recognized as one of the preset Effect Parameters Constants. In
@@ -65,6 +74,33 @@ namespace Clean
      *
     **/
     std::uint8_t EffectParameterGetTypeFromHash(std::uint64_t const& rhs);
+    
+    class Texture; 
+    /*! @brief Groups a Texture and an EffectParameter. 
+     *
+     * It is used by EffectSession (and stored by Material) to inform RenderPipeline about Textures
+     * to be bound into shaders. Textures are bound tighly with their associated EffectParameter, which
+     * is why this structure exists.
+     *
+    **/
+    struct TexturedParameter 
+    {
+        //! @brief EffectParameter associated to the Texture. 
+        EffectParameter param;
+        
+        //! @brief Texture associated to the parameter. 
+        std::shared_ptr < Texture > texture = nullptr;
+        
+        /*! @brief Constructs a basic TexturedParameter. */
+        TexturedParameter(std::string const& n, ShaderValue const& v, std::uint8_t const& t)
+            : param(n, v, t) {}
+        
+        /*! @brief Copies the TexturedParameter. */
+        TexturedParameter(TexturedParameter const& rhs) = default;
+        
+        /*! @brief Default constructor. */
+        TexturedParameter() = default;
+    };
 }
 
 #endif // CLEAN_EFFECTPARAMETER_H
