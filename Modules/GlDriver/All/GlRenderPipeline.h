@@ -75,6 +75,9 @@ public:
     **/
     void bindTexture(Clean::ShaderParameter const& parameter, Clean::Texture const& texture) const;
     
+    /*! @brief Returns true if this RenderPipeline can be modified, false otherwise. */
+    bool isModifiable() const;
+    
 protected:
     
     /*! @brief Releases our GL program. */

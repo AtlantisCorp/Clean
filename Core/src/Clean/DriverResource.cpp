@@ -33,4 +33,10 @@ namespace Clean
             }
         }
     }
+    
+    Driver& DriverResource::getDriver()
+    {
+        assert(driver && "Null Driver. Did this Resource has been created with a valid Driver?");
+        return *driver;
+    }
 }

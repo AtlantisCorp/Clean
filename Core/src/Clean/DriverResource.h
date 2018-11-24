@@ -68,6 +68,14 @@ namespace Clean
          *
         **/
         virtual void releaseResource() = 0;
+        
+        /*! @brief Returns a reference to the actual driver which created this resource.
+         *
+         * \note This operation asserts the driver is not null before returning it. If no driver
+         * has been set for this resource, this function fails.
+         *
+        **/
+        Driver& getDriver();
     };
 }
 

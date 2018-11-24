@@ -30,6 +30,22 @@ namespace Clean
     static constexpr const std::uint8_t kShaderTypeTessEval     = kShaderTypeDomain;
     static constexpr const std::uint8_t kShaderTypePixel        = kShaderTypeFragment;
     
+    //! @brief Converts a String representation of Shader Type to its constant equivalent.
+    //!
+    //! | String      | Shader Type            |
+    //! |-------------|------------------------|
+    //! | Vertex      | kShaderTypeVertex      |
+    //! | Hull        | kShaderTypeHull        |
+    //! | Domain      | kShaderTypeDomain      |
+    //! | Geometry    | kShaderTypeGeometry    |
+    //! | Fragment    | kShaderTypeFragment    |
+    //! | TessControl | kShaderTypeTessControl |
+    //! | TessEval    | kShaderTypeTessEval    |
+    //! | Pixel       | kShaderTypePixel       |
+    //!
+    //! \note All other strings are converted to \ref kShaderTypeNull.
+    std::uint8_t ShaderTypeFromString(std::string const& rhs);
+    
     //! @}
     
     /** @brief Generic shader definition. */

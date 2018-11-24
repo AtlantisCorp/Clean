@@ -19,6 +19,7 @@
 #include <Clean/VertexDescriptor.h>
 #include <Clean/ShaderAttribute.h>
 #include <Clean/EffectParameter.h>
+#include <Clean/Shader.h>
 
 using namespace Clean;
 
@@ -69,6 +70,24 @@ std::shared_ptr < Clean::ShaderMapper > JSONMapperLoader::load(std::string const
         {
             assert(kCurrentJSONMapperVersion == Version::FromString(member.value.GetString()) && "Invalid Version.");
             continue;
+        }
+        
+        else if (member.name == "Shaders" && member.value.IsObject())
+        {
+            for (auto shader = member.value.MemberBegin(); shader != member.value.MemberEnd(); shader++)
+            {
+                auto& shaderMember = *shader;
+                BuildableShaderMapper::PredefinedShader predefinedShader;
+                predefinedShader.filepath = shaderMember.name.GetString();
+                
+                std::string shaderTypeString = shaderMember.value.GetString();
+                predefinedShader.type = ShaderTypeFromString(shaderTypeString);
+                
+                if (predefinedShader.type == kShaderTypeNull)
+                    continue;
+                
+                result->addPredefinedShader(predefinedShader);
+            }
         }
         
         else if (member.name == "Attributes")

@@ -59,6 +59,9 @@ public:
     /*! @brief Displays notification to std::cout. */
     void process(Clean::Notification const& notification)
     {
+        if (notification.level == Clean::kNotificationLevelInfo)
+            return;
+        
         static constexpr const char* strLevel[] = { "info", "warn", "erro", "fatal" };
         std::string function = notification.function.substr(0, 10);
         
@@ -129,21 +132,11 @@ int main()
             auto firstCommand = gldriver->makeRenderCommand();
             firstCommand.target = window;
             
-            // Now we will load a shader and add it to the pipeline state. For now, we will only load the default shader for
-            // two stages, Vertex and Fragment stages. Notes that shader objects are stored as shared pointers.
-            
-            auto shaders = gldriver->makeShaders({
-                {kShaderTypeVertex, "Clean://Shader/GLSL/BasicLighting.vs"}, 
-                {kShaderTypeFragment, "Clean://Shader/GLSL/BasicLighting.fs"}
-            });
-            
-            firstCommand.pipeline->batchShaders(shaders);
-            assert(firstCommand.pipeline->buildMapper("Clean://Shader/GLSL/BasicLighting.json"));
-            
-            // auto vertexShader = gldriver->findDefaultShaderForStage(kShaderTypeVertex);
-            // firstCommand.pipeline->shader(kShaderTypeVertex, vertexShader);
-            // auto fragmentShader = gldriver->findDefaultShaderForStage(kShaderTypeFragment);
-            // firstCommand.pipeline->shader(kShaderTypeFragment, fragmentShader);
+            // We load a ShaderMapper with Predefined Shaders to complete our RenderPipeline.
+            // See the ShaderMapper file to see what is happening. We also ensure this loading is correct by
+            // checking the return value.
+            bool result = firstCommand.pipeline->buildMapper("Clean://Shader/GLSL/LearnOpenGL/GettingStarted-Textures.json");
+            assert(result && "pipeline->buildMapper() failed.");
             
             // Now we have to load our vertex buffer from our .obj file. This is done by loading a Mesh structure, and requesting
             // its vertex buffer. As we know our mesh only contains one object, we will directly load its first vertex buffer. We
@@ -196,8 +189,10 @@ int main()
             // holds an instance of EffectSession that can be used to set global parameters. When Driver::renderCommand executes, it
             // binds this Session with EffectSession::bind.
             
-            glm::vec3 camera = { 0.0f, 0.0f, 1.0f };
+            /**
             
+            glm::vec3 camera = { 0.0f, 0.0f, 1.0f };
+             
             EffectSession& session = gldriver->getEffectSession();
             session.add(kEffectProjectionMat4, { .mat4 = {glm::perspective(60.0f, 4.0f/3.0f, 0.1f, 100.0f)} });
             session.add(kEffectViewMat4, { .mat4 = glm::lookAt(camera, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}) });
@@ -208,6 +203,8 @@ int main()
             session.add("objectColor", { .vec3 = glm::vec3(1.0f, 0.5, 0.31f) });
             session.add("lightPos", { .vec3 = glm::vec3(1.2f, 1.0f, 2.0f) });
             session.add("viewPos", { .vec3 = camera });
+             
+            **/
             
             // Tries to load our Texture. 
             auto texture = gldriver->makeTexture("Clean://Texture/Cube.png");

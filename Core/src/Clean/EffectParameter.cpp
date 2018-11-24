@@ -23,6 +23,11 @@ namespace Clean
             case kEffectMaterialSpecularVec4Hash:
             case kEffectMaterialEmissiveVec4Hash:
             return kShaderParamVec4;
+                
+            case kEffectMaterialAmbientTextureHash:
+            case kEffectMaterialDiffuseTextureHash:
+            case kEffectMaterialSpecularTextureHash:
+            return kShaderParamI32;
             
             default:
             return kShaderParamNull;

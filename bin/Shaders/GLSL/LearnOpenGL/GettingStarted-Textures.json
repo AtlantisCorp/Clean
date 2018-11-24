@@ -1,0 +1,22 @@
+{
+    "Name": "GettingStarted-Textures Mapper",
+    "Version": "1.0",
+    
+    "Shaders": 
+    {
+        "Clean://Shader/GLSL/LearnOpenGL/GettingStarted-Textures.vs": "Vertex",
+        "Clean://Shader/GLSL/LearnOpenGL/GettingStarted-Textures.fs": "Fragment"
+    },
+    
+    "Attributes":
+    {
+        "aPos": { "name": "kVertexComponentPosition", "type": "Float" },
+        "aColor": { "name": "kVertexComponentColor", "type": "Float" },
+        "aTexCoord": { "name": "kVertexComponentTexture", "type": "Float" }
+    },
+    
+    "Constants":
+    {
+        "texture1": { "name": "kEffectMaterialAmbientTexture" }
+    }
+}

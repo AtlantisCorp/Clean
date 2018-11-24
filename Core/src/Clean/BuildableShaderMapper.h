@@ -68,6 +68,12 @@ namespace Clean
         //! @brief Name of this mapper. 
         Property < std::string > name;
         
+        //! @brief Stores shaders that must be loaded by a \ref RenderPipeline when using this
+        //! Mapper. This is used only when the "Shaders" property is specified in the Mapper.
+        //! When RenderPipeline load this Mapper, it will check \ref hasPredefinedShaders() and load
+        //! those shaders directly when loading the Mapper.
+        Property < std::vector < PredefinedShader > > predefinedShaders;
+        
     public:
         
         /*! @brief Maps the given descriptor to given pipeline. 
@@ -106,6 +112,15 @@ namespace Clean
         
         /*! @brief Returns name. */
         std::string getName() const;
+        
+        /*! @brief Adds a PredefinedShader to this Mapper. */
+        bool addPredefinedShader(PredefinedShader const& shader);
+        
+        /*! @brief Returns true if this mapper has some predefined shaders. */
+        bool hasPredefinedShaders() const;
+        
+        /*! @brief Returns the list of PredefinedShaders. */
+        std::vector < PredefinedShader > getPredefinedShaders() const;
     };
     
     /* Example use of an hypothetic JSON Mapper loader. 

@@ -33,6 +33,17 @@ namespace Clean
     class ShaderMapper
     {
     public:
+        
+        /*! @brief A simple structure that store the file and the type of a shader predefined in
+         *  a Mapper file.
+         **/
+        struct PredefinedShader
+        {
+            std::string filepath;
+            std::uint8_t type;
+        };
+        
+    public:
 
         /*! @brief Default destructor. */
         virtual ~ShaderMapper() = default;
@@ -96,6 +107,12 @@ namespace Clean
         
         /*! @brief Maps an Effect name to the correct shader's parameter name or index. */
         virtual ShaderParameter map(EffectParameter const& param, RenderPipeline const& pipeline) const;
+        
+        /*! @brief Returns true if this mapper has some predefined shaders. */
+        virtual bool hasPredefinedShaders() const;
+        
+        /*! @brief Returns the list of PredefinedShaders. */
+        virtual std::vector < PredefinedShader > getPredefinedShaders() const;
     };
     
     template <>

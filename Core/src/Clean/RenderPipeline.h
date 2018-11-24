@@ -101,49 +101,67 @@ namespace Clean
         /*! @brief Sets the current drawing method. */
         virtual void setDrawingMethod(std::uint8_t drawingMethod) const = 0;
         
-        /*! @brief Changes the shader mapper. */
+        /*! @brief Changes the shader mapper.
+         *
+         * If the given mapper has no predefined shaders, then this mapper property is only
+         * stored to this object's mapper pointer. However, if this mapper holds predefined
+         * shaders:
+         *   - If this RenderPipeline has currently no shaders, it will load mapper's predefined
+         *     shaders after storing it.
+         *   - If this RenderPipeline currently has some shaders, it will check if those are the same
+         *     as the mapper's one. If one shader is missing in the RenderPipeline, it will load it
+         *     automatically.
+         *
+         * \note When loading a mapper with predefined shaders, the RenderPipeline is not linked
+         * automatically. After this loading, a user might insert other Shaders compatible with mapper's
+         * one, like a Tesselation program, or a Geometry program. This can lead to multiple RenderPipeline
+         * sharing the same ShaderMapper. 
+        **/
         void setMapper(std::shared_ptr < ShaderMapper > const& mapper);
         
         /*! @brief Returns mapper. */
         std::shared_ptr < ShaderMapper > getMapper() const;
         
-       /*! @brief Maps the given VertexDescriptor by using this RenderPipeline's ShaderMapper.
-        *
-        * If no ShaderMapper is present for this pipeline, it returns an empty ShaderAttributesMap. This can
-        * be checked with ShaderAttributesMap::isValid() which returns false.
-        *
-       **/
-       ShaderAttributesMap map(VertexDescriptor const& descriptor) const;
+        /*! @brief Maps the given VertexDescriptor by using this RenderPipeline's ShaderMapper.
+         *
+         * If no ShaderMapper is present for this pipeline, it returns an empty ShaderAttributesMap. This can
+         * be checked with ShaderAttributesMap::isValid() which returns false.
+         *
+         **/
+        ShaderAttributesMap map(VertexDescriptor const& descriptor) const;
+        
+        /*! @brief Maps multiple VertexDescriptor to multiple ShaderAttributesMap. */
+        std::vector < ShaderAttributesMap > map(std::vector < VertexDescriptor > const& descs) const;
+        
+        /*! @brief Returns true if the given attribute is present in this pipeline. */
+        virtual bool hasAttribute(std::string const& attrib) const = 0;
+        
+        /*! @brief Returns an index representing the location of a given attribute in the pipeline. */
+        virtual std::uint8_t findAttributeIndex(std::string const& attrib) const = 0;
+        
+        /*! @brief Builds a ShaderMapper from given file.
+         *
+         * Basically it tries to get a FileLoader < ShaderMapper > for the given file. Next, it uses
+         * FileLoader::load to load the file and get a ShaderMapper. Generally the loader will use
+         * BuildableShaderMapper to create the mapper but this is not disallowed to get another derived
+         * class.
+         *
+         * \return True on success, false otherwise.
+         *
+         **/
+        bool buildMapper(std::string const& filepath);
+        
+        /*! @brief Binds multiple TexturedParameters onto this Pipeline. */
+        virtual void bindTexturedParameters(std::vector < std::shared_ptr < TexturedParameter > > const& params) const;
        
-       /*! @brief Maps multiple VertexDescriptor to multiple ShaderAttributesMap. */
-       std::vector < ShaderAttributesMap > map(std::vector < VertexDescriptor > const& descs) const;
+        /*! @brief Binds a TexturedParameter onto this Pipeline. */
+        virtual void bindTexturedParameter(std::shared_ptr < TexturedParameter > const& param) const;
        
-       /*! @brief Returns true if the given attribute is present in this pipeline. */
-       virtual bool hasAttribute(std::string const& attrib) const = 0;
-       
-       /*! @brief Returns an index representing the location of a given attribute in the pipeline. */
-       virtual std::uint8_t findAttributeIndex(std::string const& attrib) const = 0;
-       
-       /*! @brief Builds a ShaderMapper from given file. 
-        *
-        * Basically it tries to get a FileLoader < ShaderMapper > for the given file. Next, it uses 
-        * FileLoader::load to load the file and get a ShaderMapper. Generally the loader will use 
-        * BuildableShaderMapper to create the mapper but this is not disallowed to get another derived
-        * class. 
-        *
-        * \return True on success, false otherwise.
-        *
-       **/
-       bool buildMapper(std::string const& filepath);
-       
-       /*! @brief Binds multiple TexturedParameters onto this Pipeline. */
-       virtual void bindTexturedParameters(std::vector < std::shared_ptr < TexturedParameter > > const& params) const;
-       
-       /*! @brief Binds a TexturedParameter onto this Pipeline. */
-       virtual void bindTexturedParameter(std::shared_ptr < TexturedParameter > const& param) const;
-       
-       /*! @brief Binds the given Texture to the given ShaderParameter. */
-       virtual void bindTexture(ShaderParameter const& parameter, Texture const& texture) const = 0;
+        /*! @brief Binds the given Texture to the given ShaderParameter. */
+        virtual void bindTexture(ShaderParameter const& parameter, Texture const& texture) const = 0;
+        
+        /*! @brief Returns true if this RenderPipeline can be modified, false otherwise. */
+        virtual bool isModifiable() const = 0;
     };
 }
 

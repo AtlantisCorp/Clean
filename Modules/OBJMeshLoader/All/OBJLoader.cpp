@@ -9,11 +9,11 @@
 using namespace Clean;
 
 static constexpr const char* kOBJMarkerComment = "#";
-static constexpr const char* kOBJMarkerNewObject = "o";
-static constexpr const char* kOBJMarkerVertice = "v";
+static constexpr const char* kOBJMarkerNewObject = "o ";
+static constexpr const char* kOBJMarkerVertice = "v ";
 static constexpr const char* kOBJMarkerNormal = "vn";
 static constexpr const char* kOBJMarkerTexture = "vt";
-static constexpr const char* kOBJMarkerFace = "f";
+static constexpr const char* kOBJMarkerFace = "f ";
 static constexpr const char* kOBJMarkerMaterial = "usemtl";
 static constexpr const char* kOBJMarkerMaterialLib = "mtllib";
 
@@ -272,13 +272,6 @@ bool OBJLoader::processDefaultMarkers(char* line, OBJFile& file) const
         return true;
     }
     
-    else if (!strncmp(kOBJMarkerVertice, line, strlen(kOBJMarkerVertice)))
-    {
-        OBJVec4 vert = OBJMakeVec4(line + 1);
-        file.globVerts.push_back(vert);
-        return true;
-    }
-    
     else if (!strncmp(kOBJMarkerNormal, line, strlen(kOBJMarkerNormal)))
     {
         OBJVec3 norm = OBJMakeVec3(line + 1);
@@ -290,6 +283,13 @@ bool OBJLoader::processDefaultMarkers(char* line, OBJFile& file) const
     {
         OBJVec3 text = OBJMakeVec3(line + 1);
         file.globTexts.push_back(text);
+        return true;
+    }
+    
+    else if (!strncmp(kOBJMarkerVertice, line, strlen(kOBJMarkerVertice)))
+    {
+        OBJVec4 vert = OBJMakeVec4(line + 1);
+        file.globVerts.push_back(vert);
         return true;
     }
     

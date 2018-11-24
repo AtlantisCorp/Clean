@@ -14,4 +14,14 @@ namespace Clean
     {
         return ShaderParameter(param.type, param.name, -1, param.value);
     }
+    
+    bool ShaderMapper::hasPredefinedShaders() const
+    {
+        return false;
+    }
+    
+    std::vector < ShaderMapper::PredefinedShader > ShaderMapper::getPredefinedShaders() const
+    {
+        return {};
+    }
 }

@@ -81,7 +81,65 @@ namespace Clean
     
     void RenderPipeline::setMapper(std::shared_ptr < ShaderMapper > const& shaderMapper)
     {
-        std::atomic_store(&mapper, shaderMapper);
+        std::shared_ptr < ShaderMapper > nullPtr;
+        std::atomic_store(&mapper, nullPtr);
+        
+        // If we already are linked, we can't modify the mapper or any of the shaders
+        // present in this pipeline. A ShaderMapper must be present before linking the
+        // pipeline.
+        if (!isModifiable()) return;
+        
+        if (shaderMapper)
+        {
+            if (shaderMapper->hasPredefinedShaders())
+            {
+                std::scoped_lock < std::mutex > shadersLock(shadersMutex);
+                auto predefinedShaders = shaderMapper->getPredefinedShaders();
+                // For each predefined shader, we check if we need to load it or if we already have
+                // this shader. If we already have a shader that is not the same for a predefined
+                // shader's stage, this is considered as an error and we must exit promptly.
+                for (auto predefinedShader : predefinedShaders)
+                {
+                    auto shaderFound = shaders.find(predefinedShader.type);
+                    
+                    if (shaderFound == shaders.end())
+                    {
+                        // Simple case: we load the predefined shader for this stage.
+                        Driver& driver = getDriver();
+                        auto loadedShader = driver.makeShaders({{ predefinedShader.type, predefinedShader.filepath }});
+                        
+                        if (loadedShader.empty())
+                        {
+                            Notification notif = BuildNotification(kNotificationLevelError, "Shader %s couldn't be loaded by Driver %s.", predefinedShader.filepath.data(), driver.getName().data());
+                            NotificationCenter::GetDefault()->send(notif);
+                            return;
+                        }
+                        
+                        shader(predefinedShader.type, loadedShader[0]);
+                        assert(loadedShader[0] && "Error loading shader.");
+                    }
+                    
+                    else
+                    {
+                        // We check if the current shader is the same as the predefined's one. We can do this
+                        // only by checking the shader's original file path.
+                        auto loadedShader = shaderFound->second;
+                        assert(loadedShader && "Error while looking for Shader.");
+                        
+                        if (loadedShader->getOriginPath() != predefinedShader.filepath)
+                        {
+                            Notification notif = BuildNotification(kNotificationLevelError, "Shader %s, present in ShaderMapper, is not the same as Shader %s, present in RenderPipeline.", predefinedShader.filepath.data(), loadedShader->getOriginPath().data());
+                            NotificationCenter::GetDefault()->send(notif);
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            // If we go here, this means we are all alright about predefined shaders and all this shit.
+            // That's good, we can store the new mapper. Wow.
+            std::atomic_store(&mapper, shaderMapper);
+        }
     }
     
     std::shared_ptr < ShaderMapper > RenderPipeline::getMapper() const 

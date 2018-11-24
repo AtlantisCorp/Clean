@@ -6,15 +6,13 @@
 
 #include "NotificationListener.h"
 #include "Notification.h"
+#include "ConcurrentQueue.h"
 
 #include <cstdint>
 #include <memory>
 #include <list>
 #include <thread>
-#include <condition_variable>
-#include <mutex>
 #include <atomic>
-#include <queue>
 
 namespace Clean
 {
@@ -54,12 +52,6 @@ namespace Clean
         //! @brief When multithreaded, holds the emitting thread loop.
         std::thread loopThread;
 
-        //! @brief When multithreaded, holds a condition to awake the emitting loop.
-        std::condition_variable condLoopThread;
-
-        //! @brief Mutex to use with condLoopThread.
-        std::mutex condLoopThreadMutex;
-
         //! @brief Mutex to protect listeners.
         std::mutex listenersMutex;
 
@@ -67,10 +59,7 @@ namespace Clean
         std::atomic_bool exitLoopThread;
 
         //! @brief In multithreaded mode, stores notifications to send.
-        std::queue < Notification > cachedNotifications;
-
-        //! @brief In multithreaded mode, protects cachedNotifications.
-        std::mutex cachedNotifMutex;
+        ConcurrentQueue < Notification > cachedNotifications;
 
         //! @brief Default NotificationCenter registered by Core.
         static std::shared_ptr < NotificationCenter > defaultCenter;
@@ -98,6 +87,9 @@ namespace Clean
 
         /*! @brief Returns defaultCenter. */
         static std::shared_ptr < NotificationCenter > GetDefault();
+        
+        /*! @brief Terminates the notification loop. */
+        void terminate();
     };
 }
 

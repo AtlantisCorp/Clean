@@ -17,24 +17,8 @@ namespace Clean
 
                 while (!exitLoopThread)
                 {
-                    cachedNotifMutex.lock();
-                    bool empty = cachedNotifications.empty();
-
-                    if (empty)
-                    {
-                        cachedNotifMutex.unlock();
-                        std::unique_lock < std::mutex > lock(condLoopThreadMutex);
-                        condLoopThread.wait(lock);
-                        
-                        if (exitLoopThread)
-                            break;
-                        
-                        cachedNotifMutex.lock();
-                    }
-
-                    auto notif = cachedNotifications.front();
-                    cachedNotifications.pop();
-                    cachedNotifMutex.unlock();
+                    Notification notif;
+                    cachedNotifications.pop(notif);
 
                     std::lock_guard < std::mutex > lock(listenersMutex);
 
@@ -51,32 +35,14 @@ namespace Clean
 
     NotificationCenter::~NotificationCenter()
     {
-        if (mode && loopThread.joinable())
-        {
-            exitLoopThread.store(true);
-
-            {
-                std::unique_lock < std::mutex > lock(condLoopThreadMutex);
-                condLoopThread.notify_all();
-            }
-
-            loopThread.join();
-        }
+        terminate();
     }
 
     void NotificationCenter::send(Notification const& notif)
     {
         if (mode)
         {
-            {
-                std::lock_guard < std::mutex > lck(cachedNotifMutex);
-                cachedNotifications.push(notif);
-            }
-
-            {
-                std::unique_lock < std::mutex > lck(condLoopThreadMutex);
-                condLoopThread.notify_all();
-            }
+            cachedNotifications.push(notif);
         }
 
         else
@@ -100,5 +66,16 @@ namespace Clean
     std::shared_ptr < NotificationCenter > NotificationCenter::GetDefault()
     {
         return std::atomic_load(&defaultCenter);
+    }
+    
+    void NotificationCenter::terminate()
+    {
+        if (mode && loopThread.joinable())
+        {
+            exitLoopThread.store(true);
+            cachedNotifications.push(Notification());
+            
+            loopThread.join();
+        }
     }
 }

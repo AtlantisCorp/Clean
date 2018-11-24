@@ -14,6 +14,7 @@ namespace Clean
     EffectSession::EffectSession(EffectSession const& rhs)
     {
         globals.store(rhs.globals.load());
+        texturedParams.store(rhs.texturedParams.load());
     }
     
     std::weak_ptr < EffectParameter > EffectSession::add(std::string const& name, ShaderValue const& value, std::uint8_t const& type) 

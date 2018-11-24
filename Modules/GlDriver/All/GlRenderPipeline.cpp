@@ -281,7 +281,7 @@ void GlRenderPipeline::bindShaderAttributes(ShaderAttributesMap const& attribute
             GLuint index = static_cast < GLuint >(attrib.index);
             GLint size = static_cast < GLint >(std::clamp<std::uint8_t>(attrib.components, 1, 4));
             GLsizei stride = static_cast < GLsizei >(attrib.stride);
-            GLvoid* pointer = NULL;
+            GLvoid* pointer = (char*)NULL + attrib.offset;
             
             GLenum type = GlGetShaderAttrib(attrib.type);
             assert(type != GL_INVALID_ENUM && "Illegal ShaderAttribute type.");
@@ -292,8 +292,8 @@ void GlRenderPipeline::bindShaderAttributes(ShaderAttributesMap const& attribute
                 pointer = (GLvoid*) attrib.buffer->lock(kBufferIOReadOnly);
             }
             
-            glVertexAttribPointer(index, size, type, false, stride, pointer);
             glEnableVertexAttribArray(index);
+            glVertexAttribPointer(index, size, type, false, stride, pointer);
             
             GlError error = GlCheckError();
             if (error.error != GL_NO_ERROR) {
@@ -395,6 +395,11 @@ void GlRenderPipeline::bindTexture(ShaderParameter const& parameter, Texture con
     if (rebindCurrent) {
         glUseProgram(currentProgram);
     }
+}
+
+bool GlRenderPipeline::isModifiable() const
+{
+    return !isLinked();
 }
 
 void GlRenderPipeline::releaseResource()

@@ -166,19 +166,26 @@ bool GlTexture::upload(std::shared_ptr < Image > const& image)
     }
     
     glPixelStorei(GL_PACK_ROW_LENGTH, (GLint) image->findRowLength());
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
     switch (target)
     {
         case GL_TEXTURE_2D:
         glTexImage2D(target, 0, 
-                     desiredInternalFormat, 
+                     desiredInternalFormat,
                      width, height, 
                      0, 
-                     format, dataType, 
+                     format, dataType,
                      static_cast < const GLvoid* >(image->raw()));
         break;
     }
     
+    glGenerateMipmap(GL_TEXTURE_2D);
     auto error = GlCheckError();
     
     if (error.error != GL_NO_ERROR)

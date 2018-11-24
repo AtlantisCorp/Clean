@@ -185,14 +185,7 @@ namespace Clean
     
     void Core::destroy()
     {
-        NotificationCenter::GetDefault()->exitLoopThread = true;
-        
-        {
-            std::unique_lock < std::mutex > lock(NotificationCenter::GetDefault()->condLoopThreadMutex);
-            NotificationCenter::GetDefault()->condLoopThread.notify_all();
-        }
-        
-        NotificationCenter::GetDefault()->loopThread.join();
+        NotificationCenter::GetDefault()->terminate();
         
         clearFileLoaders();
         imgManager.reset();

@@ -15,33 +15,27 @@ using namespace Clean;
 
 std::shared_ptr < Image > STBILoader::load(std::string const& filepath) const 
 {
-    std::string realPath;
-    std::fstream stream = FileSystem::Current().open(filepath, std::ios::in, &realPath);
+    std::string realPath = FileSystem::Current().findRealPath(filepath);
     
-    if (!stream) {
+    if (realPath.empty())
+    {
         NotificationCenter::GetDefault()->send(BuildNotification(kNotificationLevelError, "File %s not found.", filepath.data()));
         return nullptr;
     }
     
-    std::string content; Platform::StreamGetContent(stream, content);
-    stream.close();
+    // NOTES: For now, we use stbi_load() to load RGB data. No Alpha is permitted. If we want to support
+    // RGBA format, we have to add an option to the loader for the user to specify if he wants alpha
+    // or not. I am thinking about a custom option or defining this directly in the loading function.
     
-    if (!content.size()) {
-        NotificationCenter::GetDefault()->send(BuildNotification(kNotificationLevelError, "File %s is empty.", filepath.data()));
-        return nullptr;
-    }
+    stbi_set_flip_vertically_on_load(true);
     
     int width, height, nrChannels;
-    unsigned char* data = stbi_load_from_memory((const unsigned char*)content.c_str(), content.size(), &width, &height, &nrChannels, 4);
-    
-    if (!data || !width || !height || !nrChannels) {
-        NotificationCenter::GetDefault()->send(BuildNotification(kNotificationLevelError, "File %s is corrupted.", filepath.data()));
-        return nullptr;
-    }
+    unsigned char* data = stbi_load(realPath.data(), &width, &height, &nrChannels, STBI_rgb_alpha);
+    assert(data && "Invalid image loading.");
     
     auto pixels = AllocateShared < PixelSet >();
-    pixels->lineWidth = width * nrChannels * sizeof(unsigned char);
-    pixels->format = (nrChannels == 3) ? kPixelFormatRGB8 : (nrChannels == 4 ? kPixelFormatRGBA8 : kPixelFormatNull);
+    pixels->lineWidth = width * 4 * sizeof(unsigned char);
+    pixels->format = kPixelFormatRGBA8;
     pixels->data = data;
     
     auto image = AllocateShared < Image >(pixels, SizePair{ 0, 0 }, SizePair{ static_cast<size_t>(width), static_cast<size_t>(height) });
