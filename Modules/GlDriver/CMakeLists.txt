@@ -11,6 +11,15 @@ IF(CLEAN_WINDOW_WIN32)
     FILE(GLOB GlDriverSourcesWin32 "Modules/GlDriver/Win32/*.h" "Modules/GlDriver/Win32/*.cpp")
     TARGET_SOURCES(GlDriver PUBLIC ${GlDriverSourcesWin32})
 
+    # Adds OPENGL library to this project.
+    FIND_PACKAGE(OpenGL REQUIRED)
+    TARGET_LINK_LIBRARIES(GlDriver PRIVATE OpenGL::GL)
+    INCLUDE_DIRECTORIES("${OPENGL_INCLUDE_DIR}/GL")
+    MESSAGE(STATUS "OPENGL Dir: ${OPENGL_INCLUDE_DIR}")
+
+    # Links against gdi32 for window creation.
+    TARGET_LINK_LIBRARIES(GlDriver PRIVATE gdi32)
+
 ELSEIF(CLEAN_WINDOW_COCOA)
     FILE(GLOB GlDriverSourcesCocoa "Modules/GlDriver/Cocoa/*.h" "Modules/GlDriver/Cocoa/*.mm" "Modules/GlDriver/Cocoa/*.cpp")
     TARGET_SOURCES(GlDriver PUBLIC ${GlDriverSourcesCocoa})

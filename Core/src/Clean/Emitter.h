@@ -11,6 +11,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <future>
 
 namespace Clean 
 {
@@ -38,7 +39,11 @@ namespace Clean
      * Protected method flushSendThreads joins all threads within a limit defined by sendThreadsLimit.
      * This limit is the maximum number of threads the emitter can handle simultaneously. If more than 
      * this limit number of threads are launched, emitter will join all of them before finishing its
-     * work. 
+     * work.
+     *
+     * \note Actually multithreaded mode does not store threads but use std::future instead. \ref wait()
+     * is used to know if the thread has finished its task or not. Using std::thread with std::queue
+     * did caused some crashes... So no regrets on this. 
     **/
     template < class Listener >
     class Emitter 
@@ -54,7 +59,7 @@ namespace Clean
         std::shared_mutex listenersMutex;
     
         //! @brief Queue of threads sent by this emitter.
-        std::queue < std::thread > sendThreads;
+        std::queue < std::future < void > > sendThreads;
     
         //! @brief Protects the thread's queue.
         std::mutex sendThreadsMutex;
@@ -76,7 +81,7 @@ namespace Clean
         /*! @brief Registers a new listener for this emitter. */
         void addListener(std::shared_ptr < Listener > const& listener)
         {
-            std::scoped_lock < std::mutex > lck(listenersMutex);
+            std::scoped_lock < std::shared_mutex > lck(listenersMutex);
             listeners.push_back(listener);
         }
     
@@ -90,7 +95,7 @@ namespace Clean
         /*! @brief Removes a listener from this emitter. */
         void removeListener(std::shared_ptr < Listener > const& listener)
         {
-            std::scoped_lock < std::mutex > lck(listenersMutex);
+            std::scoped_lock < std::shared_mutex > lck(listenersMutex);
             auto it = std::find_if(listeners.begin(), listeners.end(), [&listener](std::weak_ptr < Listener > const& wl) {
                 return wl.lock() == listener;
             });
@@ -115,7 +120,7 @@ namespace Clean
                 auto listenersCopy = listeners;
                 auto callerCopy = caller;
             
-                std::thread sendThread = std::thread([callback, event, listenersCopy, callerCopy](){
+                auto sendThread = std::async(std::launch::async, [callback, event, listenersCopy, callerCopy](){
                 
                     for (auto listener : listenersCopy)
                     {
@@ -191,14 +196,12 @@ namespace Clean
             
                 do
                 {            
-                    std::thread lastThread = std::move(sendThreads.front());
+                    std::future < void > lastThread = std::move(sendThreads.front());
                     sendThreads.pop();
                 
                     try
                     {
-                        if (lastThread.joinable())
-                            lastThread.join();
-                    
+                        lastThread.wait();
                         currentFinished++;
                     }
                 

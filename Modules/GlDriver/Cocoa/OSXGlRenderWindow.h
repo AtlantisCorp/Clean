@@ -28,10 +28,10 @@ class OSXGlRenderWindow : public GlRenderWindow
 public:
     
     /*! @brief Constructs an OSXGlRenderWindow from the given native context. */
-    OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& context);
+    OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& context, GlPtrTable const& tbl);
     
     /*! @brief Constructs an OSXGlRenderWindow from the given native context and its parameters. */
-    OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& context, std::size_t width, std::size_t height, std::uint16_t style, std::string const& title);
+    OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& context, std::size_t width, std::size_t height, std::uint16_t style, std::string const& title, GlPtrTable const& tbl);
     
     /*! @brief Constructs an OSXGlRenderWindow from the given native RenderWindow. */
     OSXGlRenderWindow(OSXGlRenderWindow const& rhs);
@@ -136,6 +136,9 @@ public:
     
     /*! @brief Changes the fullscreenMode value. */
     void notifyFullscreen(id delegate, bool value);
+    
+    /*! @brief Notifies a Window's resize. */
+    void notifyResize(CGFloat width, CGFloat height);
     
 #   endif
 };

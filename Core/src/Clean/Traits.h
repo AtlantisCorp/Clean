@@ -25,13 +25,13 @@ namespace Clean
     public:
 
         template < typename Callback, class... Args >
-        void call(Callback callback, Listener* listener, Args&&... args)
+        void call(Callback callback, Listener* listener, Args&&... args) const
         {
             std::invoke(callback, listener, std::forward<Args>(args)...);
         }
 
         template < typename Callback, class... Args >
-        void operator()(Callback callback, Listener* listener, Args&&... args)
+        void operator()(Callback callback, Listener* listener, Args&&... args) const
         {
             call(callback, listener, std::forward<Args>(args)...);
         }

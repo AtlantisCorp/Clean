@@ -55,4 +55,13 @@
     
 }
 
+- (void)windowDidResize:(NSNotification *)notification
+{
+    NSWindow* window = [notification object];
+    assert(window && "OSX: Invalid NSNotification object.");
+    
+    NSRect frame = [window contentLayoutRect];
+    _caller->notifyResize(frame.size.width, frame.size.height);
+}
+
 @end

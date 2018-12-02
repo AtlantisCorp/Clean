@@ -23,8 +23,8 @@ static NSWindowStyleMask OSXGlWindowStyleMask(std::uint16_t style)
     return result;
 }
 
-OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& context)
-    : nativeWindow(nil), nativeWindowDelegate(nil), nativeContext(nil), fullscreenMode(false)
+OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& context, GlPtrTable const& tbl)
+    : GlRenderWindow(tbl), nativeWindow(nil), nativeWindowDelegate(nil), nativeContext(nil), fullscreenMode(false)
 {
     assert(context && "Null OSXGlContext passed to constructor.");
     
@@ -63,7 +63,8 @@ OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& con
     RenderSurface::resetHandles(nsWindow, NULL);
 }
 
-OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& context, std::size_t width, std::size_t height, std::uint16_t style, std::string const& title)
+OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& context, std::size_t width, std::size_t height, std::uint16_t style, std::string const& title, GlPtrTable const& tbl)
+    : GlRenderWindow(tbl)
 {
     assert(context && "Null OSXGlContext passed to constructor.");
     
@@ -105,7 +106,7 @@ OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& con
 }
 
 OSXGlRenderWindow::OSXGlRenderWindow(OSXGlRenderWindow const& rhs)
-    : nativeWindow(nil), nativeWindowDelegate(nil), nativeContext(nil), fullscreenMode(false)
+    : GlRenderWindow(rhs), nativeWindow(nil), nativeWindowDelegate(nil), nativeContext(nil), fullscreenMode(false)
 {   
     static constexpr const NSWindowStyleMask defaultMask = NSWindowStyleMaskTitled|NSWindowStyleMaskClosable|
                                                            NSWindowStyleMaskMiniaturizable|NSWindowStyleMaskResizable;
@@ -388,6 +389,17 @@ void OSXGlRenderWindow::notifyFullscreen(id delegate, bool value)
 {
     assert((delegate == nativeWindowDelegate) && "Illegal call to OSXGlRenderWindow::notifyFullscreen");
     fullscreenMode.store(value);
+}
+
+void OSXGlRenderWindow::notifyResize(CGFloat width, CGFloat height)
+{
+    // For now we assume that width and height corresponds to the pixel size of
+    // our window. However on some screens that might not be the case.
+    
+    WindowResizeEvent event;
+    event.emitter = this;
+    event.newSize = WindowSize{ (std::size_t) width, (std::size_t) height };
+    send(&WindowListener::onWindowResize, event);
 }
 
 std::uint16_t OSXGlRenderWindow::getStyle() const

@@ -21,10 +21,13 @@ class GlShader : public Clean::Shader
     //! @brief Error stored from the compilation, or empty if no error.
     std::string compilerError;
     
+    //! @brief Gl Pointer Table.
+    GlPtrTable const& gl;
+    
 public:
     
     /*! @brief Constructs the shader. */
-    GlShader(const char* src, std::uint8_t stage);
+    GlShader(const char* src, std::uint8_t stage, GlPtrTable const& tbl);
     
     /*! @brief Destructs the shader. */
     ~GlShader();

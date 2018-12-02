@@ -44,6 +44,7 @@
 #include <Clean/Core.h>
 #include <Clean/Allocate.h>
 #include <Clean/Mesh.h>
+#include <Clean/Camera.h>
 #include <iostream>
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -135,6 +136,7 @@ int main()
             // We load a ShaderMapper with Predefined Shaders to complete our RenderPipeline.
             // See the ShaderMapper file to see what is happening. We also ensure this loading is correct by
             // checking the return value.
+            
             bool result = firstCommand.pipeline->buildMapper("Clean://Shader/GLSL/LearnOpenGL/GettingStarted-Textures.json");
             assert(result && "pipeline->buildMapper() failed.");
             
@@ -159,54 +161,10 @@ int main()
             
             auto material = MaterialManager::Current().findByName("cube");
             assert(material && "Material 'Example' not found.");
-            firstCommand.parameters.addMaterial(*material);
-            
-            // VertexDescriptor describe how to render one SubMesh. Mesh::findAssociatedDescriptors return a list of VertexDescriptor
-            // which can render every mesh's submeshes for the given driver. Those descriptors needs to be mapped to ShaderAttributes
-            // by ShaderMapper. Notices that one descriptor is one submesh, but may represent multiple buffers (if submesh's data are
-            // not interleaved inside one buffer). You can also use Mesh::populateRenderCommand(driver, firstCommand, vertexShader) as
-            // it will generate a RenderCommand::sub for the given shader from our driver, with the correct subcommand type.
-            
-            // We have our shader, and our buffer. However, how do we make the link between the two ? Clean engine proposes a simple
-            // yet complicated system of a Clean::ShaderMapper class. This class obviously maps a list of buffers onto the given shader,
-            // by returning a Clean::AttributesMap. A RenderSubCommand holds only one AttributesMap.
-            
-            // To create your own ShaderMapper, only creates a new class derived from Clean::ShaderMapper. Override method 'map()' and
-            // you're done! When loading your shader, be sure to set its mapper with 'Shader::setMapper(myMapper)'. The mapper is owned
-            // by the shader so you don't have to keep a copy. Clean::Shader::map uses this mapper to map the given list of buffers to
-            // the attributes in the shader. We have to use this system because only the shader creator can know which attributes are
-            // in its shader. You also can use Clean::CbkShaderMapper to set 'map()' to your own callback, thus enabling lambdas to define
-            // a new ShaderMapper.
-            
-            // firstCommand.sub(kSubCommandDrawVertex, vertexShader->map(*vertexDescriptor));
-            
-            // Now we want to be sure our parameters are correctly set for our shader. We basically have two types of parameters: those
-            // which are constants for the whole frame, and the others. Notes that constants for the whole frame may also be constants
-            // for all other frames. To set manually a parameter to our shader, we can store a new ShaderParameter in our RenderCommand.
-            // However, it implies you know the name of the Shader Parameter for the current pipeline.
-            
-            // Creating global value for our shaders is done via submitting those values through the EffectSession object. Each driver
-            // holds an instance of EffectSession that can be used to set global parameters. When Driver::renderCommand executes, it
-            // binds this Session with EffectSession::bind.
-            
-            /**
-            
-            glm::vec3 camera = { 0.0f, 0.0f, 1.0f };
-             
-            EffectSession& session = gldriver->getEffectSession();
-            session.add(kEffectProjectionMat4, { .mat4 = {glm::perspective(60.0f, 4.0f/3.0f, 0.1f, 100.0f)} });
-            session.add(kEffectViewMat4, { .mat4 = glm::lookAt(camera, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}) });
-            session.add(kEffectModelMat4, { .mat4 = {glm::mat4(1.0f)} });
-            
-            // Adds here our shader contants.
-            session.add("lightColor", { .vec3 = glm::vec3(1.0f, 1.0f, 1.0f) });
-            session.add("objectColor", { .vec3 = glm::vec3(1.0f, 0.5, 0.31f) });
-            session.add("lightPos", { .vec3 = glm::vec3(1.2f, 1.0f, 2.0f) });
-            session.add("viewPos", { .vec3 = camera });
-             
-            **/
+            firstCommand.parameters.add(*material);
             
             // Tries to load our Texture. 
+            
             auto texture = gldriver->makeTexture("Clean://Texture/Cube.png");
             material->setAmbientTexture(texture);
             
@@ -215,6 +173,26 @@ int main()
             // RenderQueue.
             
             defaultQueue->addCommand(firstCommand);
+            
+            // Input subsystem is controlled by each Window. Therefore, a Camera can be connected to a Window input. Each Camera
+            // action can be connected to an input key. However, as some keyboards have different keys, an action layout can be
+            // loaded by Camera for each languages.
+            
+            auto camera = AllocateShared < Clean::Camera >(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            camera->setProjection(60.0f, 0.001f, 100.0f);
+            camera->listen(window);
+            
+            auto effSession = gldriver->getEffectSession();
+            effSession.add(*camera);
+            
+            /* 
+            
+            auto locale = Locale::Current();
+            std::string layout = BuildString("Clean://Layout/%s.layout", locale.string());
+            camera->loadLayout(layout);
+            camera->listen(window);
+            
+            */
             
             // Update loop for our driver. Clean::Driver::update commits all rendering jobs to the renderer, and updates
             // every window created by this driver. Calling Clean::WindowManager::updateAll() would only updates each Window

@@ -5,7 +5,11 @@
 #define GLDRIVER_COCOA_OSXGLCONTEXT_H
 
 #include "OSXPrerequisites.h"
+#include "../All/GlInclude.h"
 #include "../All/GlContext.h"
+
+/*! @brief Fills the Gl Pointer Table with OSX GL Functions. */
+void OSXGlFillGlTable(GlPtrTable& gl);
 
 class OSXGlContext : public GlContext 
 {

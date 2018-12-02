@@ -9,8 +9,10 @@
 
 /** @brief Interface for an OpenGL Context wrapper. 
  *
- * Implemented upon the selected window service, as WINGlContext, OSXGlContext, X11GlContext
+ * Implemented upon the selected window service, as WinGlContext, OSXGlContext, X11GlContext
  * or WlGlContext (some other implementations may be used).
+ * 
+ * WinGlContext is implemented as a HWND (the window that handles it), a HDC and its HGLRC.
  *
 **/
 class GlContext : public Clean::Handled < GlContext >
@@ -35,6 +37,9 @@ public:
     
     /*! @brief Returns the current pixel format for this context. */
     virtual Clean::PixelFormat getPixelFormat() const = 0;
+
+    /*! @brief Makes this context current. */
+    virtual void makeCurrent() = 0;
 };
 
 #endif // GLDRIVER_GLCONTEXT_H

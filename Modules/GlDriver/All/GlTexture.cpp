@@ -31,10 +31,10 @@ GLenum GlGetTextureTargetBinding(GLenum target)
 }
 
 /*! @brief Returns currently bound texture. */
-GLint GlGetTextureBound(GLenum binding)
+GLint GlGetTextureBound(GLenum binding, GlPtrTable const& gl)
 {
     GLint result;
-    glGetIntegerv(binding, &result);
+    gl.getIntegerv(binding, &result);
     return result;
 }
 
@@ -44,11 +44,12 @@ struct GlTextureBinder
     GLenum target;
     GLuint boundTex;
     bool shouldRebind;
+    GlPtrTable const& gl;
     
-    GlTextureBinder(GLenum trg, Texture const& tex) : target(trg)
+    GlTextureBinder(GLenum trg, Texture const& tex, GlPtrTable const& tbl) : target(trg), gl(tbl)
     {
         GLenum binding = GlGetTextureTargetBinding(target);
-        boundTex = (GLuint) GlGetTextureBound(binding);
+        boundTex = (GLuint) GlGetTextureBound(binding, gl);
         shouldRebind = (boundTex > 0);
         tex.bind();
     }
@@ -56,11 +57,11 @@ struct GlTextureBinder
     ~GlTextureBinder()
     {
         if (shouldRebind) 
-            glBindTexture(target, boundTex);
+            gl.bindTexture(target, boundTex);
     }
 };
 
-GlTexture::GlTexture(Driver* creator, GLuint hdl, GLenum trg) : Texture(creator), handle(hdl), target(trg)
+GlTexture::GlTexture(Driver* creator, GLuint hdl, GLenum trg, GlPtrTable const& tbl) : Texture(creator), handle(hdl), target(trg), gl(tbl)
 {
     assert(handle && "Invalid GL Handle.");
     assert(target && "Invalid GL Texture target.");
@@ -68,27 +69,27 @@ GlTexture::GlTexture(Driver* creator, GLuint hdl, GLenum trg) : Texture(creator)
 
 std::size_t GlTexture::getWidth() const 
 {
-    GlTextureBinder binder(target, *this);
+    GlTextureBinder binder(target, *this, gl);
     
     GLint width;
-    glGetTexLevelParameteriv(target, 0, GL_TEXTURE_WIDTH, &width);
+    gl.getTexLevelParameteriv(target, 0, GL_TEXTURE_WIDTH, &width);
     
     return static_cast < std::size_t >(width);
 }
 
 std::size_t GlTexture::getHeight() const 
 {
-    GlTextureBinder binder(target, *this);
+    GlTextureBinder binder(target, *this, gl);
     
     GLint height;
-    glGetTexLevelParameteriv(target, 0, GL_TEXTURE_HEIGHT, &height);
+    gl.getTexLevelParameteriv(target, 0, GL_TEXTURE_HEIGHT, &height);
     
     return static_cast < std::size_t >(height);
 }
 
 void GlTexture::bind() const 
 {
-    glBindTexture(target, handle);
+    gl.bindTexture(target, handle);
 }
 
 GLenum GlGetInternalFormat(std::uint8_t format)
@@ -138,7 +139,7 @@ GLenum GlGetPixelDataType(std::uint8_t format)
 bool GlTexture::upload(std::shared_ptr < Image > const& image)
 {
     if (!image) return false;
-    GlTextureBinder binder(target, *this);
+    GlTextureBinder binder(target, *this, gl);
     
     GLenum desiredInternalFormat = GlChooseBestInternalPixelFormat(internalFormat, image->pixelFormat());
     
@@ -165,28 +166,28 @@ bool GlTexture::upload(std::shared_ptr < Image > const& image)
         return false;
     }
     
-    glPixelStorei(GL_PACK_ROW_LENGTH, (GLint) image->findRowLength());
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    gl.pixelStorei(GL_PACK_ROW_LENGTH, (GLint) image->findRowLength());
+    gl.pixelStorei(GL_UNPACK_ALIGNMENT, 1);
     
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    gl.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
     switch (target)
     {
         case GL_TEXTURE_2D:
-        glTexImage2D(target, 0, 
-                     desiredInternalFormat,
-                     width, height, 
-                     0, 
-                     format, dataType,
-                     static_cast < const GLvoid* >(image->raw()));
+        gl.texImage2D(target, 0, 
+                      desiredInternalFormat,
+                      width, height, 
+                      0, 
+                      format, dataType,
+                      static_cast < const GLvoid* >(image->raw()));
         break;
     }
     
-    glGenerateMipmap(GL_TEXTURE_2D);
-    auto error = GlCheckError();
+    gl.generateMipmap(GL_TEXTURE_2D);
+    auto error = GlCheckError(gl.getError);
     
     if (error.error != GL_NO_ERROR)
     {
@@ -199,7 +200,7 @@ bool GlTexture::upload(std::shared_ptr < Image > const& image)
 
 void GlTexture::releaseResource() 
 {
-    glDeleteTextures(1, &handle);
+    gl.deleteTextures(1, &handle);
     released.store(true);
     handle = 0;
     target = 0;

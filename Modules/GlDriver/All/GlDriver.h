@@ -44,6 +44,30 @@ class GlDriver : public Clean::Driver
     
     //! @brief Protects defaultShadersMap. 
     mutable std::mutex defaultShadersMapMutex;
+
+#   ifdef CLEAN_PLATFORM_WIN32
+    //! Holds a hidden Window helper for some actions.
+    HWND hiddenWindow;
+
+    //! Holds the broadcast notification for input controllers.
+    HDEVNOTIFY deviceNotifHandle;
+
+    //! Holds function pointers to all WGL functions.
+    WGlPtrTable wglTable;
+
+    //! Holds the hiden context tied to the hidden window.
+    HGLRC hiddenContext;
+
+#   endif
+
+public:
+
+    //! @brief Holds current OPENGL function pointers. In a single system, loading an OpenGL always load the same 
+    //! library. However, as this is not guaranteed, each GlDriver holds its version of the function pointers table.
+    //! To get quick access over those pointers, this table is a static table organized as a C structure. As it should be 
+    //! writable only by the GlDriver, no concurrency is expected when accessing this data. Just ensure \ref initialize
+    //! has been called before.
+    GlPtrTable glTable;
     
 public:
     

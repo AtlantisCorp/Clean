@@ -10,8 +10,13 @@
 #include <Clean/Property.h>
 #include <Clean/AtomicCounter.h>
 
+class GlDriver;
+
 class GlRenderPipeline : public Clean::RenderPipeline
 {
+    //! @brief Holds Gl table.
+    GlPtrTable const& gl;
+
     //! @brief OpenGL Program object.
     GLuint programHandle;
     
@@ -24,7 +29,7 @@ class GlRenderPipeline : public Clean::RenderPipeline
 public:
     
     /*! @brief Constructs a pipeline. */
-    GlRenderPipeline(Clean::Driver* driver);
+    GlRenderPipeline(Clean::Driver* driver, GlPtrTable const& tbl);
     
     /*! @brief Links the given shader to its program object. 
      *

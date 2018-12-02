@@ -8,20 +8,14 @@
 #define CLEAN_MATERIAL_H
 
 #include "Handled.h"
-#include "EffectParameter.h"
+#include "EffectParameterProvider.h"
 #include "FileLoader.h"
 #include "Property.h"
 
-#include <memory>
-#include <vector>
-
 namespace Clean 
 {   
-    class Material : public Handled < Material >
+    class Material : public EffectParameterProvider, public Handled < Material >
     {
-        typedef std::shared_ptr < EffectParameter > SharedParameter;
-        typedef std::shared_ptr < TexturedParameter > SharedTexParam;
-        
         //! @brief Diffuse color. 
         SharedParameter diffuseColor;
         
@@ -82,10 +76,10 @@ namespace Clean
         void setEmissiveColor(glm::vec4 const& color);
         
         /*! @brief Returns all EffectParameters. */
-        std::vector < std::shared_ptr < EffectParameter > > findAllParameters() const;
+        SharedParameters findAllParameters() const;
         
         /*! @brief Returns all TexturedParameters. */
-        std::vector < std::shared_ptr < TexturedParameter > > findAllTexturedParameters() const;
+        SharedTexParams findAllTexturedParameters() const;
         
         /*! @brief Returns name. */
         std::string getName() const;

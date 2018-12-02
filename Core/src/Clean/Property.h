@@ -126,6 +126,9 @@ namespace Clean
     
         /*! @brief Returns true if implementation is lock-free (only atomic operations). */
         bool isLockFree() const { return lock_.isLockFree(); }
+        
+        /*! @brief Implements the store function as the equal operator. */
+        Property& operator = (Class const& rhs) { store(rhs); return *this; }
     };
 }
 

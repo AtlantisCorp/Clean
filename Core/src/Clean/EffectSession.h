@@ -17,7 +17,7 @@
 namespace Clean 
 {
     class RenderPipeline;
-    class Material;
+    class EffectParameterProvider;
     
     /** @brief Manages multiple EffectParameter for a 'session'. 
      *
@@ -81,8 +81,8 @@ namespace Clean
         /*! @brief Binds all globals parameters to the given RenderPipeline. */
         void bind(RenderPipeline const& pipeline) const;
         
-        /*! @brief Adds Material's parameters to this EffectSession. */
-        void addMaterial(Material const& material);
+        /*! @brief Adds provider's parameters to this EffectSession. */
+        void add(EffectParameterProvider const& provider);
         
         /*! @brief Adds multiple Materials making in sort that there will be not more than one hash
          * registered in this session. */

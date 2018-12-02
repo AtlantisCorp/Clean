@@ -24,8 +24,8 @@ std::string GlErrorToString(GLenum value)
     }
 }
 
-GlError GlCheckError(void)
+GlError GlCheckError(PFNGLGETERRORPROC GetError)
 {
-    GLenum value = glGetError();
-    return { .error = value, .string = GlErrorToString(value) };
+    GLenum value = GetError();
+    return { value, GlErrorToString(value) };
 }

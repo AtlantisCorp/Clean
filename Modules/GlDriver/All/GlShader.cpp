@@ -21,24 +21,24 @@ static GLenum GlShaderStage(std::uint8_t type)
     }
 }
 
-GlShader::GlShader(const char* src, std::uint8_t type)
-    : Shader(type), shaderHandle(0), compiled(false), compilerError()
+GlShader::GlShader(const char* src, std::uint8_t type, GlPtrTable const& tbl)
+    : Shader(type), shaderHandle(0), compiled(false), compilerError(), gl(tbl)
 {
-    shaderHandle = glCreateShader(GlShaderStage(type));
+    shaderHandle = gl.createShader(GlShaderStage(type));
     if (!shaderHandle) return;
     
-    glShaderSource(shaderHandle, 1, &src, NULL);
-    glCompileShader(shaderHandle);
+    gl.shaderSource(shaderHandle, 1, &src, NULL);
+    gl.compileShader(shaderHandle);
     
     GLint status;
-    glGetShaderiv(shaderHandle, GL_COMPILE_STATUS, &status);
+    gl.getShaderiv(shaderHandle, GL_COMPILE_STATUS, &status);
     
     if (status != GL_TRUE) {
         GLsizei maxLength, length;
-        glGetShaderiv(shaderHandle, GL_INFO_LOG_LENGTH, &maxLength);
+        gl.getShaderiv(shaderHandle, GL_INFO_LOG_LENGTH, &maxLength);
         
         GLchar buffer[maxLength];
-        glGetShaderInfoLog(shaderHandle, maxLength, &length, buffer);
+        gl.getShaderInfoLog(shaderHandle, maxLength, &length, buffer);
         
         Notification notif = BuildNotification(kNotificationLevelError, "Shader #%i cannot be compiled. Error is: %s",
             this->getHandle(), buffer);
@@ -71,7 +71,7 @@ GLuint GlShader::getGLHandle() const
 void GlShader::releaseResource()
 {
     if (!compiled) return;
-    glDeleteShader(shaderHandle);
+    gl.deleteShader(shaderHandle);
     shaderHandle = 0;
     compiled = false;
     compilerError.clear();

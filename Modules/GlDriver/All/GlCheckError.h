@@ -18,6 +18,6 @@ struct GlError
 };
 
 /*! @brief Checks for the current OpenGL error by calling glGetError(). */
-GlError GlCheckError(void);
+GlError GlCheckError(PFNGLGETERRORPROC GetError);
 
 #endif // GLDRIVER_GLCHECKERROR_H

@@ -91,7 +91,7 @@ namespace Clean
         param->value.vec4 = color;
     }
     
-    std::vector < std::shared_ptr < EffectParameter > > Material::findAllParameters() const 
+    Material::SharedParameters Material::findAllParameters() const 
     {
         std::vector < SharedParameter > result;
         result.push_back(std::atomic_load(&ambientColor));
@@ -101,7 +101,7 @@ namespace Clean
         return result;
     }
     
-    std::vector < std::shared_ptr < TexturedParameter > > Material::findAllTexturedParameters() const
+    Material::SharedTexParams Material::findAllTexturedParameters() const
     {
         std::vector < SharedTexParam > result;
         result.push_back(std::atomic_load(&diffuseTexture));

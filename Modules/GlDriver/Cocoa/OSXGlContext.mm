@@ -6,6 +6,75 @@
 #include <Clean/Allocate.h>
 using namespace Clean;
 
+void OSXGlFillGlTable(GlPtrTable& gl)
+{
+    memset(&gl, 0, sizeof(gl));
+    
+    gl.drawElements = glDrawElements;
+    gl.drawArrays = glDrawArrays;
+    gl.genTextures = glGenTextures;
+    gl.genBuffers = glGenBuffers;
+    gl.bindBuffer = glBindBuffer;
+    gl.bufferData = glBufferData;
+    gl.mapBuffer = glMapBuffer;
+    gl.unmapBuffer = glUnmapBuffer;
+    gl.deleteBuffers = glDeleteBuffers;
+    gl.getIntegerv = glGetIntegerv;
+    gl.createProgram = glCreateProgram;
+    gl.attachShader = glAttachShader;
+    gl.linkProgram = glLinkProgram;
+    gl.getProgramiv = glGetProgramiv;
+    gl.getProgramInfoLog = glGetProgramInfoLog;
+    gl.useProgram = glUseProgram;
+    gl.validateProgram = glValidateProgram;
+    gl.getUniformLocation = glGetUniformLocation;
+    gl.uniform1ui = glUniform1ui;
+    gl.uniform1i = glUniform1i;
+    gl.uniform1f = glUniform1f;
+    gl.uniform2fv = glUniform2fv;
+    gl.uniform3fv = glUniform3fv;
+    gl.uniform4fv = glUniform4fv;
+    gl.uniform2uiv = glUniform2uiv;
+    gl.uniform3uiv = glUniform3uiv;
+    gl.uniform4uiv = glUniform4uiv;
+    gl.uniform2iv = glUniform2iv;
+    gl.uniform3iv = glUniform3iv;
+    gl.uniform4iv = glUniform4iv;
+    gl.uniformMatrix2fv = glUniformMatrix2fv;
+    gl.uniformMatrix3fv = glUniformMatrix3fv;
+    gl.uniformMatrix4fv = glUniformMatrix4fv;
+    gl.uniformMatrix2x3fv = glUniformMatrix2x3fv;
+    gl.uniformMatrix3x2fv = glUniformMatrix3x2fv;
+    gl.uniformMatrix2x4fv = glUniformMatrix2x4fv;
+    gl.uniformMatrix4x2fv = glUniformMatrix4x2fv;
+    gl.uniformMatrix3x4fv = glUniformMatrix3x4fv;
+    gl.uniformMatrix4x3fv = glUniformMatrix4x3fv;
+    gl.getError = glGetError;
+    gl.enableVertexAttribArray = glEnableVertexAttribArray;
+    gl.vertexAttribPointer = glVertexAttribPointer;
+    gl.disableVertexAttribArray = glDisableVertexAttribArray;
+    gl.polygonMode = glPolygonMode;
+    gl.getAttribLocation = glGetAttribLocation;
+    gl.activeTexture = glActiveTexture;
+    gl.deleteProgram = glDeleteProgram;
+    gl.bindTexture = glBindTexture;
+    gl.getTexLevelParameteriv = glGetTexLevelParameteriv;
+    gl.pixelStorei = glPixelStorei;
+    gl.texParameteri = glTexParameteri;
+    gl.texImage2D = glTexImage2D;
+    gl.generateMipmap = glGenerateMipmap;
+    gl.deleteTextures = glDeleteTextures;
+    gl.genVertexArrays = glGenVertexArrays;
+    gl.bindVertexArray = glBindVertexArray;
+    gl.deleteVertexArrays = glDeleteVertexArrays;
+    gl.createShader = glCreateShader;
+    gl.shaderSource = glShaderSource;
+    gl.compileShader = glCompileShader;
+    gl.getShaderiv = glGetShaderiv;
+    gl.getShaderInfoLog = glGetShaderInfoLog;
+    gl.deleteShader = glDeleteShader;
+}
+
 /*! @brief Fills attribs with the corresponding NSOpenGLPixelFormatAttribute values
  *  for the given pixelFormat. 
  *

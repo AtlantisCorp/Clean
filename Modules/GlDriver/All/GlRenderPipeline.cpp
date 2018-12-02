@@ -44,17 +44,17 @@ static GLenum GlGetPolygonMode(std::uint8_t mode)
     }
 }
 
-static GLuint GlGetCurrentProgram(void)
+static GLuint GlGetCurrentProgram(GlPtrTable const& gl)
 {
     GLint currentProgram;
-    glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+    gl.getIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
     return static_cast < GLuint >(currentProgram);
 }
 
-GlRenderPipeline::GlRenderPipeline(Driver* driver)
-    : RenderPipeline(driver), unitCounter(0)
+GlRenderPipeline::GlRenderPipeline(Driver* driver, GlPtrTable const& tbl)
+    : RenderPipeline(driver), gl(tbl), unitCounter(0)
 {
-    programHandle = glCreateProgram();
+    programHandle = gl.createProgram();
 }
 
 void GlRenderPipeline::shader(std::uint8_t stage, std::shared_ptr < Shader > const& shad)
@@ -68,9 +68,9 @@ void GlRenderPipeline::shader(std::uint8_t stage, std::shared_ptr < Shader > con
     }
     
     auto shader = ReinterpretShared < GlShader >(shad);
-    glAttachShader(programHandle, shader->getGLHandle());
+    gl.attachShader(programHandle, shader->getGLHandle());
     
-    GlError error = GlCheckError();
+    GlError error = GlCheckError(gl.getError);
     if (error.error != GL_NO_ERROR) {
         Notification notif = BuildNotification(kNotificationLevelError,
             "An error occured while glAttachShader: %s.",
@@ -85,18 +85,18 @@ void GlRenderPipeline::link()
     textureUnits.unlock();
     unitCounter.reset(0);
     
-    glLinkProgram(programHandle);
+    gl.linkProgram(programHandle);
     
     GLint result;
-    glGetProgramiv(programHandle, GL_LINK_STATUS, &result);
+    gl.getProgramiv(programHandle, GL_LINK_STATUS, &result);
     
     if (result != GL_TRUE) {
         GLint maxLength;
-        glGetProgramiv(programHandle, GL_INFO_LOG_LENGTH, &maxLength);
+        gl.getProgramiv(programHandle, GL_INFO_LOG_LENGTH, &maxLength);
         
         GLsizei length;
         GLchar buffer[maxLength];
-        glGetProgramInfoLog(programHandle, maxLength, &length, buffer);
+        gl.getProgramInfoLog(programHandle, maxLength, &length, buffer);
         
         Notification notif = BuildNotification(kNotificationLevelError,
             "Can't link program #%i: %s",
@@ -111,42 +111,42 @@ void GlRenderPipeline::bind(Driver const& driver) const
         const_cast < GlRenderPipeline* >(this)->link();
     }
     
-    glUseProgram(programHandle);
+    gl.useProgram(programHandle);
 }
 
 bool GlRenderPipeline::isLinked() const 
 {
     GLint result;
-    glGetProgramiv(programHandle, GL_LINK_STATUS, &result);
+    gl.getProgramiv(programHandle, GL_LINK_STATUS, &result);
     return result == GL_TRUE;
 }
 
 std::string GlRenderPipeline::validate() const 
 {
-    glValidateProgram(programHandle);
+    gl.validateProgram(programHandle);
     
     GLint maxLength, length;
-    glGetProgramiv(programHandle, GL_INFO_LOG_LENGTH, &maxLength);
+    gl.getProgramiv(programHandle, GL_INFO_LOG_LENGTH, &maxLength);
     
     GLchar buffer[maxLength];
-    glGetProgramInfoLog(programHandle, maxLength, &length, buffer);
+    gl.getProgramInfoLog(programHandle, maxLength, &length, buffer);
     
     return std::string(buffer, length);
 }
 
 void GlRenderPipeline::bindParameter(ShaderParameter const& parameter) const 
 {
-    GLuint currentProgram = GlGetCurrentProgram();
+    GLuint currentProgram = GlGetCurrentProgram(gl);
     bool rebindCurrent = false;
     
     if (currentProgram != programHandle) {
-        glUseProgram(programHandle);
+        gl.useProgram(programHandle);
         rebindCurrent = true;
     }
     
     GLint location = static_cast < GLint >(parameter.idx);
     if (location < 0) {
-        location = glGetUniformLocation(programHandle, parameter.name.data());
+        location = gl.getUniformLocation(programHandle, parameter.name.data());
         if (location < 0) {
             Notification notif = BuildNotification(kNotificationLevelInfo,
                 "Can't bind ShaderParameter '%s' because it was not found in GlRenderPipeline #%i.",
@@ -159,94 +159,94 @@ void GlRenderPipeline::bindParameter(ShaderParameter const& parameter) const
     switch(parameter.type)
     {
         case kShaderParamU32:
-        glUniform1ui(location, parameter.value.u32);
+        gl.uniform1ui(location, parameter.value.u32);
         break;
         
         case kShaderParamI32:
-        glUniform1i(location, parameter.value.i32);
+        gl.uniform1i(location, parameter.value.i32);
         break;
         
         case kShaderParamFloat:
-        glUniform1f(location, parameter.value.fl);
+        gl.uniform1f(location, parameter.value.fl);
         break;
         
         case kShaderParamVec2:
-            glUniform2fv(location, 1, glm::value_ptr(parameter.value.vec2));
+        gl.uniform2fv(location, 1, glm::value_ptr(parameter.value.vec2));
         break;
         
         case kShaderParamVec3:
-            glUniform3fv(location, 1, glm::value_ptr(parameter.value.vec3));
+        gl.uniform3fv(location, 1, glm::value_ptr(parameter.value.vec3));
         break;
         
         case kShaderParamVec4:
-            glUniform4fv(location, 1, glm::value_ptr(parameter.value.vec4));
+        gl.uniform4fv(location, 1, glm::value_ptr(parameter.value.vec4));
         break;
         
         case kShaderParamUVec2:
-        glUniform2uiv(location, 1, glm::value_ptr(parameter.value.uvec2));
+        gl.uniform2uiv(location, 1, glm::value_ptr(parameter.value.uvec2));
         break;
         
         case kShaderParamUVec3:
-        glUniform3uiv(location, 1, glm::value_ptr(parameter.value.uvec3));
+        gl.uniform3uiv(location, 1, glm::value_ptr(parameter.value.uvec3));
         break;
         
         case kShaderParamUVec4:
-        glUniform4uiv(location, 1, glm::value_ptr(parameter.value.uvec4));
+        gl.uniform4uiv(location, 1, glm::value_ptr(parameter.value.uvec4));
         break;
         
         case kShaderParamIVec2:
-        glUniform2iv(location, 1, glm::value_ptr(parameter.value.ivec2));
+        gl.uniform2iv(location, 1, glm::value_ptr(parameter.value.ivec2));
         break;
         
         case kShaderParamIVec3:
-        glUniform3iv(location, 1, glm::value_ptr(parameter.value.ivec3));
+        gl.uniform3iv(location, 1, glm::value_ptr(parameter.value.ivec3));
         break;
         
         case kShaderParamIVec4:
-        glUniform4iv(location, 1, glm::value_ptr(parameter.value.ivec4));
+        gl.uniform4iv(location, 1, glm::value_ptr(parameter.value.ivec4));
         break;
         
         case kShaderParamMat2:
-        glUniformMatrix2fv(location, 1, false, glm::value_ptr(parameter.value.mat2));
+        gl.uniformMatrix2fv(location, 1, false, glm::value_ptr(parameter.value.mat2));
         break;
         
         case kShaderParamMat3:
-        glUniformMatrix3fv(location, 1, false, glm::value_ptr(parameter.value.mat3));
+        gl.uniformMatrix3fv(location, 1, false, glm::value_ptr(parameter.value.mat3));
         break;
         
         case kShaderParamMat4:
-        glUniformMatrix4fv(location, 1, false, glm::value_ptr(parameter.value.mat4));
+        gl.uniformMatrix4fv(location, 1, false, glm::value_ptr(parameter.value.mat4));
         break;
         
         case kShaderParamMat2x3:
-        glUniformMatrix2x3fv(location, 1, false, glm::value_ptr(parameter.value.mat2x3));
+        gl.uniformMatrix2x3fv(location, 1, false, glm::value_ptr(parameter.value.mat2x3));
         break;
         
         case kShaderParamMat3x2:
-        glUniformMatrix3x2fv(location, 1, false, glm::value_ptr(parameter.value.mat3x2));
+        gl.uniformMatrix3x2fv(location, 1, false, glm::value_ptr(parameter.value.mat3x2));
         break;
         
         case kShaderParamMat2x4:
-        glUniformMatrix2x4fv(location, 1, false, glm::value_ptr(parameter.value.mat2x4));
+        gl.uniformMatrix2x4fv(location, 1, false, glm::value_ptr(parameter.value.mat2x4));
         break;
         
         case kShaderParamMat4x2:
-        glUniformMatrix4x2fv(location, 1, false, glm::value_ptr(parameter.value.mat4x2));
+        gl.uniformMatrix4x2fv(location, 1, false, glm::value_ptr(parameter.value.mat4x2));
         break;
         
         case kShaderParamMat3x4:
-        glUniformMatrix3x4fv(location, 1, false, glm::value_ptr(parameter.value.mat3x4));
+        gl.uniformMatrix3x4fv(location, 1, false, glm::value_ptr(parameter.value.mat3x4));
         break;
         
         case kShaderParamMat4x3:
-        glUniformMatrix4x3fv(location, 1, false, glm::value_ptr(parameter.value.mat4x3));
+        gl.uniformMatrix4x3fv(location, 1, false, glm::value_ptr(parameter.value.mat4x3));
         break;
         
         default:
         break;
     }
     
-    GlError error = GlCheckError();
+    GlError error = GlCheckError(gl.getError);
     if (error.error != GL_NO_ERROR) {
         Notification notif = BuildNotification(kNotificationLevelError,
             "An error occured while glUniform: %s.",
@@ -255,7 +255,7 @@ void GlRenderPipeline::bindParameter(ShaderParameter const& parameter) const
     }
     
     if (rebindCurrent) {
-        glUseProgram(currentProgram);
+        gl.useProgram(currentProgram);
     }
 }
 
@@ -292,10 +292,10 @@ void GlRenderPipeline::bindShaderAttributes(ShaderAttributesMap const& attribute
                 pointer = (GLvoid*) attrib.buffer->lock(kBufferIOReadOnly);
             }
             
-            glEnableVertexAttribArray(index);
-            glVertexAttribPointer(index, size, type, false, stride, pointer);
+            gl.enableVertexAttribArray(index);
+            gl.vertexAttribPointer(index, size, type, false, stride, pointer);
             
-            GlError error = GlCheckError();
+            GlError error = GlCheckError(gl.getError);
             if (error.error != GL_NO_ERROR) {
                 Notification notif = BuildNotification(kNotificationLevelError,
                     "Can't bind ShaderAttribute: %s",
@@ -310,14 +310,14 @@ void GlRenderPipeline::bindShaderAttributes(ShaderAttributesMap const& attribute
         
         else if (attrib.index < kShaderAttributeMax)
         {
-            glDisableVertexAttribArray(static_cast < GLuint >(attrib.index));
+            gl.disableVertexAttribArray(static_cast < GLuint >(attrib.index));
         }
     }
 }
 
 void GlRenderPipeline::setDrawingMethod(std::uint8_t drawingMethod) const 
 {
-    glPolygonMode(GL_FRONT_AND_BACK, GlGetPolygonMode(drawingMethod));
+    gl.polygonMode(GL_FRONT_AND_BACK, GlGetPolygonMode(drawingMethod));
 }
 
 bool GlRenderPipeline::hasAttribute(std::string const& attrib) const 
@@ -325,15 +325,15 @@ bool GlRenderPipeline::hasAttribute(std::string const& attrib) const
     if (!isLinked() || attrib.empty()) 
         return false;
     
-    GLint location = glGetAttribLocation(programHandle, attrib.data());
+    GLint location = gl.getAttribLocation(programHandle, attrib.data());
     return location > -1;
 }
 
 std::uint8_t GlRenderPipeline::findAttributeIndex(std::string const& attrib) const
 {
-    GLuint result = static_cast < GLuint >(glGetAttribLocation(programHandle, attrib.data()));
+    GLuint result = static_cast < GLuint >(gl.getAttribLocation(programHandle, attrib.data()));
     
-    GlError error = GlCheckError();
+    GlError error = GlCheckError(gl.getError);
     if (error.error != GL_NO_ERROR) {
         Notification notif = BuildNotification(kNotificationLevelError,
             "glGetAttribLocation('%s') failed: %s",
@@ -346,17 +346,17 @@ std::uint8_t GlRenderPipeline::findAttributeIndex(std::string const& attrib) con
 
 void GlRenderPipeline::bindTexture(ShaderParameter const& parameter, Texture const& texture) const
 {
-    GLuint currentProgram = GlGetCurrentProgram();
+    GLuint currentProgram = GlGetCurrentProgram(gl);
     bool rebindCurrent = false;
     
     if (currentProgram != programHandle) {
-        glUseProgram(programHandle);
+        gl.useProgram(programHandle);
         rebindCurrent = true;
     }
     
     GLint location = static_cast < GLint >(parameter.idx);
     if (location < 0) {
-        location = glGetUniformLocation(programHandle, parameter.name.data());
+        location = gl.getUniformLocation(programHandle, parameter.name.data());
         if (location < 0) {
             Notification notif = BuildNotification(kNotificationLevelInfo,
                 "Can't bind ShaderParameter '%s' because it was not found in GlRenderPipeline #%i.",
@@ -380,11 +380,11 @@ void GlRenderPipeline::bindTexture(ShaderParameter const& parameter, Texture con
         return;
     }
     
-    glActiveTexture(GL_TEXTURE0 + unit);
-    glUniform1i(location, unit);
+    gl.activeTexture(GL_TEXTURE0 + unit);
+    gl.uniform1i(location, unit);
     texture.bind();
     
-    GlError error = GlCheckError();
+    GlError error = GlCheckError(gl.getError);
     if (error.error != GL_NO_ERROR) {
         Notification notif = BuildNotification(kNotificationLevelError,
             "An error occured: %s.",
@@ -393,7 +393,7 @@ void GlRenderPipeline::bindTexture(ShaderParameter const& parameter, Texture con
     }
     
     if (rebindCurrent) {
-        glUseProgram(currentProgram);
+        gl.useProgram(currentProgram);
     }
 }
 
@@ -405,7 +405,7 @@ bool GlRenderPipeline::isModifiable() const
 void GlRenderPipeline::releaseResource()
 {
     if (programHandle) {
-        glDeleteProgram(programHandle);
+        gl.deleteProgram(programHandle);
         programHandle = 0;
         released = true;
     }

@@ -7,12 +7,17 @@
 #include "GlInclude.h"
 #include <Clean/Buffer.h>
 
+class GlDriver;
+
 /*! @brief Converts kBufferUsage* constants to GL_*_DRAW constants. */
 GLenum GlBufferUsage(std::uint8_t usage);
 
 /** @brief OpenGL implementation of Clean::Buffer. */
 class GlBuffer : public Clean::Buffer 
 {
+    //! @brief Reference to the gl function table.
+    GlPtrTable const& gl;
+
     //! @brief Our GL handle. 
     GLuint handle;
     
@@ -49,7 +54,7 @@ public:
      * use Driver::copyBuffers(src, dest). This will copy your two buffers from VRAM correctly. 
      *
     **/
-    GlBuffer(Clean::Driver* driver, std::uint8_t glType, GLsizeiptr glSize, GLvoid* ptr, GLenum glUsage);
+    GlBuffer(GlDriver* driver, std::uint8_t glType, GLsizeiptr glSize, GLvoid* ptr, GLenum glUsage);
     
     /*! @brief Destructs the GLBuffer. 
      *  If not released yet, calls releaseResource. Notes that normally, it should be released directly by the 

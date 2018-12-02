@@ -7,17 +7,22 @@
 #include <Clean/Driver.h>
 using namespace Clean;
 
-GlRenderWindow::GlRenderWindow() 
+GlRenderWindow::GlRenderWindow(GlPtrTable const& tbl) : gl(tbl) 
 {
-    glGenVertexArrays(1, &vao);
+    gl.genVertexArrays(1, &vao);
+}
+
+GlRenderWindow::GlRenderWindow(GlRenderWindow const& rhs) : gl(rhs.gl)
+{
+    gl.genVertexArrays(1, &vao);
 }
 
 GlRenderWindow::~GlRenderWindow()
 {
-    glDeleteVertexArrays(1, &vao);
+    gl.deleteVertexArrays(1, &vao);
 }
 
 void GlRenderWindow::bind(Driver& driver) const 
 {
-    glBindVertexArray(vao);
+    gl.bindVertexArray(vao);
 }

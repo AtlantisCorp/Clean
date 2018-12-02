@@ -6,7 +6,7 @@
 
 #include "EffectSession.h"
 #include "RenderPipeline.h"
-#include "Material.h"
+#include "EffectParameterProvider.h"
 #include "Allocate.h"
 
 namespace Clean 
@@ -65,12 +65,12 @@ namespace Clean
         pipeline.bindTexturedParameters(texturedParams.load());
     }
     
-    void EffectSession::addMaterial(Material const& material)
+    void EffectSession::add(EffectParameterProvider const& provider)
     {
-        auto parameters = material.findAllParameters();
+        auto parameters = provider.findAllParameters();
         batchAddOneHash(parameters);
         
-        auto texturedParameters = material.findAllTexturedParameters();
+        auto texturedParameters = provider.findAllTexturedParameters();
         batchAddOneHash(texturedParameters);
     }
     

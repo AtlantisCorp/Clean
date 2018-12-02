@@ -3,6 +3,7 @@
 
 #include "GlBuffer.h"
 #include "GlCheckError.h"
+#include "GlDriver.h"
 
 #include <Clean/NotificationCenter.h>
 using namespace Clean;
@@ -18,10 +19,10 @@ GLenum GlBufferUsage(std::uint8_t usage)
     }
 }
 
-GlBuffer::GlBuffer(Driver* driver, std::uint8_t glType, GLsizeiptr glSize, GLvoid* ptr, GLenum glUsage)
-    : Buffer(driver), usage(glUsage), type(glType), size(glSize)
+GlBuffer::GlBuffer(GlDriver* driver, std::uint8_t glType, GLsizeiptr glSize, GLvoid* ptr, GLenum glUsage)
+    : Buffer(driver), gl(driver->glTable), usage(glUsage), type(glType), size(glSize)
 {
-    glGenBuffers(1, &handle);
+    gl.genBuffers(1, &handle);
     assert(handle && "OpenGL can't create more buffer handles.");
     
     if (type == kBufferTypeVertex) target = GL_ARRAY_BUFFER;
@@ -29,17 +30,17 @@ GlBuffer::GlBuffer(Driver* driver, std::uint8_t glType, GLsizeiptr glSize, GLvoi
     else target = GL_INVALID_ENUM;
     
     if (glSize) {
-        glBindBuffer(target, handle);
+        gl.bindBuffer(target, handle);
         
         if (ptr) {
-            glBufferData(target, size, ptr, usage);
+            gl.bufferData(target, size, ptr, usage);
         }
         else {
-            glBufferData(target, size, NULL, usage);
+            gl.bufferData(target, size, NULL, usage);
         }
     }
     
-    GlError error = GlCheckError();
+    GlError error = GlCheckError(gl.getError);
     if (error.error != GL_NO_ERROR) {
         Notification notif = BuildNotification(kNotificationLevelError, "OpenGL returned error: %s.", error.string.data());
         NotificationCenter::GetDefault()->send(notif);
@@ -61,20 +62,20 @@ const void* GlBuffer::getData() const
 void* GlBuffer::lock(std::uint8_t io)
 {
     if (!handle) return nullptr;
-    glBindBuffer(target, handle);
+    gl.bindBuffer(target, handle);
     
     switch(io)
     {
-        case kBufferIOReadOnly: return glMapBuffer(target, GL_READ_ONLY);
-        case kBufferIOWriteOnly: return glMapBuffer(target, GL_WRITE_ONLY);
-        case kBufferIOReadWrite: return glMapBuffer(target, GL_READ_WRITE);
+        case kBufferIOReadOnly: return gl.mapBuffer(target, GL_READ_ONLY);
+        case kBufferIOWriteOnly: return gl.mapBuffer(target, GL_WRITE_ONLY);
+        case kBufferIOReadWrite: return gl.mapBuffer(target, GL_READ_WRITE);
         default: return nullptr;
     }
 }
 
 void GlBuffer::unlock(std::uint8_t)
 {
-    glUnmapBuffer(target);
+    gl.unmapBuffer(target);
 }
 
 std::size_t GlBuffer::getSize() const 
@@ -90,14 +91,14 @@ std::uint8_t GlBuffer::getDataType() const
 void GlBuffer::update(const void* data, std::size_t sz, std::uint8_t usg, bool /* acquire */)
 {
     if (!handle) {
-        glGenBuffers(1, &handle);
+        gl.genBuffers(1, &handle);
         released = false;
     }
     
-    glBindBuffer(target, handle);
-    glBufferData(target, static_cast < GLsizeiptr >(sz), static_cast < const GLvoid* >(data), GlBufferUsage(usg));
+    gl.bindBuffer(target, handle);
+    gl.bufferData(target, static_cast < GLsizeiptr >(sz), static_cast < const GLvoid* >(data), GlBufferUsage(usg));
     
-    GlError error = GlCheckError();
+    GlError error = GlCheckError(gl.getError);
     if (error.error != GL_NO_ERROR) {
         Notification notif = BuildNotification(kNotificationLevelError, "OpenGL returned error: %s.", error.string.data());
         NotificationCenter::GetDefault()->send(notif);
@@ -134,12 +135,12 @@ bool GlBuffer::isBindable() const
 
 void GlBuffer::bind(Driver&) const 
 {
-    glBindBuffer(target, handle);
+    gl.bindBuffer(target, handle);
 }
 
 void GlBuffer::unbind(Driver&) const 
 {
-    glBindBuffer(target, 0);
+    gl.bindBuffer(target, 0);
 }
 
 std::uint8_t GlBuffer::getType() const
@@ -149,7 +150,7 @@ std::uint8_t GlBuffer::getType() const
 
 void GlBuffer::releaseResource()
 {
-    glDeleteBuffers(1, &handle);
+    gl.deleteBuffers(1, &handle);
     handle = 0;
     usage = GL_INVALID_ENUM;
     size = 0;

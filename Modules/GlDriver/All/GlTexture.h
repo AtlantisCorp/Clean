@@ -22,10 +22,13 @@ class GlTexture : public Clean::Texture
     //! @brief Target used by this texture (or texture's type).
     GLenum target;
     
+    //! @brief Gl Pointer Table.
+    GlPtrTable const& gl;
+    
 public:
     
     /*! @brief Constructs a GlTexture with a handle. */
-    GlTexture(Clean::Driver* creator, GLuint hdl, GLenum trg);
+    GlTexture(Clean::Driver* creator, GLuint hdl, GLenum trg, GlPtrTable const& tbl);
     
     /*! @brief Returns the Texture's width of the base level. */
     std::size_t getWidth() const;

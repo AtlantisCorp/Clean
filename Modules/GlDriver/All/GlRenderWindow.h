@@ -13,10 +13,16 @@ class GlRenderWindow : public Clean::RenderWindow
     //! @brief Our VAO.
     GLuint vao;
     
+    //! @brief Gl Pointer Table.
+    GlPtrTable const& gl;
+    
 public:
     
     /*! @brief Constructs the GlRenderWindow. */
-    GlRenderWindow();
+    GlRenderWindow(GlPtrTable const& tbl);
+    
+    /*! @brief Constructor by copy to copy the GlPtrTable. */
+    GlRenderWindow(GlRenderWindow const& rhs);
     
     /*! @brief Destructs the GlRenderWindow. */
     virtual ~GlRenderWindow();

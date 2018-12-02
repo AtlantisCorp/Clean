@@ -12,6 +12,11 @@
 #   include "../Cocoa/OSXGlRenderWindow.h"
 #   include "../Cocoa/OSXGlApplication.h"
 
+#elif defined(CLEAN_WINDOW_WIN32)
+#   include "../Win32/WinGlInclude.h"
+#   include "../Win32/WinGlContext.h"
+#   include "../Win32/WinGlRenderWindow.h"
+
 #endif
 
 #include <Clean/NotificationCenter.h>
@@ -37,10 +42,66 @@ bool GlDriver::initialize()
     }
         
     defaultWindow = nullptr;
+    
+    OSXGlFillGlTable(glTable);
     loadDefaultShaders();
+
+    state = kDriverStateInited;
         
     return true;
-        
+
+#   elif defined(CLEAN_WINDOW_WIN32)
+
+    // Asserts libraries are loaded and filled.
+
+    WinGlLoadLibraries();
+    
+    // When we initialize OPENGL on Windows, we must create a blank context where we can extract 
+    // our WGL functions. Those functions will makes us able to load a real context with the correct
+    // desired OPENGL version.
+
+    if (!WinGlRegisterWindowClass())
+        return false;
+
+    hiddenWindow = WinGlCreateHiddenWindow(&deviceNotifHandle);
+    if (!hiddenWindow) return false;
+
+    // At this point we have a valid Window with which we must load WGL function pointers. To achieve this,
+    // we create a new context and get our functions pointer.
+
+    WinGlMakeWGLTable(hiddenWindow, wglTable);
+
+    // Now we can create our default context, with the correct PixelFormat submitted by the user. This context
+    // will be tied to our hidden window and shared with all other contexts.
+
+    hiddenContext = WinGlMakeContext(hiddenWindow, pixelFormat, NULL, wglTable);
+
+    // Now we must get some informations about the current context. To do this, we load the GlPtrTable with the 
+    // HINSTANCE found inside WGlPtrTable and this context.
+    
+    wglTable.makeCurrent(GetDC(hiddenWindow), hiddenContext);
+    WinGlMakeGLTable(wglTable, glTable);
+
+    // Create our default context to pass it to other objects.
+
+    std::scoped_lock < std::mutex, std::mutex > lck(defaultsMutex, pixelFormatMutex); 
+    defaultContext = AllocateShared < WinGlContext >(hiddenWindow, hiddenContext, wglTable, pixelFormat);
+
+    if (!defaultContext->isValid())
+    {
+        Notification notif = BuildNotification(kNotificationLevelError, "WGL: Failed to create requested context.", 0);
+        NotificationCenter::GetDefault()->send(notif);
+        return false;
+    }
+
+    // Now we can load our shaders. 
+
+    defaultContext->makeCurrent();
+    loadDefaultShaders();
+
+    state.store(kDriverStateInited);
+    return true;
+
 #   endif
 }
     
@@ -69,6 +130,10 @@ PixelFormat GlDriver::selectPixelFormat(PixelFormat const& pixFormat, PixelForma
     // or something similar to provide a correct pixel format. However, NSOpenGLPixelFormat is still null if the
     // given PixelFormat is not valid.  
     return pixFormat;
+
+#   elif defined(CLEAN_WINDOW_WIN32)
+
+    return pixFormat;
         
 #   endif
 }
@@ -87,7 +152,7 @@ void GlDriver::drawShaderAttributes(ShaderAttributesMap const& attributes)
             pointer = (GLvoid*) indexInfos.buffer->lock(kBufferIOReadOnly);
         }
         
-        glDrawElements(GL_TRIANGLES, indexInfos.elements, GL_UNSIGNED_INT, pointer);
+        glTable.drawElements(GL_TRIANGLES, indexInfos.elements, GL_UNSIGNED_INT, pointer);
         
         if (indexInfos.buffer->isBindable()) {
             indexInfos.buffer->unbind(*this);
@@ -97,7 +162,7 @@ void GlDriver::drawShaderAttributes(ShaderAttributesMap const& attributes)
     }
     
     else if (attributes.getElements()) {
-        glDrawArrays(GL_TRIANGLES, 0, attributes.getElements());
+        glTable.drawArrays(GL_TRIANGLES, 0, attributes.getElements());
     }
 }
 
@@ -172,7 +237,7 @@ public:
 
 RenderCommand GlDriver::makeRenderCommand() 
 {
-    auto pipeline = AllocateShared < GlRenderPipeline >(this);
+    auto pipeline = AllocateShared < GlRenderPipeline >(this, glTable);
     auto defaultGlslMapper = AllocateShared < DefaultGlslMapper >();
     pipeline->setMapper(defaultGlslMapper);
     
@@ -298,7 +363,7 @@ std::shared_ptr < Shader > GlDriver::makeShader(const char* src, std::uint8_t st
     assert((stage != kShaderTypeNull) && "Illegal null shader's type.");
     std::scoped_lock < GlContext const > lck(*defaultContext);
     
-    auto shader = AllocateShared < GlShader >(src, stage);
+    auto shader = AllocateShared < GlShader >(src, stage, glTable);
     if (!shader || !shader->isValid()) return nullptr;
     
     shaderManager.add(shader);
@@ -313,10 +378,10 @@ std::shared_ptr < Shader > GlDriver::findShaderPath(std::string const& origin) c
 std::shared_ptr < Texture > GlDriver::makeTexture(std::shared_ptr < Image > const& image)
 {
     GLenum target = GL_TEXTURE_2D;
-    GLuint handle; glGenTextures(1, &handle);
+    GLuint handle; glTable.genTextures(1, &handle);
     assert(target && handle && "glGenTextures failed.");
     
-    auto texture = AllocateShared < GlTexture >(this, handle, target);
+    auto texture = AllocateShared < GlTexture >(this, handle, target, glTable);
     assert(texture && "Clean::AllocateShared failed (maybe memory is not available?).");
     
     if (!texture->upload(image)) 
@@ -352,7 +417,7 @@ std::shared_ptr < RenderWindow > GlDriver::_createRenderWindow(std::size_t width
     currentContext->unlock();
     sharedContext->lock();
     
-    auto result = AllocateShared < OSXGlRenderWindow >(sharedContext, width, height, style, title);
+    auto result = AllocateShared < OSXGlRenderWindow >(sharedContext, width, height, style, title, glTable);
     if (!result || !result->isValid()) {
         Notification notif = BuildNotification(kNotificationLevelError, "OSXGlRenderWindow failed creation from context #%i.", 
             sharedContext->getHandle());
@@ -364,6 +429,39 @@ std::shared_ptr < RenderWindow > GlDriver::_createRenderWindow(std::size_t width
     result->setFullscreen(fullscreen);
     sharedContext->unlock();
     return result;
+
+#   elif defined(CLEAN_WINDOW_WIN32)
+    assert(hiddenWindow && hiddenContext);
+
+    std::scoped_lock < std::mutex > lck(defaultsMutex);
+    defaultContext->makeCurrent();
+
+    // Creates our window before creating a shared context.
+
+    HWND windowHandle = WinGlMakeWindow(width, height, title, style, fullscreen);
+    auto window = AllocateShared < WinGlRenderWindow >(windowHandle, GetDC(windowHandle));
+
+    if (!window->isValid())
+    {
+        Notification notif = BuildNotification(kNotificationLevelError, "WGL: Failed to create requested window %s.", title.data());
+        NotificationCenter::GetDefault()->send(notif);
+        return nullptr;
+    }
+
+    // Creates our shared context for our new window.
+
+    HGLRC sharedContextHandle = WinGlMakeContext(windowHandle, pixelFormat, hiddenContext, wglTable);
+    auto sharedContext = AllocateShared < WinGlContext >(windowHandle, sharedContextHandle, wglTable, pixelFormat);
+
+    if (!sharedContext->isValid())
+    {
+        Notification notif = BuildNotification(kNotificationLevelError, "WGL: Failed to create requested window context %s.", title.data());
+        NotificationCenter::GetDefault()->send(notif);
+        return nullptr;
+    }
+
+    window->setContext(sharedContext);
+    return window; 
     
 #   else
 #   error "GlDriver::_createRenderWindow not implemented on your platform."
