@@ -7,7 +7,7 @@ namespace Clean
 {
     bool KeyIsApple(Key key) 
     { 
-        return key >= kKeyAppleCommand && key <= kKeyAppleFn; 
+        return key >= kKeyAppleCommand && key <= kKeyAppleHelp; 
     }
     
     bool KeyIsAlnum(Key key) 

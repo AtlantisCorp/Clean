@@ -83,6 +83,8 @@ struct GlPtrTable
     PFNGLGETSHADERIVPROC getShaderiv;
     PFNGLGETSHADERINFOLOGPROC getShaderInfoLog;
     PFNGLDELETESHADERPROC deleteShader;
+    PFNGLENABLEPROC enable;
+    PFNGLDEPTHFUNCPROC depthFunc;
 };
 
 // Helper to check for extension string presence.  Adapted from:

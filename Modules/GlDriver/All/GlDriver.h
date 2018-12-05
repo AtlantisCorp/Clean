@@ -131,6 +131,9 @@ protected:
     
     /*! @brief Creates a RenderQueue. */
     std::shared_ptr < Clean::RenderQueue > _createRenderQueue(std::uint8_t type) const;
+    
+    /*! @brief Loads default GL states like depth-test. */
+    void loadDefaultGlStates();
 };
 
 #endif // GLDRIVER_GLDRIVER_H

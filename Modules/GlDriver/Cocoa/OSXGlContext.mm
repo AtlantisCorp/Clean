@@ -73,6 +73,8 @@ void OSXGlFillGlTable(GlPtrTable& gl)
     gl.getShaderiv = glGetShaderiv;
     gl.getShaderInfoLog = glGetShaderInfoLog;
     gl.deleteShader = glDeleteShader;
+    gl.enable = glEnable;
+    gl.depthFunc = glDepthFunc;
 }
 
 /*! @brief Fills attribs with the corresponding NSOpenGLPixelFormatAttribute values

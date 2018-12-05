@@ -95,13 +95,15 @@ void GlRenderPipeline::link()
         gl.getProgramiv(programHandle, GL_INFO_LOG_LENGTH, &maxLength);
         
         GLsizei length;
-        GLchar buffer[maxLength];
+        GLchar* buffer = (GLchar*) calloc(maxLength, sizeof(GLchar));
         gl.getProgramInfoLog(programHandle, maxLength, &length, buffer);
         
         Notification notif = BuildNotification(kNotificationLevelError,
             "Can't link program #%i: %s",
             this->getHandle(), buffer);
         NotificationCenter::GetDefault()->send(notif);
+
+        free(buffer);
     }
 }
 
@@ -128,10 +130,13 @@ std::string GlRenderPipeline::validate() const
     GLint maxLength, length;
     gl.getProgramiv(programHandle, GL_INFO_LOG_LENGTH, &maxLength);
     
-    GLchar buffer[maxLength];
+    GLchar* buffer = (GLchar*) calloc(maxLength, sizeof(GLchar));
     gl.getProgramInfoLog(programHandle, maxLength, &length, buffer);
     
-    return std::string(buffer, length);
+    std::string result(buffer, length);
+    free(buffer);
+
+    return result;
 }
 
 void GlRenderPipeline::bindParameter(ShaderParameter const& parameter) const 

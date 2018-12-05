@@ -14,31 +14,40 @@
 
 namespace Clean 
 {
-    Camera::Camera(glm::vec3 const& pos, glm::vec3 const& look, glm::vec3 const& up)
+    Camera::Camera(glm::vec3 const& pos, glm::vec3 const& look, glm::vec3 const& up_)
     {
         position = pos;
-        target = look;
-        upVector = up;
+        front = glm::normalize(pos - look);
+        worldUp = up_;
         
-        matView = glm::lookAt(position, target, upVector);
+        yaw = -90.0f;
+        pitch = 0.0f;
+        
         matViewParam = AllocateShared < EffectParameter >(kEffectViewMat4, ShaderValue{ .mat4 = matView }, kShaderParamMat4);
         matProjParam = AllocateShared < EffectParameter >(kEffectProjectionMat4, ShaderValue{ .mat4 = matProj }, kShaderParamMat4);
+        
+        makeVectors();
     }
     
     Camera::Camera(Camera const& rhs) 
     {
         position = rhs.position;
-        target = rhs.target;
-        upVector = rhs.upVector;
+        front = rhs.front;
+        worldUp = rhs.worldUp;
+        
+        yaw = rhs.yaw;
+        pitch = rhs.pitch;
+        
         ratio = rhs.ratio;
         fov = rhs.fov;
         near = rhs.near;
         far = rhs.far;
         
-        matView = glm::lookAt(position, target, upVector);
         matProj = glm::perspective(glm::radians(fov), ratio, near, far);
         matViewParam = AllocateShared < EffectParameter >(kEffectViewMat4, ShaderValue{ .mat4 = matView }, kShaderParamMat4);
         matProjParam = AllocateShared < EffectParameter >(kEffectProjectionMat4, ShaderValue{ .mat4 = matProj }, kShaderParamMat4);
+        
+        makeVectors();
     }
     
     bool Camera::onAction(CameraAction const& action)
@@ -46,8 +55,7 @@ namespace Clean
         if (action.action == kCameraActionTranslate) 
         {
             position = position + action.translation;
-            target = target + action.translation;
-            matView = glm::translate(matView, action.translation);
+            matView = glm::translate(matView, -action.translation);
             setViewParam(matView);
             return true;
         }
@@ -55,20 +63,26 @@ namespace Clean
         else if (action.action == kCameraActionBackTranslate)
         {
             position = position - action.translation;
-            target = target - action.translation;
-            matView = glm::translate(matView, -action.translation);
+            matView = glm::translate(matView, action.translation);
             setViewParam(matView);
             return true;
         }
         
         else if (action.action == kCameraActionRotate)
         {
-            matView = glm::rotate(matView, action.rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-            matView = glm::rotate(matView, action.rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-            setViewParam(matView);
+            yaw   += action.rotation.x;
+            pitch += action.rotation.y;
             
-            glm::vec3 forward(matView[3][0], matView[3][1], matView[3][2]);
-            target = position + forward;
+            if (constraintPitch)
+            {
+                if (pitch > constraintPitchValue)
+                    pitch = constraintPitchValue;
+                
+                else if (pitch < -constraintPitchValue)
+                    pitch = -constraintPitchValue;
+            }
+            
+            makeVectors();
             return true;
         }
         
@@ -127,17 +141,35 @@ namespace Clean
     
     glm::vec3 Camera::getForward() const 
     {
-        return target - position;
+        return -front;
     }
     
     glm::vec3 Camera::getTarget() const 
     {
-        return target;
+        return position + front;
     }
     
     glm::mat4 Camera::getViewMatrix() const 
     {
         return matView;
+    }
+    
+    glm::vec3 Camera::getDirection() const
+    {
+        return front;
+    }
+    
+    glm::vec3 Camera::getRight() const
+    {
+        return right;
+    }
+    
+    void Camera::reset()
+    {
+        position = glm::vec3(0.0f, 0.0f, 0.0f);
+        front = glm::vec3(0.0f, 0.0f, -1.0f);
+        worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+        makeVectors();
     }
         
     void Camera::setViewParam(glm::mat4 const& mat4) 
@@ -156,5 +188,20 @@ namespace Clean
         param->value.mat4 = mat4;
         param->mutex.unlock();
         matProjParam.unlock();
+    }
+    
+    void Camera::makeVectors()
+    {
+        float radYaw = glm::radians(yaw), radPitch = glm::radians(pitch);
+        glm::vec3 newFront;
+        newFront.x = cos(radYaw) * cos(radPitch);
+        newFront.y = sin(radPitch);
+        newFront.z = sin(radYaw) * cos(radPitch);
+        
+        front = glm::normalize(newFront);
+        right = glm::normalize(glm::cross(front, worldUp));
+        up    = glm::normalize(glm::cross(right, front));
+        matView = glm::lookAt(position, position + front, up);
+        setViewParam(matView);
     }
 }

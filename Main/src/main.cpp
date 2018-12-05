@@ -46,6 +46,7 @@
 #include <Clean/Mesh.h>
 #include <Clean/Camera.h>
 #include <iostream>
+#include <chrono>
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -73,6 +74,148 @@ public:
             << "[" << function << "] " 
             << notification.message 
             << std::endl;
+    }
+};
+
+/** @brief A simple class for all objects that may be time-based updated. */
+class TimeUpdatable
+{
+public:
+    
+    virtual ~TimeUpdatable() = default;
+    
+    virtual void update(std::chrono::milliseconds const& deltaTime) = 0;
+};
+
+static constexpr const float kFPSCameraDefaultSpeed = 0.007f;
+static constexpr const float kFPSCameraDefaultSensitivity = 0.04f;
+
+/** @brief An example of a very simple FPS-like Camera. */
+class FPSCamera : public Clean::Camera, public TimeUpdatable
+{
+    std::map < std::uint16_t, bool > keymap;
+    std::atomic < float > speed, sensitivity;
+    
+public:
+    
+    FPSCamera(glm::vec3 const& pos, glm::vec3 const& look = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 const& up = glm::vec3(0.0f, 1.0f, 0.0f))
+    : Clean::Camera(pos, look, up)
+    {
+        keymap[Clean::kKeyW] = false;
+        keymap[Clean::kKeyS] = false;
+        keymap[Clean::kKeyA] = false;
+        keymap[Clean::kKeyD] = false;
+        speed = kFPSCameraDefaultSpeed;
+        sensitivity = kFPSCameraDefaultSensitivity;
+    }
+    
+    void onWindowKey(Clean::WindowKeyEvent const& event)
+    {
+        if (event.pressed)
+        {
+            if (event.key == Clean::kKeyW)
+            keymap[Clean::kKeyW] = true;
+            
+            else if (event.key == Clean::kKeyS)
+            keymap[Clean::kKeyS] = true;
+            
+            else if (event.key == Clean::kKeyA)
+            keymap[Clean::kKeyA] = true;
+            
+            else if (event.key == Clean::kKeyD)
+            keymap[Clean::kKeyD] = true;
+            
+            else if (event.key == Clean::kKeyShift)
+            speed = speed * 2;
+        }
+        
+        else if (!event.pressed)
+        {
+            if (event.key == Clean::kKeyW)
+            keymap[Clean::kKeyW] = false;
+            
+            else if (event.key == Clean::kKeyS)
+            keymap[Clean::kKeyS] = false;
+            
+            else if (event.key == Clean::kKeyA)
+            keymap[Clean::kKeyA] = false;
+            
+            else if (event.key == Clean::kKeyD)
+            keymap[Clean::kKeyD] = false;
+            
+            else if (event.key == Clean::kKeyU)
+            invert();
+            
+            else if (event.key == Clean::kKeyShift)
+            speed = speed / 2;
+        }
+    }
+    
+    void invert()
+    {
+        worldUp = -worldUp;
+        makeVectors();
+    }
+    
+    void update(std::chrono::milliseconds const& deltaTime)
+    {
+        if (keymap[Clean::kKeyW])
+        {
+            Clean::CameraAction forward;
+            forward.action = Clean::kCameraActionTranslate;
+            forward.translation = speed * deltaTime.count() * getDirection();
+            onAction(forward);
+        }
+        
+        if (keymap[Clean::kKeyS])
+        {
+            Clean::CameraAction forward;
+            forward.action = Clean::kCameraActionBackTranslate;
+            forward.translation = speed * deltaTime.count() * getDirection();
+            onAction(forward);
+        }
+        
+        if (keymap[Clean::kKeyA])
+        {
+            Clean::CameraAction left;
+            left.action = Clean::kCameraActionBackTranslate;
+            left.translation = speed * deltaTime.count() * getRight();
+            onAction(left);
+        }
+        
+        if (keymap[Clean::kKeyD])
+        {
+            Clean::CameraAction right;
+            right.action = Clean::kCameraActionTranslate;
+            right.translation = speed * deltaTime.count() * getRight();
+            onAction(right);
+        }
+    }
+    
+    void onWindowMouseMoved(Clean::WindowMouseMovedEvent const& event)
+    {
+        Clean::CameraAction mouseMoved;
+        mouseMoved.action = Clean::kCameraActionRotate;
+        mouseMoved.rotation.x = sensitivity * event.deltaX;
+        mouseMoved.rotation.y = -sensitivity * event.deltaY;
+        onAction(mouseMoved);
+    }
+    
+    void setSpeed(float value)
+    {
+        speed = value;
+    }
+    
+    void setSensitivity(float value)
+    {
+        sensitivity = value;
+    }
+    
+    void reset()
+    {
+        speed = kFPSCameraDefaultSpeed;
+        sensitivity = kFPSCameraDefaultSensitivity;
+        Camera::reset();
     }
 };
 
@@ -109,7 +252,15 @@ int main()
             // manager and must be initialized. Multiple drivers can be initialized, thus all object created by
             // a driver derives from Clean::DriverManaged class.
             
+            Clean::PixelFormat format;
+            format.multisampled = true;
+            format.sampleBuffers = 1;
+            format.samples = 8;
+            format.buffers = 2;
+            format.bitsPerPixel = 32;
+            
             auto gldriver = core.findDriver("Clean.GlDriver");
+            gldriver->selectPixelFormat(format);
             assert(gldriver->initialize() && "Can't initialize Clean.GlDriver.");
             
             // Creates our RenderWindow. A RenderWindow is accessible via the Clean::WindowManager, as every other
@@ -178,11 +329,11 @@ int main()
             // action can be connected to an input key. However, as some keyboards have different keys, an action layout can be
             // loaded by Camera for each languages.
             
-            auto camera = AllocateShared < Clean::Camera >(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-            camera->setProjection(60.0f, 0.001f, 100.0f);
+            auto camera = AllocateShared < FPSCamera >(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f));
+            camera->setProjection(60.0f, 0.1f, 1000.0f);
             camera->listen(window);
             
-            auto effSession = gldriver->getEffectSession();
+            auto& effSession = gldriver->getEffectSession();
             effSession.add(*camera);
             
             /* 
@@ -199,8 +350,14 @@ int main()
             // with their update implementation, but would not commit rendering jobs and swap buffers of the rendering swap
             // chains. When you work with multiple driver, you should call Clean::Core::updateAllDrivers().
             
+            auto lastTime = std::chrono::high_resolution_clock::now();
+            
             while (!gldriver->allWindowClosed())
             {
+                auto deltaTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - lastTime);
+                lastTime = std::chrono::high_resolution_clock::now();
+                
+                camera->update(deltaTime);
                 gldriver->update();
             }
         }

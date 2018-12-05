@@ -17,6 +17,8 @@
     
     "Constants":
     {
-        "texture1": { "name": "kEffectMaterialAmbientTexture" }
+        "texture1": { "name": "kEffectMaterialAmbientTexture" },
+        "uProjection": { "name": "kEffectProjectionMat4" },
+        "uView": { "name": "kEffectViewMat4" }
     }
 }

@@ -176,7 +176,7 @@ void WinGlMakeGLTable(WGlPtrTable const& wgl, GlPtrTable& gl)
     gl.activeTexture = (PFNGLACTIVETEXTUREPROC) WinGlGetProcAddress(wgl, "glActiveTexture");
     gl.deleteProgram = (PFNGLDELETEPROGRAMPROC) WinGlGetProcAddress(wgl, "glDeleteProgram");
     gl.bindTexture = (PFNGLBINDTEXTUREPROC) WinGlGetProcAddress(wgl, "glBindTexture");
-    gl.getTexLevelParameteriv = (PFNGLTEXLEVELPARAMETERIVPROC) WinGlGetProcAddress(wgl, "glTexLevelParameteriv");
+    gl.getTexLevelParameteriv = (PFNGLGETTEXLEVELPARAMETERIVPROC) WinGlGetProcAddress(wgl, "glGetTexLevelParameteriv");
     gl.pixelStorei = (PFNGLPIXELSTOREIPROC) WinGlGetProcAddress(wgl, "glPixelStorei");
     gl.texParameteri = (PFNGLTEXPARAMETERIPROC) WinGlGetProcAddress(wgl, "glTexParameteri");
     gl.texImage2D = (PFNGLTEXIMAGE2DPROC) WinGlGetProcAddress(wgl, "glTexImage2D");
@@ -191,6 +191,8 @@ void WinGlMakeGLTable(WGlPtrTable const& wgl, GlPtrTable& gl)
     gl.getShaderiv = (PFNGLGETSHADERIVPROC) WinGlGetProcAddress(wgl, "glGetShaderiv");
     gl.getShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC) WinGlGetProcAddress(wgl, "glGetShaderInfoLog");
     gl.deleteShader = (PFNGLDELETESHADERPROC) WinGlGetProcAddress(wgl, "glDeleteShader");
+    gl.enable = (PFNGLENABLEPROC) WinGlGetProcAddress(wgl, "glEnable");
+    gl.depthFunc = (PFNGLDEPTHFUNCPROC) WinGlGetProcAddress(wgl, "glDepthFunc");
 }
 
 BOOL WinGlIsWindows10BuildOrGreater(WORD build)

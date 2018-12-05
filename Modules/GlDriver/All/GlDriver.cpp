@@ -45,6 +45,7 @@ bool GlDriver::initialize()
     
     OSXGlFillGlTable(glTable);
     loadDefaultShaders();
+    loadDefaultGlStates();
 
     state = kDriverStateInited;
         
@@ -128,11 +129,13 @@ PixelFormat GlDriver::selectPixelFormat(PixelFormat const& pixFormat, PixelForma
 #   ifdef CLEAN_WINDOW_COCOA
     // NOTE: NSOpenGLPixelFormat already implements this automatically. We don't need to call CGLChoosePixelFormat
     // or something similar to provide a correct pixel format. However, NSOpenGLPixelFormat is still null if the
-    // given PixelFormat is not valid.  
+    // given PixelFormat is not valid.
+    pixelFormat = pixFormat;
     return pixFormat;
 
 #   elif defined(CLEAN_WINDOW_WIN32)
 
+    pixelFormat = pixFormat;
     return pixFormat;
         
 #   endif
@@ -472,4 +475,9 @@ std::shared_ptr < RenderWindow > GlDriver::_createRenderWindow(std::size_t width
 std::shared_ptr < RenderQueue > GlDriver::_createRenderQueue(std::uint8_t type) const
 {
     return AllocateShared < GlRenderQueue >(type);
+}
+
+void GlDriver::loadDefaultGlStates()
+{
+    glTable.enable(GL_DEPTH_TEST);
 }

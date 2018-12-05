@@ -72,22 +72,29 @@ namespace Clean
     static constexpr const std::uint16_t kKeyAppleCommand = 44;
     static constexpr const std::uint16_t kKeyAppleOption = 45;
     static constexpr const std::uint16_t kKeyAppleFn = 46;
+    static constexpr const std::uint16_t kKeyAppleHelp = 47;
     
     // Other control keys
-    static constexpr const std::uint16_t kKeyDelete = 47;
-    static constexpr const std::uint16_t kKeyF1 = 48;
-    static constexpr const std::uint16_t kKeyF2 = 49;
-    static constexpr const std::uint16_t kKeyF3 = 50;
-    static constexpr const std::uint16_t kKeyF4 = 51;
-    static constexpr const std::uint16_t kKeyF5 = 52;
-    static constexpr const std::uint16_t kKeyF6 = 53;
-    static constexpr const std::uint16_t kKeyF7 = 54;
-    static constexpr const std::uint16_t kKeyF8 = 55;
-    static constexpr const std::uint16_t kKeyF9 = 56;
-    static constexpr const std::uint16_t kKeyF10 = 57;
-    static constexpr const std::uint16_t kKeyF11 = 58;
-    static constexpr const std::uint16_t kKeyF12 = 59;
-    static constexpr const std::uint16_t kKeyTab = 60;
+    static constexpr const std::uint16_t kKeyDelete = 48;
+    static constexpr const std::uint16_t kKeyF1 = 49;
+    static constexpr const std::uint16_t kKeyF2 = 50;
+    static constexpr const std::uint16_t kKeyF3 = 51;
+    static constexpr const std::uint16_t kKeyF4 = 52;
+    static constexpr const std::uint16_t kKeyF5 = 53;
+    static constexpr const std::uint16_t kKeyF6 = 54;
+    static constexpr const std::uint16_t kKeyF7 = 55;
+    static constexpr const std::uint16_t kKeyF8 = 56;
+    static constexpr const std::uint16_t kKeyF9 = 57;
+    static constexpr const std::uint16_t kKeyF10 = 58;
+    static constexpr const std::uint16_t kKeyF11 = 59;
+    static constexpr const std::uint16_t kKeyF12 = 60;
+    static constexpr const std::uint16_t kKeyTab = 61;
+    
+    // Arrows
+    static constexpr const std::uint16_t kKeyArrowLeft = 62;
+    static constexpr const std::uint16_t kKeyArrowRight = 62;
+    static constexpr const std::uint16_t kKeyArrowUp = 62;
+    static constexpr const std::uint16_t kKeyArrowDown = 62;
     
     // [...] TODO Do all other keys. It's long.
     

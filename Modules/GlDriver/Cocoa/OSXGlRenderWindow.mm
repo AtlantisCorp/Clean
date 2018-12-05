@@ -42,7 +42,9 @@ OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& con
     }
     
     NSOpenGLContext* nsContext = (NSOpenGLContext*) context->toNSOpenGLContext();
-    OSXGlView* windowView = [[OSXGlView alloc] initWithFrame:[nsWindow frame] andContext:nsContext];
+    OSXGlView* windowView = [[OSXGlView alloc] initWithFrame:[nsWindow frame]
+                                                  andContext:nsContext
+                                                  andCreator:this];
     
     [nsWindow setContentView:windowView];
     [nsContext setView:windowView];
@@ -82,7 +84,9 @@ OSXGlRenderWindow::OSXGlRenderWindow(std::shared_ptr < OSXGlContext > const& con
     }
     
     NSOpenGLContext* windowContext = (NSOpenGLContext*) context->toNSOpenGLContext();
-    OSXGlView* windowView = [[OSXGlView alloc] initWithFrame:[window frame] andContext:windowContext];
+    OSXGlView* windowView = [[OSXGlView alloc] initWithFrame:[window frame]
+                                                  andContext:windowContext
+                                                  andCreator:this];
     
     [window setContentView:windowView];
     [windowContext setView:windowView];
@@ -129,7 +133,9 @@ OSXGlRenderWindow::OSXGlRenderWindow(OSXGlRenderWindow const& rhs)
         NotificationCenter::GetDefault()->send(notif);
     }
     
-    OSXGlView* windowView = [[OSXGlView alloc] initWithFrame:[nsWindow frame] andContext:nsContext];
+    OSXGlView* windowView = [[OSXGlView alloc] initWithFrame:[nsWindow frame]
+                                                  andContext:nsContext
+                                                  andCreator:this];
     
     [nsWindow setContentView:windowView];
     [nsContext setView:windowView];

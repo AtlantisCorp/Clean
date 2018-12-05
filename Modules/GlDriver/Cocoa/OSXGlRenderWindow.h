@@ -140,6 +140,9 @@ public:
     /*! @brief Notifies a Window's resize. */
     void notifyResize(CGFloat width, CGFloat height);
     
+    /*! @brief Notifies when a Key is pressed or released. */
+    
+    
 #   endif
 };
 

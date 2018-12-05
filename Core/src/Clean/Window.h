@@ -83,6 +83,13 @@ namespace Clean
         WindowPosition newPosition;
     };
     
+    /** @brief Sent when a Mouse in a Window is moved. */
+    struct WindowMouseMovedEvent : public WindowEvent
+    {
+        float deltaX;
+        float deltaY;
+    };
+    
     /*! @brief Listens to a Window object. */
     class WindowListener 
     {
@@ -102,6 +109,9 @@ namespace Clean
         
         /*! @brief Called when a window moved. */
         virtual void onWindowMove(WindowMoveEvent const& event) {}
+        
+        /*! @brief Called when a Mouse in a Window moved. */
+        virtual void onWindowMouseMoved(WindowMouseMovedEvent const& event) {}
     };
     
     /** @brief Base interface to a window object. 
